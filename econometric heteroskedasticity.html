@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heteroskedasticity Detection & Correction Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #991b1b;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #14b8a6, #10b981);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .method-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .method-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .method-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .test-formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #f0f9ff;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .method-card p {
+            color: #f0f9ff;
+            font-size: 0.95em;
+            margin: 8px 0;
+        }
+
+        .decision-making {
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .decision-making h3 {
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+
+        .scenario-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid #3b82f6;
+            transition: opacity 0.3s ease;
+        }
+
+        .scenario-title {
+            font-size: 1.5em;
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .economic-context {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .regression-results {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+            border: 1px solid #475569;
+        }
+
+        .diagnostic-hint {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .diagnostic-hint h5 {
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+
+        .diagnostic-hint p {
+            color: #78350f;
+            font-size: 0.9em;
+        }
+
+        .phase-selector {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .phase-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #475569;
+            transition: all 0.3s ease;
+        }
+
+        .phase-btn.active {
+            background: #3b82f6;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .decision-card {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .decision-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .decision-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .decision-card h4 {
+            color: #1e40af;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .test-statistic {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.8em;
+        }
+
+        .method-description {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 10px;
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .feedback-section {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .feedback-section.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-title {
+            color: #16a34a;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .feedback-content {
+            color: #15803d;
+            line-height: 1.6;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .comparison-results {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .comparison-results h5 {
+            color: #ca8a04;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+            font-size: 0.9em;
+        }
+
+        .results-table th {
+            background: #f9fafb;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .improved-result {
+            background: #dcfce7 !important;
+            font-weight: bold;
+        }
+
+        .economic-interpretation {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .economic-interpretation h5 {
+            color: #047857;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .economic-interpretation p {
+            color: #065f46;
+            line-height: 1.5;
+        }
+
+        .phase-content {
+            display: none;
+        }
+
+        .phase-content.active {
+            display: block;
+        }
+
+        .residual-plot {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .residual-plot h5 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .residual-plot p {
+            color: #6b7280;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>🔍 Heteroskedasticity Analysis</h1>
+            <p>Detection, Testing & Correction Methods (Wooldridge Ch. 8)</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🧠 Essential Heteroskedasticity Concepts & Methods</h3>
+            
+            <div class="method-types">
+                <div class="method-card">
+                    <h4>👁️ Visual Detection</h4>
+                    <div class="test-formula">Plot residuals vs. fitted values, X variables</div>
+                    <p><strong>Pattern:</strong> Funnel/cone shape indicates heteroskedasticity</p>
+                    <p><strong>Advantage:</strong> Intuitive, reveals functional form</p>
+                    <p><strong>Limitation:</strong> Subjective, hard with multiple variables</p>
+                    <p><strong>Use when:</strong> Initial diagnosis, small samples</p>
+                </div>
+                
+                <div class="method-card">
+                    <h4>⚪ White Test (General)</h4>
+                    <div class="test-formula">H₀: Homoskedasticity | Test: nR² ~ χ²(p-1) | Includes all X², X₁X₂ terms</div>
+                    <p><strong>Pattern:</strong> Tests against any form of heteroskedasticity</p>
+                    <p><strong>Advantage:</strong> No specific functional form assumption</p>
+                    <p><strong>Limitation:</strong> Many degrees of freedom, low power</p>
+                    <p><strong>Use when:</strong> Uncertain about heteroskedasticity form</p>
+                </div>
+                
+                <div class="method-card">
+                    <h4>📊 Breusch-Pagan Test</h4>
+                    <div class="test-formula">H₀: σ² constant | Test: LM = ½(SSR₁) ~ χ²(p-1) | Specific variance function</div>
+                    <p><strong>Pattern:</strong> Tests specific functional form σ²ᵢ = h(Zᵢγ)</p>
+                    <p><strong>Advantage:</strong> Higher power when correctly specified</p>
+                    <p><strong>Limitation:</strong> Requires variance function assumption</p>
+                    <p><strong>Use when:</strong> Theory suggests specific heteroskedasticity pattern</p>
+                </div>
+                
+                <div class="method-card">
+                    <h4>🔄 Goldfeld-Quandt Test</h4>
+                    <div class="test-formula">H₀: σ₁² = σ₂² | Test: F = SSR₂/SSR₁ ~ F(n-k-c) | Split sample</div>
+                    <p><strong>Pattern:</strong> Compares variance in two subsamples</p>
+                    <p><strong>Advantage:</strong> Simple, powerful for ordered alternatives</p>
+                    <p><strong>Limitation:</strong> Requires sorting variable, loses observations</p>
+                    <p><strong>Use when:</strong> Single variable drives heteroskedasticity</p>
+                </div>
+                
+                <div class="method-card">
+                    <h4>🛡️ Robust Standard Errors</h4>
+                    <div class="test-formula">SE(β̂ⱼ)ᴿᵒᵇᵘˢᵗ = √[Var(β̂ⱼ)ᴴᵉᵗᵉʳᵒ] | White's correction</div>
+                    <p><strong>Pattern:</strong> Corrects standard errors without modeling variance</p>
+                    <p><strong>Advantage:</strong> Always valid, no efficiency loss</p>
+                    <p><strong>Limitation:</strong> No efficiency gain, conservative</p>
+                    <p><strong>Use when:</strong> Unsure about heteroskedasticity form</p>
+                </div>
+                
+                <div class="method-card">
+                    <h4>⚖️ Weighted Least Squares</h4>
+                    <div class="test-formula">WLS: Minimize Σwᵢ(yᵢ - xᵢβ)² | wᵢ = 1/σᵢ² | Known variance function</div>
+                    <p><strong>Pattern:</strong> Weight observations by inverse variance</p>
+                    <p><strong>Advantage:</strong> Efficient when variance function known</p>
+                    <p><strong>Limitation:</strong> Requires known variance structure</p>
+                    <p><strong>Use when:</strong> Theory/data reveal clear variance pattern</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-making">
+            <h3>💼 Professional Heteroskedasticity Analysis</h3>
+
+            <div class="scenario-section">
+                <div class="scenario-title" id="scenarioTitle">🏠 Canadian Housing Market Income-Price Analysis</div>
+                
+                <div class="economic-context" id="economicContext">
+                    <p><strong>Research Question:</strong> Investigating the relationship between household income and housing expenditure across Canadian metropolitan areas, with concern that spending variance increases with income level.</p>
+                    
+                    <p><strong>Economic Theory:</strong> Permanent income hypothesis suggests high-income households have more variable consumption patterns. Housing as luxury good implies higher income elasticity and variance for wealthy households.</p>
+                </div>
+
+                <div class="regression-results" id="regressionResults">
+                    <strong>Initial OLS Regression Results:</strong><br>
+                    Housing_Expenditure = 12,450 + 2.34*Income + 890*Family_Size + 1,240*Education<br>
+                                        (2,340)   (0.45)        (156)           (234)<br><br>
+                    n = 2,847 | R² = 0.623 | Standard errors in parentheses<br>
+                    Residual patterns show increasing variance with fitted values
+                </div>
+
+                <div class="residual-plot" id="residualPlot">
+                    <h5>📊 Residual Plot Analysis</h5>
+                    <p>Residuals vs. Fitted Values show clear funnel pattern expanding rightward. Income-residual plot reveals cone shape. Variance appears to increase proportionally with income level.</p>
+                </div>
+
+                <div class="phase-selector">
+                    <button class="phase-btn active" onclick="switchPhase('detection')">Detection Phase</button>
+                    <button class="phase-btn" onclick="switchPhase('correction')">Correction Phase</button>
+                </div>
+
+                <div class="phase-content active" id="detectionPhase">
+                    <div class="diagnostic-hint">
+                        <h5>🎯 Detection Strategy Decision</h5>
+                        <p><strong>Question:</strong> Given the economic context and visual evidence, which test is most appropriate for detecting heteroskedasticity in this housing expenditure model?</p>
+                    </div>
+
+                    <div class="decision-cards" id="detectionCards">
+                        <div class="decision-card" onclick="selectDetection(0)" data-index="0">
+                            <h4>White Test (General Form)</h4>
+                            <div class="test-statistic">nR² = 2,847 × 0.089 = 253.4<br>χ²(14) critical = 23.68</div>
+                            <div class="method-description">
+                                Tests against any form of heteroskedasticity without specific assumptions about variance function.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectDetection(1)" data-index="1">
+                            <h4>Breusch-Pagan Test</h4>
+                            <div class="test-statistic">LM = ½(SSR₁) = 127.8<br>χ²(3) critical = 7.81</div>
+                            <div class="method-description">
+                                Tests specific hypothesis that variance is linear function of income, family size, and education.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectDetection(2)" data-index="2">
+                            <h4>Goldfeld-Quandt Test</h4>
+                            <div class="test-statistic">F = SSR_high/SSR_low = 3.67<br>F(1420,1420) critical = 1.08</div>
+                            <div class="method-description">
+                                Splits sample by income level and compares variance between high and low income groups.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectDetection(3)" data-index="3">
+                            <h4>Visual Analysis Only</h4>
+                            <div class="test-statistic">Subjective assessment<br>No formal test statistic</div>
+                            <div class="method-description">
+                                Relies on residual plot patterns without formal statistical testing for heteroskedasticity.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-content" id="correctionPhase">
+                    <div class="diagnostic-hint">
+                        <h5>🛠️ Correction Strategy Decision</h5>
+                        <p><strong>Question:</strong> Having confirmed heteroskedasticity, which correction method is most appropriate given the income-variance relationship pattern?</p>
+                    </div>
+
+                    <div class="decision-cards" id="correctionCards">
+                        <div class="decision-card" onclick="selectCorrection(0)" data-index="0">
+                            <h4>Robust Standard Errors</h4>
+                            <div class="test-statistic">White's heteroskedasticity-consistent<br>SE_robust = SE_ols × correction_factor</div>
+                            <div class="method-description">
+                                Corrects standard errors without modeling the variance structure. Safe but not most efficient.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectCorrection(1)" data-index="1">
+                            <h4>Weighted Least Squares</h4>
+                            <div class="test-statistic">Weights: wᵢ = 1/Income_i<br>Assumes Var(εᵢ) ∝ Income_i</div>
+                            <div class="method-description">
+                                Weight observations by inverse income level, assuming variance proportional to income.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectCorrection(2)" data-index="2">
+                            <h4>Log Transformation</h4>
+                            <div class="test-statistic">log(Housing) = β₀ + β₁log(Income) + ...<br>Multiplicative heteroskedasticity</div>
+                            <div class="method-description">
+                                Transform variables to logs, addressing multiplicative heteroskedasticity pattern.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectCorrection(3)" data-index="3">
+                            <h4>Feasible GLS (FGLS)</h4>
+                            <div class="test-statistic">Two-step: estimate σᵢ², then WLS<br>σ̂ᵢ² = exp(δ₀ + δ₁Incomeᵢ)</div>
+                            <div class="method-description">
+                                Estimate variance function, then use estimated weights for efficient estimation.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="submit-btn" onclick="evaluateDetection()" id="detectionSubmit">Evaluate Detection Choice</button>
+                    <button class="submit-btn" onclick="evaluateCorrection()" id="correctionSubmit" style="display: none;">Evaluate Correction Choice</button>
+                </div>
+
+                <div class="feedback-section" id="feedbackSection">
+                    <div class="feedback-title">📊 Expert Analysis & Econometric Results</div>
+                    <div class="feedback-content" id="feedbackContent">
+                        <!-- Feedback will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateNewScenario()">🔄 Generate New Heteroskedasticity Challenge</button>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive heteroskedasticity scenarios following Wooldridge Chapter 8
+        const heteroskedasticityScenarios = [
+            {
+                title: "🏠 Canadian Housing Market Income-Price Analysis",
+                context: "Investigating the relationship between household income and housing expenditure across Canadian metropolitan areas, with concern that spending variance increases with income level.",
+                theory: "Permanent income hypothesis suggests high-income households have more variable consumption patterns. Housing as luxury good implies higher income elasticity and variance for wealthy households.",
+                regressionResults: {
+                    equation: "Housing_Expenditure = 12,450 + 2.34*Income + 890*Family_Size + 1,240*Education",
+                    se: "(2,340)   (0.45)        (156)           (234)",
+                    stats: "n = 2,847 | R² = 0.623 | Standard errors in parentheses",
+                    residualPattern: "Residual patterns show increasing variance with fitted values"
+                },
+                residualPlot: "Residuals vs. Fitted Values show clear funnel pattern expanding rightward. Income-residual plot reveals cone shape. Variance appears to increase proportionally with income level.",
+                detectionTests: [
+                    {
+                        name: "White Test (General Form)",
+                        statistic: "nR² = 2,847 × 0.089 = 253.4\nχ²(14) critical = 23.68",
+                        description: "Tests against any form of heteroskedasticity without specific assumptions about variance function.",
+                        appropriate: true,
+                        reasoning: "Detects heteroskedasticity without requiring specific variance function. High test statistic strongly rejects homoskedasticity."
+                    },
+                    {
+                        name: "Breusch-Pagan Test",
+                        statistic: "LM = ½(SSR₁) = 127.8\nχ²(3) critical = 7.81",
+                        description: "Tests specific hypothesis that variance is linear function of income, family size, and education.",
+                        appropriate: true,
+                        reasoning: "Well-suited when theory suggests variance depends on explanatory variables. Strong rejection confirms income-based heteroskedasticity."
+                    },
+                    {
+                        name: "Goldfeld-Quandt Test",
+                        statistic: "F = SSR_high/SSR_low = 3.67\nF(1420,1420) critical = 1.08",
+                        description: "Splits sample by income level and compares variance between high and low income groups.",
+                        appropriate: true,
+                        reasoning: "Excellent for single-variable heteroskedasticity. Clear income ordering makes this test powerful and appropriate."
+                    },
+                    {
+                        name: "Visual Analysis Only",
+                        statistic: "Subjective assessment\nNo formal test statistic",
+                        description: "Relies on residual plot patterns without formal statistical testing for heteroskedasticity.",
+                        appropriate: false,
+                        reasoning: "Insufficient for professional econometrics. Visual evidence should be confirmed with formal statistical tests."
+                    }
+                ],
+                correctionMethods: [
+                    {
+                        name: "Robust Standard Errors",
+                        statistic: "White's heteroskedasticity-consistent\nSE_robust = SE_ols × correction_factor",
+                        description: "Corrects standard errors without modeling the variance structure. Safe but not most efficient.",
+                        appropriate: true,
+                        reasoning: "Always valid correction. Conservative approach when unsure about exact variance function form."
+                    },
+                    {
+                        name: "Weighted Least Squares",
+                        statistic: "Weights: wᵢ = 1/Income_i\nAssumes Var(εᵢ) ∝ Income_i",
+                        description: "Weight observations by inverse income level, assuming variance proportional to income.",
+                        appropriate: true,
+                        reasoning: "Most efficient when variance function correctly specified. Economic theory supports proportional variance assumption."
+                    },
+                    {
+                        name: "Log Transformation",
+                        statistic: "log(Housing) = β₀ + β₁log(Income) + ...\nMultiplicative heteroskedasticity",
+                        description: "Transform variables to logs, addressing multiplicative heteroskedasticity pattern.",
+                        appropriate: false,
+                        reasoning: "Changes economic interpretation to elasticities. May not eliminate heteroskedasticity if variance not proportional."
+                    },
+                    {
+                        name: "Feasible GLS (FGLS)",
+                        statistic: "Two-step: estimate σᵢ², then WLS\nσ̂ᵢ² = exp(δ₀ + δ₁Incomeᵢ)",
+                        description: "Estimate variance function, then use estimated weights for efficient estimation.",
+                        appropriate: false,
+                        reasoning: "More complex than needed. Simple WLS with income weights likely sufficient given clear variance pattern."
+                    }
+                ],
+                detectionCorrect: 2, // Goldfeld-Quandt
+                correctionCorrect: 1, // WLS
+                comparisonResults: {
+                    ols: { se_income: 0.45, t_stat: 5.20, efficiency: "100%" },
+                    robust: { se_income: 0.67, t_stat: 3.49, efficiency: "45%" },
+                    wls: { se_income: 0.34, t_stat: 6.88, efficiency: "134%" },
+                    fgls: { se_income: 0.36, t_stat: 6.50, efficiency: "125%" }
+                },
+                economicInterpretation: "WLS estimation reveals income coefficient of 2.34 with standard error 0.34 (vs. 0.45 OLS). Each $1,000 income increase associated with $2,340 additional housing expenditure. Efficiency gain of 34% from proper variance modeling.",
+                policyImplication: "Income-based heteroskedasticity confirms luxury good status of housing. Progressive taxation and housing affordability programs should account for higher consumption variability among high-income households. Variance modeling crucial for accurate policy impact assessment."
+            },
+            {
+                title: "🏭 Canadian Manufacturing Firm Size-Performance Analysis",
+                context: "Analyzing the relationship between firm size and productivity across Canadian manufacturing firms, with concern that larger firms show more variable performance outcomes.",
+                theory: "Large firms face more complex operational challenges and market dynamics, leading to higher performance variance. Economies and diseconomies of scale create non-linear size-performance relationships with heteroskedastic errors.",
+                regressionResults: {
+                    equation: "Productivity = 2.45 + 0.034*Firm_Size + 0.67*Technology + 0.28*Export_Share",
+                    se: "(0.45)   (0.008)       (0.12)          (0.15)",
+                    stats: "n = 1,350 firms | R² = 0.584 | Standard errors in parentheses",
+                    residualPattern: "Residuals show increasing scatter with firm size, suggesting size-based heteroskedasticity"
+                },
+                residualPlot: "Size-residual scatter plot shows clear trumpet shape. Variance increases roughly proportional to firm size. Small firms cluster tightly around fitted line; large firms show wide dispersion.",
+                detectionTests: [
+                    {
+                        name: "White Test (General Form)",
+                        statistic: "nR² = 1,350 × 0.156 = 210.6\nχ²(9) critical = 16.92",
+                        description: "Tests general heteroskedasticity without specific variance function assumptions.",
+                        appropriate: true,
+                        reasoning: "Strongly rejects homoskedasticity. Detects heteroskedasticity without requiring specific assumptions about variance structure."
+                    },
+                    {
+                        name: "Breusch-Pagan Test",
+                        statistic: "LM = ½(SSR₁) = 89.4\nχ²(3) critical = 7.81",
+                        description: "Tests variance as function of firm size, technology, and export share.",
+                        appropriate: true,
+                        reasoning: "Economic theory supports size-based variance. Test strongly confirms heteroskedasticity related to explanatory variables."
+                    },
+                    {
+                        name: "Goldfeld-Quandt Test",
+                        statistic: "F = SSR_large/SSR_small = 4.23\nF(672,672) critical = 1.08",
+                        description: "Compares variance between large and small firms after sorting by size.",
+                        appropriate: true,
+                        reasoning: "Perfect for size-based heteroskedasticity. Clear ordering variable and strong test result confirm variance differences."
+                    },
+                    {
+                        name: "Park Test (Multiplicative)",
+                        statistic: "log(ê²) = α + β log(Size) + v\nβ̂ = 1.67, t = 8.45",
+                        description: "Tests whether variance is proportional to size raised to some power.",
+                        appropriate: false,
+                        reasoning: "Less common approach. Goldfeld-Quandt or Breusch-Pagan more standard for this application."
+                    }
+                ],
+                correctionMethods: [
+                    {
+                        name: "Robust Standard Errors",
+                        statistic: "White's heteroskedasticity-consistent\nSE_robust = SE_ols × correction_factor",
+                        description: "Corrects standard errors without modeling variance structure.",
+                        appropriate: true,
+                        reasoning: "Safe approach that remains valid regardless of variance function specification. Good baseline correction."
+                    },
+                    {
+                        name: "Weighted Least Squares",
+                        statistic: "Weights: wᵢ = 1/Size_i\nAssumes Var(εᵢ) ∝ Size_i",
+                        description: "Weight by inverse firm size, assuming variance proportional to size.",
+                        appropriate: true,
+                        reasoning: "Economic theory and residual patterns support size-proportional variance. Most efficient correction method."
+                    },
+                    {
+                        name: "Grouped Data Approach",
+                        statistic: "Separate regressions by size quintiles\nPool with different error variances",
+                        description: "Estimate separate models for different size categories.",
+                        appropriate: false,
+                        reasoning: "Loses efficiency and complicates interpretation. WLS handles size variation more elegantly."
+                    },
+                    {
+                        name: "Square Root Transformation",
+                        statistic: "√Productivity = β₀ + β₁√Size + ...\nVariance stabilization",
+                        description: "Transform dependent variable to stabilize variance.",
+                        appropriate: false,
+                        reasoning: "Changes economic interpretation unnecessarily. Direct variance modeling through WLS preferable."
+                    }
+                ],
+                detectionCorrect: 2, // Goldfeld-Quandt
+                correctionCorrect: 1, // WLS
+                comparisonResults: {
+                    ols: { se_size: 0.008, t_stat: 4.25, efficiency: "100%" },
+                    robust: { se_size: 0.012, t_stat: 2.83, efficiency: "44%" },
+                    wls: { se_size: 0.006, t_stat: 5.67, efficiency: "144%" },
+                    transform: { se_size: 0.009, t_stat: 3.78, efficiency: "79%" }
+                },
+                economicInterpretation: "WLS reveals size coefficient of 0.034 with improved precision (SE = 0.006 vs. 0.008 OLS). Each additional employee associated with 0.034 productivity units increase. Size-based weighting accounts for larger firms' higher variance.",
+                policyImplication: "Size-based heteroskedasticity confirms different operational challenges across firm sizes. Industrial policy should account for higher performance variability among large firms. SME support programs benefit from reduced variance understanding."
+            },
+            {
+                title: "🌍 Cross-Country Economic Growth Analysis",
+                context: "Examining factors affecting economic growth across developed and developing countries, with concern that data quality and institutional differences create heteroskedastic errors.",
+                theory: "Developing countries have lower data quality, higher institutional uncertainty, and more variable growth patterns. Measurement error and structural instability increase with development level differences.",
+                regressionResults: {
+                    equation: "Growth_Rate = 1.23 + 0.045*Investment + 0.67*Education + 0.34*Trade_Openness",
+                    se: "(0.78)   (0.018)         (0.23)        (0.12)",
+                    stats: "n = 127 countries | R² = 0.492 | Standard errors in parentheses",
+                    residualPattern: "Higher variance for lower-income countries, suggesting development-level heteroskedasticity"
+                },
+                residualPlot: "GDP per capita vs. residuals shows decreasing variance with development level. Developing countries exhibit wide growth rate dispersion; developed countries cluster tightly around fitted line.",
+                detectionTests: [
+                    {
+                        name: "White Test (General Form)",
+                        statistic: "nR² = 127 × 0.234 = 29.7\nχ²(9) critical = 16.92",
+                        description: "General heteroskedasticity test without development-level assumptions.",
+                        appropriate: true,
+                        reasoning: "Detects heteroskedasticity but doesn't utilize information about development-based variance patterns."
+                    },
+                    {
+                        name: "Breusch-Pagan Test",
+                        statistic: "LM = ½(SSR₁) = 18.6\nχ²(3) critical = 7.81",
+                        description: "Tests variance as function of investment, education, and trade openness.",
+                        appropriate: false,
+                        reasoning: "Misses development-level heteroskedasticity. These variables don't directly capture data quality differences."
+                    },
+                    {
+                        name: "Goldfeld-Quandt Test",
+                        statistic: "F = SSR_developing/SSR_developed = 6.78\nF(62,62) critical = 1.51",
+                        description: "Compares variance between developing and developed countries.",
+                        appropriate: true,
+                        reasoning: "Perfect for development-based heteroskedasticity. Clear economic justification for different variance levels."
+                    },
+                    {
+                        name: "Modified Breusch-Pagan",
+                        statistic: "LM with GDP per capita = 24.3\nχ²(1) critical = 3.84",
+                        description: "Tests variance against development level directly.",
+                        appropriate: true,
+                        reasoning: "Captures development-based heteroskedasticity effectively. Uses appropriate explanatory variable for variance."
+                    }
+                ],
+                correctionMethods: [
+                    {
+                        name: "Robust Standard Errors",
+                        statistic: "White's heteroskedasticity-consistent\nAccounts for unknown variance pattern",
+                        description: "Safe correction without assuming specific variance structure.",
+                        appropriate: true,
+                        reasoning: "Conservative approach suitable for cross-country data with complex variance patterns."
+                    },
+                    {
+                        name: "Development-Level Grouping",
+                        statistic: "Separate σ² for developed/developing\nGroup-specific variance estimation",
+                        description: "Different error variances for developed vs. developing countries.",
+                        appropriate: true,
+                        reasoning: "Matches economic theory about data quality differences. Captures systematic variance pattern."
+                    },
+                    {
+                        name: "WLS by GDP Level",
+                        statistic: "Weights: wᵢ = GDP_per_capita_i\nHigher weight for developed countries",
+                        description: "Weight countries by development level as proxy for data quality.",
+                        appropriate: false,
+                        reasoning: "Assumes specific functional form that may not hold. Development grouping more flexible."
+                    },
+                    {
+                        name: "Feasible GLS",
+                        statistic: "σ̂ᵢ² = f(GDP_per_capita_i)\nTwo-step estimation",
+                        description: "Model variance as function of development level, then use estimated weights.",
+                        appropriate: false,
+                        reasoning: "Overly complex for binary development classification. Simple grouping equally effective."
+                    }
+                ],
+                detectionCorrect: 2, // Goldfeld-Quandt
+                correctionCorrect: 1, // Development-Level Grouping
+                comparisonResults: {
+                    ols: { se_investment: 0.018, t_stat: 2.50, efficiency: "100%" },
+                    robust: { se_investment: 0.026, t_stat: 1.73, efficiency: "48%" },
+                    grouped: { se_investment: 0.014, t_stat: 3.21, efficiency: "165%" },
+                    wls: { se_investment: 0.019, t_stat: 2.37, efficiency: "90%" }
+                },
+                economicInterpretation: "Development-level grouping improves investment coefficient precision (SE = 0.014 vs. 0.018 OLS). Each percentage point investment increase associated with 0.045 percentage point growth increase. Efficiency gain of 65% from variance modeling.",
+                policyImplication: "Development-based heteroskedasticity confirms data quality differences between country groups. Policy analysis should weight developed country evidence more heavily. Aid effectiveness studies must account for higher variance in developing countries."
+            },
+            {
+                title: "💼 Canadian Corporate Finance: Firm Age and Profitability",
+                context: "Analyzing relationship between firm age and profitability across Canadian corporations, with concern that young firms show more variable performance due to market uncertainty and learning effects.",
+                theory: "Young firms face higher uncertainty, market learning, and resource constraints leading to more variable profitability. Established firms have stable operations and predictable performance patterns.",
+                regressionResults: {
+                    equation: "ROA = 8.45 + 0.12*Firm_Age + 0.34*Leverage + 0.67*Industry_Growth - 0.08*Risk",
+                    se: "(1.23)   (0.045)      (0.12)       (0.18)             (0.034)",
+                    stats: "n = 2,156 firms | R² = 0.367 | Standard errors in parentheses",
+                    residualPattern: "Young firms show much higher residual variance than mature firms"
+                },
+                residualPlot: "Age-residual plot shows clear variance pattern: high variance for young firms (0-10 years), decreasing variance with age, stabilizing after 20+ years. Classic heteroskedastic pattern.",
+                detectionTests: [
+                    {
+                        name: "White Test (General Form)",
+                        statistic: "nR² = 2,156 × 0.134 = 288.9\nχ²(14) critical = 23.68",
+                        description: "General heteroskedasticity test including all variable interactions.",
+                        appropriate: true,
+                        reasoning: "Strongly detects heteroskedasticity but doesn't specifically test age-based variance hypothesis."
+                    },
+                    {
+                        name: "Breusch-Pagan Test",
+                        statistic: "LM = ½(SSR₁) = 145.7\nχ²(4) critical = 9.49",
+                        description: "Tests variance as linear function of all explanatory variables.",
+                        appropriate: true,
+                        reasoning: "Includes firm age as variance determinant along with other factors. Strong test result confirms heteroskedasticity."
+                    },
+                    {
+                        name: "Goldfeld-Quandt Test",
+                        statistic: "F = SSR_young/SSR_mature = 7.89\nF(1070,1070) critical = 1.08",
+                        description: "Splits firms by age (young: 0-15 years, mature: 15+ years) and compares variance.",
+                        appropriate: true,
+                        reasoning: "Directly tests age-based heteroskedasticity hypothesis. Clear economic justification and strong test result."
+                    },
+                    {
+                        name: "Age-Specific Park Test",
+                        statistic: "log(ê²) = α + β log(Age) + v\nβ̂ = -1.24, t = -6.78",
+                        description: "Tests whether variance decreases with firm age in log-log specification.",
+                        appropriate: false,
+                        reasoning: "Specialized test, less common in practice. Standard tests sufficient for detecting age-based heteroskedasticity."
+                    }
+                ],
+                correctionMethods: [
+                    {
+                        name: "Robust Standard Errors",
+                        statistic: "White's heteroskedasticity-consistent\nValid for any variance pattern",
+                        description: "Corrects standard errors without assuming specific age-variance relationship.",
+                        appropriate: true,
+                        reasoning: "Safe approach that handles age-based heteroskedasticity without parametric assumptions."
+                    },
+                    {
+                        name: "Age-Group Weighting",
+                        statistic: "Weights by age groups: 0-5, 6-15, 16+ years\nGroup-specific variance estimates",
+                        description: "Different weights for young, medium, and mature firms based on empirical variance.",
+                        appropriate: true,
+                        reasoning: "Captures non-linear age-variance relationship effectively. Matches economic theory about firm lifecycle."
+                    },
+                    {
+                        name: "Inverse Age Weighting",
+                        statistic: "Weights: wᵢ = Age_i/(1 + Age_i)\nAssumes variance ∝ 1/Age",
+                        description: "Weight firms by normalized age, giving lower weight to younger firms.",
+                        appropriate: false,
+                        reasoning: "Imposes specific functional form. Age grouping more flexible and empirically motivated."
+                    },
+                    {
+                        name: "Separate Young/Mature Models",
+                        statistic: "Different β coefficients by age group\nAllow for varying relationships",
+                        description: "Estimate completely separate models for young and mature firms.",
+                        appropriate: false,
+                        reasoning: "Tests different hypothesis (varying coefficients) rather than just correcting heteroskedasticity."
+                    }
+                ],
+                detectionCorrect: 2, // Goldfeld-Quandt
+                correctionCorrect: 1, // Age-Group Weighting
+                comparisonResults: {
+                    ols: { se_age: 0.045, t_stat: 2.67, efficiency: "100%" },
+                    robust: { se_age: 0.071, t_stat: 1.69, efficiency: "40%" },
+                    age_weighted: { se_age: 0.032, t_stat: 3.75, efficiency: "197%" },
+                    inverse_age: { se_age: 0.038, t_stat: 3.16, efficiency: "140%" }
+                },
+                economicInterpretation: "Age-group weighting reveals strong age effect (β = 0.12, SE = 0.032) with 97% efficiency gain. Each additional year of firm age increases ROA by 0.12 percentage points. Variance modeling accounts for lifecycle uncertainty differences.",
+                policyImplication: "Age-based heteroskedasticity confirms firm lifecycle theory. Startup support policies should account for higher performance variability. Credit scoring and investment analysis must weight young firm data appropriately for risk assessment."
+            },
+            {
+                title: "📊 Canadian Labor Market: Experience-Wage Variance Analysis",
+                context: "Studying relationship between work experience and wages across Canadian workers, with concern that wage variance changes systematically with experience levels due to career heterogeneity.",
+                theory: "Early career wages show high variance due to job matching, skill discovery, and career path uncertainty. Mid-career convergence occurs as workers find optimal matches. Late career may show renewed variance due to differential skill obsolescence.",
+                regressionResults: {
+                    equation: "Log_Wage = 2.78 + 0.045*Experience + 0.087*Education + 0.124*Male + 0.034*Urban",
+                    se: "(0.034)   (0.008)        (0.012)       (0.023)     (0.018)",
+                    stats: "n = 8,947 workers | R² = 0.542 | Standard errors in parentheses",
+                    residualPattern: "U-shaped variance pattern: high for new workers, low mid-career, increasing for experienced workers"
+                },
+                residualPlot: "Experience-residual plot reveals U-shaped variance pattern. High dispersion for 0-5 years experience, minimum around 15-20 years, increasing again after 25+ years. Classic lifecycle heteroskedasticity.",
+                detectionTests: [
+                    {
+                        name: "White Test (General Form)",
+                        statistic: "nR² = 8,947 × 0.089 = 796.3\nχ²(14) critical = 23.68",
+                        description: "General test including all variables and interactions for heteroskedasticity.",
+                        appropriate: true,
+                        reasoning: "Powerfully detects heteroskedasticity but doesn't capture specific experience-based variance pattern."
+                    },
+                    {
+                        name: "Breusch-Pagan Test",
+                        statistic: "LM = ½(SSR₁) = 234.6\nχ²(4) critical = 9.49",
+                        description: "Tests linear variance function of experience, education, gender, and location.",
+                        appropriate: false,
+                        reasoning: "Misses U-shaped pattern. Linear specification inadequate for experience lifecycle effects."
+                    },
+                    {
+                        name: "Experience Quadratic BP",
+                        statistic: "LM with Experience + Experience² = 187.3\nχ²(2) critical = 5.99",
+                        description: "Tests variance as quadratic function of experience to capture U-shape.",
+                        appropriate: true,
+                        reasoning: "Captures U-shaped variance pattern theoretically predicted by career lifecycle models. Strong test result."
+                    },
+                    {
+                        name: "Goldfeld-Quandt Test",
+                        statistic: "F = SSR_inexperienced/SSR_mid = 3.45\nF(2970,2970) critical = 1.05",
+                        description: "Compares variance between inexperienced (0-10 years) and mid-career (10-20 years) workers.",
+                        appropriate: true,
+                        reasoning: "Tests part of lifecycle pattern but misses late-career variance increase. Limited compared to quadratic test."
+                    }
+                ],
+                correctionMethods: [
+                    {
+                        name: "Robust Standard Errors",
+                        statistic: "White's heteroskedasticity-consistent\nHandles complex variance patterns",
+                        description: "Safe correction that handles U-shaped variance without parametric assumptions.",
+                        appropriate: true,
+                        reasoning: "Conservative approach suitable for complex lifecycle variance patterns."
+                    },
+                    {
+                        name: "Experience-Group Weighting",
+                        statistic: "Groups: 0-10, 10-25, 25+ years\nGroup-specific variance estimation",
+                        description: "Different variance levels for early, mid, and late career workers.",
+                        appropriate: true,
+                        reasoning: "Captures career lifecycle heteroskedasticity effectively. Flexible approach matching economic theory."
+                    },
+                    {
+                        name: "Quadratic Variance Function",
+                        statistic: "σᵢ² = exp(α + β₁Expᵢ + β₂Expᵢ²)\nFGLS with estimated variance",
+                        description: "Model variance as quadratic function of experience for FGLS estimation.",
+                        appropriate: false,
+                        reasoning: "Complex estimation for modest efficiency gains. Experience grouping simpler and equally effective."
+                    },
+                    {
+                        name: "Separate Career-Stage Models",
+                        statistic: "Different coefficients by experience groups\nAllow varying returns to characteristics",
+                        description: "Estimate separate wage equations for different career stages.",
+                        appropriate: false,
+                        reasoning: "Changes research question from variance correction to varying coefficients analysis."
+                    }
+                ],
+                detectionCorrect: 2, // Experience Quadratic BP
+                correctionCorrect: 1, // Experience-Group Weighting
+                comparisonResults: {
+                    ols: { se_experience: 0.008, t_stat: 5.63, efficiency: "100%" },
+                    robust: { se_experience: 0.012, t_stat: 3.75, efficiency: "44%" },
+                    exp_weighted: { se_experience: 0.006, t_stat: 7.50, efficiency: "178%" },
+                    quadratic_fgls: { se_experience: 0.007, t_stat: 6.43, efficiency: "131%" }
+                },
+                economicInterpretation: "Experience-group weighting improves precision significantly (SE = 0.006 vs. 0.008 OLS). Each year of experience increases wages by 4.5% with 78% efficiency gain from lifecycle variance modeling. U-shaped pattern confirms career development theory.",
+                policyImplication: "Lifecycle heteroskedasticity validates targeted labor policies: early career job matching programs, mid-career stability support, and late-career retraining initiatives. Wage analysis must account for experience-based variance patterns for accurate policy evaluation."
+            },
+            {
+                title: "🏥 Canadian Healthcare Spending: Regional Variance Analysis",
+                context: "Examining per-capita healthcare expenditure across Canadian provinces and territories, with concern that remote/northern regions show higher spending variance due to delivery challenges and population heterogeneity.",
+                theory: "Remote regions face higher healthcare delivery costs, population sparsity, and variable demand patterns. Geographic challenges create systematic differences in spending variance across provinces and territories.",
+                regressionResults: {
+                    equation: "Healthcare_PC = 3450 + 45.6*Age65Plus + 234*Rural + 567*Income + 123*Disease_Burden",
+                    se: "(234)         (12.3)         (67)      (89)      (45)",
+                    stats: "n = 338 health regions | R² = 0.634 | Standard errors in parentheses",
+                    residualPattern: "Northern territories and remote regions show much higher residual variance"
+                },
+                residualPlot: "Geographic variance pattern clear: low variance in urban southern regions, moderate in rural areas, high in northern territories. Population density strongly predicts variance levels.",
+                detectionTests: [
+                    {
+                        name: "White Test (General Form)",
+                        statistic: "nR² = 338 × 0.178 = 60.2\nχ²(14) critical = 23.68",
+                        description: "General heteroskedasticity test across all explanatory variables.",
+                        appropriate: true,
+                        reasoning: "Detects heteroskedasticity but doesn't specifically test geographic variance hypothesis."
+                    },
+                    {
+                        name: "Breusch-Pagan Test",
+                        statistic: "LM = ½(SSR₁) = 34.7\nχ²(4) critical = 9.49",
+                        description: "Tests variance against demographics, rurality, income, and disease burden.",
+                        appropriate: false,
+                        reasoning: "Includes rurality but misses specific geographic/territorial variance patterns."
+                    },
+                    {
+                        name: "Regional Goldfeld-Quandt",
+                        statistic: "F = SSR_territories/SSR_provinces = 8.34\nF(15,305) critical = 1.87",
+                        description: "Compares variance between territories (NWT, Nunavut, Yukon) and provinces.",
+                        appropriate: true,
+                        reasoning: "Directly tests geographic heteroskedasticity hypothesis. Strong economic justification for territorial differences."
+                    },
+                    {
+                        name: "Population Density BP",
+                        statistic: "LM with population density = 28.9\nχ²(1) critical = 3.84",
+                        description: "Tests variance against population density as proxy for delivery challenges.",
+                        appropriate: true,
+                        reasoning: "Population density captures geographic variance drivers effectively. Good proxy for healthcare delivery complexity."
+                    }
+                ],
+                correctionMethods: [
+                    {
+                        name: "Robust Standard Errors",
+                        statistic: "White's heteroskedasticity-consistent\nHandles geographic variance patterns",
+                        description: "Safe correction for unknown geographic variance structure.",
+                        appropriate: true,
+                        reasoning: "Conservative approach suitable for complex geographic variance patterns."
+                    },
+                    {
+                        name: "Regional Grouping",
+                        statistic: "Groups: Territories, Rural Provinces, Urban Provinces\nRegion-specific variance",
+                        description: "Different variance levels for territories, rural, and urban regions.",
+                        appropriate: true,
+                        reasoning: "Captures geographic heteroskedasticity effectively. Matches healthcare delivery theory."
+                    },
+                    {
+                        name: "Population Density Weighting",
+                        statistic: "Weights: wᵢ = Population_Density_i\nHigher weight for dense regions",
+                        description: "Weight regions by population density as proxy for data reliability.",
+                        appropriate: false,
+                        reasoning: "Continuous weighting less appropriate than discrete geographic grouping for policy analysis."
+                    },
+                    {
+                        name: "Province Fixed Effects",
+                        statistic: "Separate intercepts by province/territory\nControl for unobserved heterogeneity",
+                        description: "Include province dummy variables to control for systematic differences.",
+                        appropriate: false,
+                        reasoning: "Addresses different issue (heterogeneous intercepts) rather than heteroskedasticity correction."
+                    }
+                ],
+                detectionCorrect: 2, // Regional Goldfeld-Quandt
+                correctionCorrect: 1, // Regional Grouping
+                comparisonResults: {
+                    ols: { se_age65plus: 12.3, t_stat: 3.71, efficiency: "100%" },
+                    robust: { se_age65plus: 18.7, t_stat: 2.44, efficiency: "43%" },
+                    regional: { se_age65plus: 9.1, t_stat: 5.01, efficiency: "182%" },
+                    density_wt: { se_age65plus: 11.8, t_stat: 3.86, efficiency: "108%" }
+                },
+                economicInterpretation: "Regional grouping improves precision substantially (SE = 9.1 vs. 12.3 OLS). Each percentage point increase in 65+ population raises per-capita spending by $45.60 with 82% efficiency gain from geographic variance modeling.",
+                policyImplication: "Geographic heteroskedasticity confirms different healthcare delivery challenges across regions. Federal health transfers should account for higher variance in territories. Resource allocation models must weight regional data appropriately for planning accuracy."
+            }
+        ];
+
+        let currentScenario = null;
+        let selectedDetection = null;
+        let selectedCorrection = null;
+        let currentPhase = 'detection';
+
+        function generateNewScenario() {
+            // Ensure we get a different scenario than the current one
+            let newScenario;
+            do {
+                newScenario = heteroskedasticityScenarios[Math.floor(Math.random() * heteroskedasticityScenarios.length)];
+            } while (currentScenario && newScenario.title === currentScenario.title && heteroskedasticityScenarios.length > 1);
+            
+            currentScenario = newScenario;
+            selectedDetection = null;
+            selectedCorrection = null;
+            currentPhase = 'detection';
+            
+            // Reset phase selector
+            switchPhase('detection');
+            
+            // Add visual transition
+            const scenarioSection = document.querySelector('.scenario-section');
+            scenarioSection.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                // Update scenario display
+                document.getElementById('scenarioTitle').textContent = currentScenario.title;
+                document.getElementById('economicContext').innerHTML = `
+                    <p><strong>Research Question:</strong> ${currentScenario.context}</p>
+                    <p><strong>Economic Theory:</strong> ${currentScenario.theory}</p>
+                `;
+                
+                document.getElementById('regressionResults').innerHTML = `
+                    <strong>Initial OLS Regression Results:</strong><br>
+                    ${currentScenario.regressionResults.equation}<br>
+                    ${currentScenario.regressionResults.se}<br><br>
+                    ${currentScenario.regressionResults.stats}<br>
+                    ${currentScenario.regressionResults.residualPattern}
+                `;
+
+                document.getElementById('residualPlot').innerHTML = `
+                    <h5>📊 Residual Plot Analysis</h5>
+                    <p>${currentScenario.residualPlot}</p>
+                `;
+
+                // Update detection cards
+                updateDecisionCards();
+
+                // Reset feedback
+                document.getElementById('feedbackSection').classList.remove('show');
+                
+                // Restore opacity
+                scenarioSection.style.opacity = '1';
+            }, 300);
+        }
+
+        function updateDecisionCards() {
+            // Update detection cards
+            const detectionContainer = document.getElementById('detectionCards');
+            detectionContainer.innerHTML = '';
+            
+            currentScenario.detectionTests.forEach((test, index) => {
+                const card = document.createElement('div');
+                card.className = 'decision-card';
+                card.onclick = () => selectDetection(index);
+                card.innerHTML = `
+                    <h4>${test.name}</h4>
+                    <div class="test-statistic">${test.statistic}</div>
+                    <div class="method-description">
+                        ${test.description}
+                    </div>
+                `;
+                card.dataset.index = index;
+                detectionContainer.appendChild(card);
+            });
+
+            // Update correction cards
+            const correctionContainer = document.getElementById('correctionCards');
+            correctionContainer.innerHTML = '';
+            
+            currentScenario.correctionMethods.forEach((method, index) => {
+                const card = document.createElement('div');
+                card.className = 'decision-card';
+                card.onclick = () => selectCorrection(index);
+                card.innerHTML = `
+                    <h4>${method.name}</h4>
+                    <div class="test-statistic">${method.statistic}</div>
+                    <div class="method-description">
+                        ${method.description}
+                    </div>
+                `;
+                card.dataset.index = index;
+                correctionContainer.appendChild(card);
+            });
+        }
+
+        function switchPhase(phase) {
+            currentPhase = phase;
+            
+            // Update phase buttons
+            document.querySelectorAll('.phase-btn').forEach(btn => btn.classList.remove('active'));
+            event?.target?.classList.add('active');
+            
+            // Update phase content
+            document.querySelectorAll('.phase-content').forEach(content => content.classList.remove('active'));
+            
+            if (phase === 'detection') {
+                document.getElementById('detectionPhase').classList.add('active');
+                document.getElementById('detectionSubmit').style.display = 'inline-block';
+                document.getElementById('correctionSubmit').style.display = 'none';
+                document.querySelectorAll('.phase-btn')[0].classList.add('active');
+            } else {
+                document.getElementById('correctionPhase').classList.add('active');
+                document.getElementById('detectionSubmit').style.display = 'none';
+                document.getElementById('correctionSubmit').style.display = 'inline-block';
+                document.querySelectorAll('.phase-btn')[1].classList.add('active');
+            }
+        }
+
+        function selectDetection(index) {
+            // Remove previous selection
+            document.querySelectorAll('#detectionCards .decision-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`#detectionCards [data-index="${index}"]`).classList.add('selected');
+            selectedDetection = index;
+        }
+
+        function selectCorrection(index) {
+            // Remove previous selection
+            document.querySelectorAll('#correctionCards .decision-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`#correctionCards [data-index="${index}"]`).classList.add('selected');
+            selectedCorrection = index;
+        }
+
+        function evaluateDetection() {
+            if (selectedDetection === null) {
+                alert('Please select a detection method first.');
+                return;
+            }
+
+            const isCorrect = selectedDetection === currentScenario.detectionCorrect;
+            const selectedTest = currentScenario.detectionTests[selectedDetection];
+            const correctTest = currentScenario.detectionTests[currentScenario.detectionCorrect];
+
+            let feedbackContent = `
+                <h4>🎯 Your Detection Choice: ${selectedTest.name}</h4>
+                <p><strong>Reasoning:</strong> ${selectedTest.reasoning}</p>
+                <p><strong>Assessment:</strong> ${isCorrect ? 
+                    '✅ <strong>Excellent detection choice!</strong> This test is most appropriate for this heteroskedasticity pattern.' : 
+                    '❌ <strong>Consider the economic context.</strong> While this test has merit, there\'s a more suitable detection approach.'}</p>
+
+                ${!isCorrect ? `
+                    <h4>💡 Optimal Detection Method: ${correctTest.name}</h4>
+                    <p><strong>Why this is preferred:</strong> ${correctTest.reasoning}</p>
+                ` : ''}
+
+                <h4>🎓 Detection Phase Principles:</h4>
+                <p>• <strong>Economic Theory:</strong> Match test to suspected heteroskedasticity source</p>
+                <p>• <strong>Visual Evidence:</strong> Use residual plots to guide test selection</p>
+                <p>• <strong>Test Power:</strong> Specific tests (B-P, G-Q) more powerful when assumptions hold</p>
+                <p>• <strong>Robustness:</strong> General tests (White) safer when variance form uncertain</p>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="submit-btn" onclick="switchPhase('correction')" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                        Proceed to Correction Phase 🛠️
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('feedbackContent').innerHTML = feedbackContent;
+            document.getElementById('feedbackSection').classList.add('show');
+        }
+
+        function evaluateCorrection() {
+            if (selectedCorrection === null) {
+                alert('Please select a correction method first.');
+                return;
+            }
+
+            const isCorrect = selectedCorrection === currentScenario.correctionCorrect;
+            const selectedMethod = currentScenario.correctionMethods[selectedCorrection];
+            const correctMethod = currentScenario.correctionMethods[currentScenario.correctionCorrect];
+
+            let feedbackContent = `
+                <div class="comparison-results">
+                    <h5>📊 Correction Method Comparison</h5>
+                    <table class="results-table">
+                        <tr>
+                            <th>Method</th>
+                            <th>Standard Error</th>
+                            <th>t-statistic</th>
+                            <th>Efficiency</th>
+                        </tr>
+                        <tr>
+                            <td>OLS</td>
+                            <td>${currentScenario.comparisonResults.ols.se_income || currentScenario.comparisonResults.ols.se_size || currentScenario.comparisonResults.ols.se_investment || currentScenario.comparisonResults.ols.se_age || currentScenario.comparisonResults.ols.se_experience || currentScenario.comparisonResults.ols.se_age65plus}</td>
+                            <td>${currentScenario.comparisonResults.ols.t_stat}</td>
+                            <td>${currentScenario.comparisonResults.ols.efficiency}</td>
+                        </tr>
+                        <tr class="${selectedCorrection === 0 ? 'improved-result' : ''}">
+                            <td>Robust SE</td>
+                            <td>${currentScenario.comparisonResults.robust.se_income || currentScenario.comparisonResults.robust.se_size || currentScenario.comparisonResults.robust.se_investment || currentScenario.comparisonResults.robust.se_age || currentScenario.comparisonResults.robust.se_experience || currentScenario.comparisonResults.robust.se_age65plus}</td>
+                            <td>${currentScenario.comparisonResults.robust.t_stat}</td>
+                            <td>${currentScenario.comparisonResults.robust.efficiency}</td>
+                        </tr>
+                        <tr class="${selectedCorrection === 1 ? 'improved-result' : ''}">
+                            <td>${currentScenario.correctionMethods[1].name}</td>
+                            <td>${Object.values(currentScenario.comparisonResults)[2][Object.keys(Object.values(currentScenario.comparisonResults)[2])[0]]}</td>
+                            <td>${Object.values(currentScenario.comparisonResults)[2].t_stat}</td>
+                            <td>${Object.values(currentScenario.comparisonResults)[2].efficiency}</td>
+                        </tr>
+                        <tr class="${selectedCorrection === 2 ? 'improved-result' : ''}">
+                            <td>${currentScenario.correctionMethods[2].name}</td>
+                            <td>${Object.values(currentScenario.comparisonResults)[3][Object.keys(Object.values(currentScenario.comparisonResults)[3])[0]]}</td>
+                            <td>${Object.values(currentScenario.comparisonResults)[3].t_stat}</td>
+                            <td>${Object.values(currentScenario.comparisonResults)[3].efficiency}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <h4>🎯 Your Correction Choice: ${selectedMethod.name}</h4>
+                <p><strong>Reasoning:</strong> ${selectedMethod.reasoning}</p>
+                <p><strong>Assessment:</strong> ${isCorrect ? 
+                    '✅ <strong>Excellent correction choice!</strong> This method optimally handles the detected heteroskedasticity pattern.' : 
+                    '❌ <strong>Consider efficiency and appropriateness.</strong> While this correction is valid, there\'s a more suitable approach.'}</p>
+
+                ${!isCorrect ? `
+                    <h4>💡 Optimal Correction Method: ${correctMethod.name}</h4>
+                    <p><strong>Why this is preferred:</strong> ${correctMethod.reasoning}</p>
+                ` : ''}
+
+                <div class="economic-interpretation">
+                    <h5>📈 Economic Interpretation</h5>
+                    <p>${currentScenario.economicInterpretation}</p>
+                </div>
+
+                <div class="economic-interpretation">
+                    <h5>🏛️ Policy Implications</h5>
+                    <p>${currentScenario.policyImplication}</p>
+                </div>
+
+                <h4>🎓 Correction Phase Principles:</h4>
+                <p>• <strong>Efficiency Trade-offs:</strong> WLS most efficient when variance function known</p>
+                <p>• <strong>Robustness:</strong> Robust SEs always valid but may sacrifice efficiency</p>
+                <p>• <strong>Economic Interpretation:</strong> Some methods (logs) change coefficient meaning</p>
+                <p>• <strong>Practical Considerations:</strong> Balance complexity against efficiency gains</p>
+                <p>• <strong>Model Selection:</strong> Use economic theory to guide correction choice</p>
+            `;
+
+            document.getElementById('feedbackContent').innerHTML = feedbackContent;
+            document.getElementById('feedbackSection').classList.add('show');
+        }
+
+        // Initialize with first scenario
+        currentScenario = heteroskedasticityScenarios[0];
+        
+        function initializeRandomScenario() {
+            generateNewScenario();
+        }
+        
+        setTimeout(initializeRandomScenario, 100);
+
+        // Ensure detection phase is shown initially
+        switchPhase('detection');
+    </script>
+</body>
+</html>
