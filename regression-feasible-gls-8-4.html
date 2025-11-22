@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feasible GLS (FGLS) - Wooldridge 8.4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .fgls-card    { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .steps-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .compare-card { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card{ background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Feasible GLS (FGLS) - Wooldridge 8.4</h1>
+        <p>Practice estimating a variance function, constructing weights, and understanding FGLS vs OLS and WLS</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Feasible GLS with Heteroskedasticity</h3>
+        <div class="measures-grid">
+            <div class="measure-card fgls-card">
+                <h4>What Is FGLS?</h4>
+                <div class="formula">
+                    Var(u<sub>i</sub>|Z<sub>i</sub>) = σ²·h(Z<sub>i</sub>) (unknown) <br>
+                    ⇒ estimate h(Z<sub>i</sub>) and plug into GLS
+                </div>
+                <div class="description">
+                    GLS is optimal when the variance function h(Z<sub>i</sub>) is known. In practice we rarely know it, so we estimate h(Z<sub>i</sub>) from the data and use the estimated weights in a second-step regression: this is Feasible GLS (FGLS).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Clear pattern in residuals and a reasonable parametric model for Var(u|Z).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> log(û²) on log(income) suggests Var(u|income) ∝ income.
+                </div>
+            </div>
+
+            <div class="measure-card steps-card">
+                <h4>Two-Step FGLS Procedure</h4>
+                <div class="formula">
+                    1️⃣ OLS → û<sub>i</sub><br>
+                    2️⃣ Model û<sub>i</sub>² or log(û<sub>i</sub>²) vs Z<sub>i</sub><br>
+                    3️⃣ Get σ̂<sub>i</sub>² = σ²·ĥ(Z<sub>i</sub>)<br>
+                    4️⃣ Run WLS with ŵ<sub>i</sub> = 1/σ̂<sub>i</sub>²
+                </div>
+                <div class="description">
+                    First stage: estimate how the error variance depends on Z<sub>i</sub>. Second stage: run weighted least squares using the estimated inverse variances as weights.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> log(û²) on log(Z) or on Z, Z², etc.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> log(û²) = α̂ + δ̂·log(income) ⇒ σ̂² ∝ income<sup>δ̂</sup>.
+                </div>
+            </div>
+
+            <div class="measure-card compare-card">
+                <h4>OLS vs WLS vs FGLS</h4>
+                <div class="formula">
+                    OLS (robust SEs) vs GLS / FGLS
+                </div>
+                <div class="description">
+                    OLS + robust SEs gives valid inference without modeling h(·). FGLS can be more efficient if the variance model is correctly specified, but can hurt if it is badly misspecified.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When sample size is large and variance model is plausible.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Compare standard errors of FGLS vs OLS (robust) for key coefficients.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    When is FGLS worth it?
+                </div>
+                <div class="description">
+                    FGLS is most attractive when theory strongly suggests a variance function and residual plots support it. In many applications, researchers still prefer OLS with robust SEs because it is simpler and robust to variance misspecification.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> You want efficiency gains and are comfortable modeling Var(u|Z).
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> OLS (robust) is the default; FGLS is a refinement, not a necessity.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: From Estimated Variance to FGLS Weights</h3>
+            <p>Each scenario gives you the <em>estimated</em> variance function from a first-stage regression. Compute FGLS weights, transformed variables, and interpret what FGLS is doing.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the <strong>estimated</strong> variance formula σ̂<sub>i</sub>² to derive estimated weights ŵ<sub>i</sub> = 1/σ̂<sub>i</sub>², transform y and x, and compare relative weighting under FGLS.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Estimated weights</strong><br>Compute σ̂² and ŵ for specific observations.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Transformed regression</strong><br>Compute FGLS-transformed y* and x* for given observations.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Relative weights</strong><br>Compare how heavily FGLS weights two units.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain what FGLS is trying to achieve in this scenario.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Feasible GLS (8.4) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: we assume first-stage variance modeling is already done
+    // and we give the estimated variance function σ̂_i² directly.
+    var scenarios = [
+        {
+            id: "incomeVariance",
+            type: "incomeVar",
+            title: "Consumption Regression with Estimated Variance Proportional to Income",
+            description: "You regress household consumption on income and other variables. A first-stage regression of log(û_i²) on log(income_i) suggests Var(u_i|income_i) increases approximately linearly with income.",
+            context: "Use the estimated variance function to construct FGLS weights and transformed variables.",
+            mainModel: "cons_i = β₀ + β₁·income_i + β₂·age_i + u_i   (income in $10,000s)",
+            // Estimated variance function from first stage:
+            // Suppose the estimated relationship implies σ̂_i² = 2 · income_i
+            varForm: "σ̂_i² = 2 · income_i",
+            // example observations
+            zLabel: "income_i",
+            obs1_z: 1.0,
+            obs2_z: 4.0,
+            y1: 15.0,
+            y2: 45.0,
+            x1: 1.0,
+            x2: 4.0,
+            expertInterpretation:
+                "The first-stage regression indicates that the error variance rises with income: σ̂_i² ≈ 2·income_i. FGLS uses weights ŵ_i = 1/σ̂_i² ∝ 1/income_i, so low-income households receive more weight and high-income households less. This is similar in spirit to known-form WLS, but here the variance function was estimated rather than assumed."
+        },
+        {
+            id: "groupSizeVariance",
+            type: "groupVar",
+            title: "School-Level Averages with Estimated Variance ∝ 1/n_i",
+            description: "You regress average test scores at the school level on school resources. A first-stage regression of log(û_i²) on log(n_i) yields an estimated variance function close to σ̂_i² ∝ 1/n_i.",
+            context: "Translate the estimated variance function into FGLS weights for schools of different sizes.",
+            mainModel: "score_i = β₀ + β₁·stratio_i + β₂·expend_i + u_i",
+            varForm: "σ̂_i² = 5 / n_i",
+            zLabel: "n_i (school size)",
+            n1: 50,
+            n2: 200,
+            y1: 70.0,
+            y2: 75.0,
+            expertInterpretation:
+                "The estimated variance function σ̂_i² = 5/n_i says that the error variance is inversely proportional to school size. FGLS uses weights ŵ_i = n_i/5 ∝ n_i, giving more weight to larger schools because their averages are measured more precisely. This is the classic group-mean heteroskedasticity case, but the 1/n_i pattern was discovered in a first-stage regression rather than imposed."
+        },
+        {
+            id: "indexVariance",
+            type: "indexVar",
+            title: "Firm Growth with Exponential Variance in a Risk Index",
+            description: "You regress firm sales growth on a risk index z_i and other covariates. A first-stage regression of log(û_i²) on z_i suggests that Var(u_i|z_i) grows exponentially in z_i.",
+            context: "Use the estimated exponential variance function to construct FGLS weights for low- and high-risk firms.",
+            mainModel: "growth_i = β₀ + β₁·z_i + β₂·size_i + u_i",
+            // Suppose log(û_i²) regression gives σ̂_i² = exp(−0.4 + 0.8 z_i)
+            varForm: "σ̂_i² = exp(−0.4 + 0.8·z_i)",
+            zLabel: "z_i (risk index)",
+            z1: 0.0,
+            z2: 2.0,
+            y1: 4.0,
+            y2: 7.0,
+            expertInterpretation:
+                "Here σ̂_i² = exp(−0.4 + 0.8 z_i) means that the error variance increases sharply with the risk index. FGLS uses weights ŵ_i = exp(0.4 − 0.8 z_i), heavily downweighting high-risk firms whose outcomes are very noisy. If the variance model is correct, FGLS can estimate the average growth–risk relationship more efficiently than OLS."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Main Model and Estimated Variance Function</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Main model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.mainModel;
+        html += '</p>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;"><strong>Estimated variance function (from first stage):</strong> ';
+        html += scenario.varForm + '.</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Observation</th><th>' + scenario.zLabel + '</th><th>Example outcome (y)</th></tr></thead><tbody>';
+
+        if (scenario.type === "incomeVar") {
+            html += '<tr><td>Household 1</td><td>income₁ = ' + scenario.obs1_z.toFixed(1) + '</td><td>cons₁ = ' + scenario.y1.toFixed(1) + '</td></tr>';
+            html += '<tr><td>Household 2</td><td>income₂ = ' + scenario.obs2_z.toFixed(1) + '</td><td>cons₂ = ' + scenario.y2.toFixed(1) + '</td></tr>';
+        } else if (scenario.type === "groupVar") {
+            html += '<tr><td>School 1</td><td>n₁ = ' + scenario.n1 + '</td><td>score₁ = ' + scenario.y1.toFixed(1) + '</td></tr>';
+            html += '<tr><td>School 2</td><td>n₂ = ' + scenario.n2 + '</td><td>score₂ = ' + scenario.y2.toFixed(1) + '</td></tr>';
+        } else if (scenario.type === "indexVar") {
+            html += '<tr><td>Firm 1</td><td>z₁ = ' + scenario.z1.toFixed(1) + '</td><td>growth₁ = ' + scenario.y1.toFixed(1) + '</td></tr>';
+            html += '<tr><td>Firm 2</td><td>z₂ = ' + scenario.z2.toFixed(1) + '</td><td>growth₂ = ' + scenario.y2.toFixed(1) + '</td></tr>';
+        }
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Reminder:</strong> FGLS uses estimated weights ŵ_i = 1/σ̂_i² (up to a common constant) and runs OLS on the transformed regression y*_i = √ŵ_i·y_i, x*_ij = √ŵ_i·x_ij.';
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (s.type === "incomeVar") {
+            // σ̂_i² = 2 · income_i ⇒ ŵ_i = 1/(2 · income_i)
+            var sig1 = 2 * s.obs1_z;
+            var sig2 = 2 * s.obs2_z;
+            var w1 = 1 / sig1;
+            var w2 = 1 / sig2;
+            var sw1 = Math.sqrt(w1);
+            var sw2 = Math.sqrt(w2);
+            var y1_star = sw1 * s.y1;
+            var y2_star = sw2 * s.y2;
+            var ratio = w1 / w2;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "sigmaIncome1",
+                    type: "numeric",
+                    title: "🏁 Estimated variance σ̂₁²",
+                    prompt: "σ̂_i² = 2·income_i. For income₁ = " + s.obs1_z.toFixed(1) + ", compute σ̂₁².",
+                    correctValue: sig1,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "weightIncome1",
+                    type: "numeric",
+                    title: "🏁 FGLS weight ŵ₁",
+                    prompt: "With σ̂₁² = " + sig1.toFixed(3) + ", compute the FGLS weight ŵ₁ = 1/σ̂₁².",
+                    correctValue: w1,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "yStarIncome1",
+                    type: "numeric",
+                    title: "📊 Transformed outcome y*₁",
+                    prompt: "Compute y*₁ = √ŵ₁·cons₁ using ŵ₁ from above and cons₁ = " + s.y1.toFixed(1) + ".",
+                    correctValue: y1_star,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "yStarIncome2",
+                    type: "numeric",
+                    title: "📊 Transformed outcome y*₂",
+                    prompt: "For Household 2, income₂ = " + s.obs2_z.toFixed(1) + " and cons₂ = " + s.y2.toFixed(1) + ". Using σ̂₂² = 2·income₂ and ŵ₂ = 1/σ̂₂², compute y*₂ = √ŵ₂·cons₂.",
+                    correctValue: y2_star,
+                    unitHint: ""
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "weightRatioIncome",
+                    type: "numeric",
+                    title: "📉 Relative weight ŵ₁ / ŵ₂",
+                    prompt: "What is the ratio ŵ₁ / ŵ₂? (How many times more weight does Household 1 receive than Household 2 under FGLS?)",
+                    correctValue: ratio,
+                    unitHint: ""
+                });
+            }
+
+        } else if (s.type === "groupVar") {
+            // σ̂_i² = 5 / n_i ⇒ ŵ_i = n_i / 5
+            var sig1g = 5 / s.n1;
+            var sig2g = 5 / s.n2;
+            var w1g = s.n1 / 5;
+            var w2g = s.n2 / 5;
+            var sw1g = Math.sqrt(w1g);
+            var y1_star_g = sw1g * s.y1;
+            var ratio_g = w2g / w1g;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "sigmaGroup1",
+                    type: "numeric",
+                    title: "🏁 Estimated variance σ̂₁² for School 1",
+                    prompt: "σ̂_i² = 5/n_i. For School 1 with n₁ = " + s.n1 + ", compute σ̂₁².",
+                    correctValue: sig1g,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "weightGroup1",
+                    type: "numeric",
+                    title: "🏁 FGLS weight ŵ₁ for School 1",
+                    prompt: "With σ̂₁² = 5/n₁, ŵ₁ = 1/σ̂₁² = n₁/5. Compute ŵ₁.",
+                    correctValue: w1g,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "yStarGroup1",
+                    type: "numeric",
+                    title: "📊 Transformed outcome y*₁",
+                    prompt: "For School 1, compute y*₁ = √ŵ₁·score₁ using ŵ₁ and score₁ = " + s.y1.toFixed(1) + ".",
+                    correctValue: y1_star_g,
+                    unitHint: ""
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "weightRatioGroup",
+                    type: "numeric",
+                    title: "📉 Relative weight ŵ₂ / ŵ₁",
+                    prompt: "What is ŵ₂ / ŵ₁ = (n₂/5)/(n₁/5)? (How many times more weight does the larger school receive?)",
+                    correctValue: ratio_g,
+                    unitHint: ""
+                });
+            }
+
+        } else if (s.type === "indexVar") {
+            // σ̂_i² = exp(−0.4 + 0.8 z_i) ⇒ ŵ_i = exp(0.4 − 0.8 z_i)
+            var sig1i = Math.exp(-0.4 + 0.8 * s.z1);
+            var sig2i = Math.exp(-0.4 + 0.8 * s.z2);
+            var w1i = Math.exp(0.4 - 0.8 * s.z1);
+            var w2i = Math.exp(0.4 - 0.8 * s.z2);
+            var sw1i = Math.sqrt(w1i);
+            var y1_star_i = sw1i * s.y1;
+            var ratio_i = w1i / w2i;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "sigmaIndex1",
+                    type: "numeric",
+                    title: "🏁 Estimated variance σ̂₁² (Firm 1)",
+                    prompt: "σ̂_i² = exp(−0.4 + 0.8·z_i). For Firm 1 with z₁ = " + s.z1.toFixed(1) + ", compute σ̂₁² (round to 3 decimals).",
+                    correctValue: sig1i,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "weightIndex1",
+                    type: "numeric",
+                    title: "🏁 FGLS weight ŵ₁ (Firm 1)",
+                    prompt: "With σ̂₁² from above, ŵ₁ = 1/σ̂₁² = exp(0.4 − 0.8·z₁). Compute ŵ₁ (round to 3 decimals).",
+                    correctValue: w1i,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "yStarIndex1",
+                    type: "numeric",
+                    title: "📊 Transformed outcome y*₁",
+                    prompt: "For Firm 1, compute y*₁ = √ŵ₁·growth₁ using ŵ₁ and growth₁ = " + s.y1.toFixed(1) + ". (Round to 3 decimals.)",
+                    correctValue: y1_star_i,
+                    unitHint: ""
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "weightRatioIndex",
+                    type: "numeric",
+                    title: "📉 Relative weight ŵ₁ / ŵ₂",
+                    prompt: "What is the ratio ŵ₁ / ŵ₂ = exp(0.4 − 0.8 z₁) / exp(0.4 − 0.8 z₂)? (Round to 3 decimals.)",
+                    correctValue: ratio_i,
+                    unitHint: ""
+                });
+            }
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "Explain in words why these FGLS weights make sense in this scenario and how FGLS differs from OLS with robust standard errors here. Then compare with the expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Remember: FGLS first estimates the variance pattern, then uses the implied weights. If the variance model is correct, FGLS can be more efficient than OLS with robust SEs.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.01, Math.abs(correctVal) * 0.03); // ±3% or at least 0.01
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (s.type === "incomeVar") {
+            var sig1 = 2 * s.obs1_z;
+            var sig2 = 2 * s.obs2_z;
+            var w1 = 1 / sig1;
+            var w2 = 1 / sig2;
+            var sw1 = Math.sqrt(w1);
+            var y1_star = sw1 * s.y1;
+            var y2_star = Math.sqrt(w2) * s.y2;
+            var ratio = w1 / w2;
+
+            if (q.conceptId === "sigmaIncome1") {
+                html += "The first-stage regression gave σ̂_i² = 2·income_i. For income₁ = " +
+                        s.obs1_z.toFixed(1) + ", σ̂₁² = 2 × " + s.obs1_z.toFixed(1) +
+                        " = " + sig1.toFixed(3) + ".";
+            } else if (q.conceptId === "weightIncome1") {
+                html += "FGLS weight is ŵ_i = 1/σ̂_i². With σ̂₁² = " + sig1.toFixed(3) +
+                        ", ŵ₁ = 1 / " + sig1.toFixed(3) + " ≈ " + w1.toFixed(3) + ".";
+            } else if (q.conceptId === "yStarIncome1") {
+                html += "We transform the outcome by y*₁ = √ŵ₁·cons₁. Here √ŵ₁ ≈ " +
+                        Math.sqrt(w1).toFixed(3) + " and cons₁ = " + s.y1.toFixed(1) +
+                        ", so y*₁ ≈ " + y1_star.toFixed(3) + ".";
+            } else if (q.conceptId === "yStarIncome2") {
+                html += "For Household 2, do the same: compute σ̂₂² = 2·income₂, ŵ₂ = 1/σ̂₂², then y*₂ = √ŵ₂·cons₂, giving ≈ " + y2_star.toFixed(3) + ".";
+            } else if (q.conceptId === "weightRatioIncome") {
+                html += "Relative weight ŵ₁/ŵ₂ = (1/(2 income₁)) / (1/(2 income₂)) = income₂/income₁.<br>";
+                html += "With income₁ = " + s.obs1_z.toFixed(1) + " and income₂ = " + s.obs2_z.toFixed(1) +
+                        ", ŵ₁/ŵ₂ = " + ratio.toFixed(3) + ". FGLS places more weight on the lower-income household.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "In this scenario, FGLS behaves like WLS with weights inversely proportional to income, but the variance function was backed out from a first-stage residual regression.";
+            }
+
+        } else if (s.type === "groupVar") {
+            var sig1g = 5 / s.n1;
+            var sig2g = 5 / s.n2;
+            var w1g = s.n1 / 5;
+            var w2g = s.n2 / 5;
+            var y1_star_g = Math.sqrt(w1g) * s.y1;
+            var ratio_g = w2g / w1g;
+
+            if (q.conceptId === "sigmaGroup1") {
+                html += "With σ̂_i² = 5/n_i, for School 1 (n₁ = " + s.n1 +
+                        "), σ̂₁² = 5/" + s.n1 + " ≈ " + sig1g.toFixed(3) + ".";
+            } else if (q.conceptId === "weightGroup1") {
+                html += "Weight ŵ₁ = 1/σ̂₁² = n₁/5 = " + w1g.toFixed(3) + ". Larger n₁ ⇒ larger weight.";
+            } else if (q.conceptId === "yStarGroup1") {
+                html += "Transformed outcome y*₁ = √ŵ₁·score₁ = √(n₁/5)·score₁ ≈ " +
+                        y1_star_g.toFixed(3) + ".";
+            } else if (q.conceptId === "weightRatioGroup") {
+                html += "Relative weight ŵ₂/ŵ₁ = (n₂/5)/(n₁/5) = n₂/n₁ = " +
+                        s.n2 + "/" + s.n1 + " = " + ratio_g.toFixed(3) + ".";
+                html += "The larger school gets more weight because its average is based on more students and thus less noisy.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "Here FGLS essentially recovers the intuitive weighting by group size implied by the estimated variance function.";
+            }
+
+        } else if (s.type === "indexVar") {
+            var sig1i = Math.exp(-0.4 + 0.8 * s.z1);
+            var sig2i = Math.exp(-0.4 + 0.8 * s.z2);
+            var w1i = Math.exp(0.4 - 0.8 * s.z1);
+            var w2i = Math.exp(0.4 - 0.8 * s.z2);
+            var y1_star_i = Math.sqrt(w1i) * s.y1;
+            var ratio_i = w1i / w2i;
+
+            if (q.conceptId === "sigmaIndex1") {
+                html += "Given σ̂_i² = exp(−0.4 + 0.8 z_i), for z₁ = " + s.z1.toFixed(1) +
+                        " we have σ̂₁² = exp(−0.4 + 0.8·" + s.z1.toFixed(1) +
+                        ") ≈ " + sig1i.toFixed(3) + ".";
+            } else if (q.conceptId === "weightIndex1") {
+                html += "The weight is ŵ₁ = 1/σ̂₁² = exp(0.4 − 0.8 z₁). Plugging z₁ = " +
+                        s.z1.toFixed(1) + " gives ŵ₁ ≈ " + w1i.toFixed(3) + ".";
+            } else if (q.conceptId === "yStarIndex1") {
+                html += "We transform by y*₁ = √ŵ₁·growth₁. Using ŵ₁ above and growth₁ = " +
+                        s.y1.toFixed(1) + ", we obtain y*₁ ≈ " + y1_star_i.toFixed(3) + ".";
+            } else if (q.conceptId === "weightRatioIndex") {
+                html += "Relative weight ŵ₁/ŵ₂ = exp(0.4 − 0.8 z₁) / exp(0.4 − 0.8 z₂) = exp(−0.8(z₁ − z₂)).<br>";
+                html += "With z₁ = " + s.z1.toFixed(1) + " and z₂ = " + s.z2.toFixed(1) +
+                        ", this gives " + ratio_i.toFixed(3) +
+                        ". So high-risk firms (higher z) receive much less weight.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "In this case, FGLS uses an exponential variance model to downweight very risky, very noisy firms.";
+            }
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("FGLS practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
