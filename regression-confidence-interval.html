@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confidence Intervals for Regression Slope β₁ - Interactive Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .ci-card      { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .link-card    { background: linear-gradient(135deg, #fd7e14, #e55353); border-color:#d63384; color:white; }
+        .width-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .zero-card    { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .interpret-card{ background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:90px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Confidence Intervals for Regression Slope β₁</h1>
+        <p>Practice constructing and interpreting confidence intervals for the slope in regression</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas About Confidence Intervals for β₁</h3>
+        <div class="measures-grid">
+            <div class="measure-card ci-card">
+                <h4>📦 Confidence Interval Formula</h4>
+                <div class="formula">
+                    β̂₁ ± t<sub>α/2, df</sub> · SE(β̂₁)
+                </div>
+                <div class="description">
+                    A (1 − α)·100% confidence interval for β₁ is the estimated slope β̂₁ plus or minus a margin of error.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Report a range of plausible values for the true slope β₁.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 95% CI: [1.2, 2.4] for β₁.
+                </div>
+            </div>
+
+            <div class="measure-card link-card">
+                <h4>🔗 Link to t-Test</h4>
+                <div class="formula">
+                    H₀: β₁ = β₁₀ is rejected at α ⇔ CI<sub>(1−α)</sub> does not contain β₁₀
+                </div>
+                <div class="description">
+                    A two-sided t-test and a two-sided confidence interval at the same α level give the same decision.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Check significance by seeing whether 0 lies inside the interval.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If 0 is not in the 95% CI, the slope is significant at 5%.
+                </div>
+            </div>
+
+            <div class="measure-card width-card">
+                <h4>📏 Width of the Interval</h4>
+                <div class="formula">
+                    Width = 2 · t<sub>α/2, df</sub> · SE(β̂₁)
+                </div>
+                <div class="description">
+                    Wider intervals come from higher confidence levels (like 99%) and from less precise estimates (larger SE).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Understand precision: narrow CI ⇒ precise estimate.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 95% CI: [1.0,1.2] (narrow) vs [0.2,2.0] (wide).
+                </div>
+            </div>
+
+            <div class="measure-card zero-card">
+                <h4>🎯 Does the CI Contain 0?</h4>
+                <div class="formula">
+                    0 ∈ CI ⇒ not significant at level α
+                </div>
+                <div class="description">
+                    If 0 lies inside the CI (when β₁₀ = 0), then the effect may be zero and we do not reject H₀.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Quick visual test of significance for β₁.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> CI = [−0.1, 0.4] includes 0 ⇒ not significant.
+                </div>
+            </div>
+
+            <div class="measure-card interpret-card">
+                <h4>🧠 Interpretation</h4>
+                <div class="formula">
+                    “We are 95% confident that β₁ lies between L and U.”
+                </div>
+                <div class="description">
+                    The CI is about the unknown parameter, not about the sample. It summarizes uncertainty in β̂₁.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Communicate uncertainty, not just point estimates.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> “We are 95% confident that each extra year of education raises wages by $1.0 to $2.6 per hour.”
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Confidence Interval Practice</h3>
+            <p>Each scenario gives you β̂₁, its standard error, and critical t-values. Compute 95% and 99% confidence intervals and interpret them.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the formula: CI = β̂₁ ± t<sub>α/2, df</sub> · SE(β̂₁). Assume β₁₀ = 0 when we ask about significance.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkCI95" checked>
+                        <div><strong>📦 95% CI</strong><br>Compute the 95% confidence interval for β₁ (lower and upper bounds).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkCI99">
+                        <div><strong>📦 99% CI</strong><br>Compute the 99% confidence interval for β₁ (lower and upper bounds).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkContainsZero" checked>
+                        <div><strong>🎯 Does the CI include 0?</strong><br>Decide if β₁ is significant at 5% based on whether 0 is in the 95% CI.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain the CI in words. We’ll show expert interpretation for comparison.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Confidence interval practice for slope β1 loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    var scenarios = [
+        {
+            id: "wageEdu",
+            title: "Hourly Wage vs Years of Education",
+            description: "A regression of hourly wage (Y, $/hour) on years of education (X) is estimated using a sample of n = 50 workers.",
+            context: "Construct confidence intervals for the effect of education on wages.",
+            xVar: "years of education",
+            yVar: "hourly wage",
+            beta1hat: 1.8,
+            se1: 0.6,
+            df: 48,
+            tCrit95: 2.01,
+            tCrit99: 2.68,
+            direction: "Each extra year of education is associated with about $1.8 higher hourly wage."
+        },
+        {
+            id: "consIncome",
+            title: "Monthly Consumption vs Income",
+            description: "A regression of monthly consumption spending (Y, $100s) on monthly income (X, $100s) is estimated using n = 60 households.",
+            context: "Construct confidence intervals for the effect of income on consumption.",
+            xVar: "monthly income (hundreds of $)",
+            yVar: "monthly consumption (hundreds of $)",
+            beta1hat: 0.75,
+            se1: 0.25,
+            df: 58,
+            tCrit95: 2.00,
+            tCrit99: 2.66,
+            direction: "Each extra $100 of income is associated with about $75 higher monthly consumption."
+        },
+        {
+            id: "unempGDP",
+            title: "Unemployment vs GDP Growth",
+            description: "Using quarterly data (n = 40), a regression of unemployment rate (Y, %) on GDP growth (X, %) is estimated.",
+            context: "Construct confidence intervals for the effect of GDP growth on unemployment.",
+            xVar: "GDP growth (percentage points)",
+            yVar: "unemployment rate (percent)",
+            beta1hat: -0.45,
+            se1: 0.20,
+            df: 38,
+            tCrit95: 2.02,
+            tCrit99: 2.71,
+            direction: "Each 1 percentage point increase in GDP growth is associated with about 0.45 percentage point lower unemployment."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkCI95").checked = true;
+        document.getElementById("chkCI99").checked = false;
+        document.getElementById("chkContainsZero").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Estimated Slope and Standard Error</h4>';
+        html += '<div class="data-block">';
+        html += '<table class="data-table">';
+        html += '<thead><tr><th>df</th><th>β̂₁</th><th>SE(β̂₁)</th><th>t<sub>0.025,df</sub> (95%)</th><th>t<sub>0.005,df</sub> (99%)</th></tr></thead><tbody>';
+        html += '<tr>';
+        html += '<td>' + scenario.df + '</td>';
+        html += '<td>' + scenario.beta1hat.toFixed(3) + '</td>';
+        html += '<td>' + scenario.se1.toFixed(3) + '</td>';
+        html += '<td>' + scenario.tCrit95.toFixed(2) + '</td>';
+        html += '<td>' + scenario.tCrit99.toFixed(2) + '</td>';
+        html += '</tr>';
+        html += '</tbody></table>';
+        html += '<p style="margin-top:8px;font-size:0.9em;"><strong>Interpretation of β̂₁:</strong> ' +
+                scenario.direction + '</p>';
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkCI95        = document.getElementById("chkCI95").checked;
+        var chkCI99        = document.getElementById("chkCI99").checked;
+        var chkContainsZero= document.getElementById("chkContainsZero").checked;
+        var chkInterpret   = document.getElementById("chkInterpret").checked;
+
+        var beta = currentScenario.beta1hat;
+        var se   = currentScenario.se1;
+
+        var ci95Low  = beta - currentScenario.tCrit95 * se;
+        var ci95High = beta + currentScenario.tCrit95 * se;
+        var ci99Low  = beta - currentScenario.tCrit99 * se;
+        var ci99High = beta + currentScenario.tCrit99 * se;
+
+        if (chkCI95) {
+            currentQuestions.push({
+                conceptId: "CI95",
+                type: "ci",
+                level: 95,
+                title: "📦 95% Confidence Interval for β₁",
+                prompt: "Compute the 95% confidence interval for β₁ using β̂₁ ± t<sub>0.025,df</sub> · SE(β̂₁).",
+                lower: ci95Low,
+                upper: ci95High
+            });
+        }
+
+        if (chkCI99) {
+            currentQuestions.push({
+                conceptId: "CI99",
+                type: "ci",
+                level: 99,
+                title: "📦 99% Confidence Interval for β₁",
+                prompt: "Compute the 99% confidence interval for β₁ using β̂₁ ± t<sub>0.005,df</sub> · SE(β̂₁).",
+                lower: ci99Low,
+                upper: ci99High
+            });
+        }
+
+        if (chkContainsZero) {
+            var zeroInside = (ci95Low <= 0 && 0 <= ci95High);
+            currentQuestions.push({
+                conceptId: "containsZero",
+                type: "choice",
+                title: "🎯 Does the 95% CI Include 0?",
+                prompt: 'Based on your 95% CI, does it include 0? Answer “Yes” or “No”.',
+                correctText: zeroInside ? "yes" : "no"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "Explain in words what your 95% CI for β₁ means in the context of this scenario. We’ll show expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var i = 0; i < currentQuestions.length; i++) {
+            html += renderQuestionCard(currentQuestions[i], i);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label><strong>Your answer:</strong></label>';
+
+        if (q.type === "ci") {
+            html += '<span>Lower:</span>';
+            html += '<input type="number" id="answer_low_' + index + '" step="any">';
+            html += '<span>Upper:</span>';
+            html += '<input type="number" id="answer_high_' + index + '" step="any">';
+        } else {
+            html += '<input type="text" id="answer_' + index + '">';
+        }
+
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (q.type === "ci") {
+                var lowInput  = document.getElementById("answer_low_" + i);
+                var highInput = document.getElementById("answer_high_" + i);
+                if (!lowInput || !highInput) continue;
+
+                var lowStr  = lowInput.value.trim();
+                var highStr = highInput.value.trim();
+
+                if (lowStr === "" || highStr === "") {
+                    feedbackEl.textContent = "Please enter both lower and upper bounds.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+
+                var userLow  = parseFloat(lowStr);
+                var userHigh = parseFloat(highStr);
+                if (isNaN(userLow) || isNaN(userHigh)) {
+                    feedbackEl.textContent = "Please enter numeric values for both bounds.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+
+                var okLow  = isClose(userLow, q.lower);
+                var okHigh = isClose(userHigh, q.upper);
+
+                if (okLow && okHigh) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (about [" + q.lower.toFixed(3) + ", " + q.upper.toFixed(3) + "]).";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good  CI is about [" +
+                        q.lower.toFixed(3) + ", " + q.upper.toFixed(3) + "].";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "choice") {
+                var ansInput = document.getElementById("answer_" + i);
+                if (!ansInput) continue;
+                var userRaw = ansInput.value.trim().toLowerCase();
+                if (userRaw === "") {
+                    feedbackEl.textContent = "Please enter an answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correctNorm = q.correctText.toLowerCase();
+                var okChoice = (userRaw === correctNorm);
+                if (okChoice) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct.";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = '❌ Not quite. The expected answer is "' +
+                        q.correctText.charAt(0).toUpperCase() + q.correctText.slice(1) + '".';
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                var ansInputOpen = document.getElementById("answer_" + i);
+                if (!ansInputOpen) continue;
+                var userText = ansInputOpen.value.trim();
+                if (userText === "") {
+                    feedbackEl.textContent = "Please write a short interpretation.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Use the explanations to see clearly how β̂₁, SE(β̂₁), and t-critical values combine into confidence intervals and significance decisions.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isClose(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // about ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var beta = currentScenario.beta1hat;
+        var se   = currentScenario.se1;
+
+        var ci95Low  = beta - currentScenario.tCrit95 * se;
+        var ci95High = beta + currentScenario.tCrit95 * se;
+        var ci99Low  = beta - currentScenario.tCrit99 * se;
+        var ci99High = beta + currentScenario.tCrit99 * se;
+        var zeroInside95 = (ci95Low <= 0 && 0 <= ci95High);
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "CI95") {
+            html += "1. For a 95% CI, use t<sub>0.025, df</sub> and the formula β̂₁ ± t<sub>0.025,df</sub>·SE(β̂₁).<br>";
+            html += "2. Here β̂₁ = " + beta.toFixed(3) + ", SE(β̂₁) = " + se.toFixed(3) +
+                    ", t<sub>0.025," + currentScenario.df + "</sub> ≈ " + currentScenario.tCrit95.toFixed(2) + ".<br>";
+            html += "3. Margin of error = t·SE ≈ " + (currentScenario.tCrit95 * se).toFixed(3) + ".<br>";
+            html += "4. So the 95% CI is about [" + ci95Low.toFixed(3) + ", " + ci95High.toFixed(3) + "].";
+        } else if (q.conceptId === "CI99") {
+            html += "1. For a 99% CI, use t<sub>0.005, df</sub> and the same formula β̂₁ ± t·SE(β̂₁).<br>";
+            html += "2. Here β̂₁ = " + beta.toFixed(3) + ", SE(β̂₁) = " + se.toFixed(3) +
+                    ", t<sub>0.005," + currentScenario.df + "</sub> ≈ " + currentScenario.tCrit99.toFixed(2) + ".<br>";
+            html += "3. Margin of error is larger than for 95%, so the interval is wider.<br>";
+            html += "4. The 99% CI is about [" + ci99Low.toFixed(3) + ", " + ci99High.toFixed(3) + "].";
+        } else if (q.conceptId === "containsZero") {
+            html += "1. Look at your 95% CI for β₁: about [" + ci95Low.toFixed(3) + ", " + ci95High.toFixed(3) + "].<br>";
+            html += "2. Check whether 0 lies between the lower and upper bounds.<br>";
+            if (zeroInside95) {
+                html += "3. Here 0 is inside the interval, so we cannot rule out β₁ = 0 at the 5% level (not statistically significant).";
+            } else {
+                html += "3. Here 0 is outside the interval, so we reject H₀: β₁ = 0 at the 5% level (statistically significant).";
+            }
+        } else if (q.conceptId === "interpret") {
+            html += "A good interpretation might sound like:<br>";
+            if (currentScenario.id === "wageEdu") {
+                html += "“We are 95% confident that each extra year of education changes hourly wage by between " +
+                        ci95Low.toFixed(2) + " and " + ci95High.toFixed(2) + " dollars per hour.";
+                if (!zeroInside95) {
+                    html += " Since 0 is not in this interval, the effect is statistically significant at the 5% level.”";
+                } else {
+                    html += " Because 0 is in this interval, we cannot rule out no effect at the 5% level.”";
+                }
+            } else if (currentScenario.id === "consIncome") {
+                html += "“We are 95% confident that each extra $100 of income changes monthly consumption by between " +
+                        ci95Low.toFixed(2) + " and " + ci95High.toFixed(2) + " hundreds of dollars (i.e., between $" +
+                        (ci95Low*100).toFixed(2) + " and $" + (ci95High*100).toFixed(2) + ").";
+                if (!zeroInside95) {
+                    html += " The effect is statistically significant at the 5% level.”";
+                } else {
+                    html += " The interval includes 0, so the effect is not statistically significant at the 5% level.”";
+                }
+            } else if (currentScenario.id === "unempGDP") {
+                html += "“We are 95% confident that each 1 percentage point increase in GDP growth changes unemployment by between " +
+                        ci95Low.toFixed(2) + " and " + ci95High.toFixed(2) + " percentage points.";
+                if (!zeroInside95) {
+                    html += " The 95% CI does not include 0, so GDP growth has a statistically significant association with unemployment at the 5% level.”";
+                } else {
+                    html += " Because the interval includes 0, we cannot rule out no effect at the 5% level.”";
+                }
+            } else {
+                html += "“We are 95% confident that the true slope β₁ lies between the lower and upper bounds of the interval. Whether 0 is inside or outside this interval tells us if β₁ is statistically significant at the 5% level.”";
+            }
+        } else {
+            html += "Review the confidence interval formula and how it relates to the t-test.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Confidence interval practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
