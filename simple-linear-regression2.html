@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Linear Regression - Interactive Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .model-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .slope-card   { background: linear-gradient(135deg, #fd7e14, #e55353); border-color:#d63384; color:white; }
+        .intercept-card { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .prediction-card { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .residual-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:120px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📉 Simple Linear Regression</h1>
+        <p>Practice estimating and interpreting the simple linear equation Y = β₀ + β₁X</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas in Simple Linear Regression</h3>
+        <div class="measures-grid">
+            <div class="measure-card model-card">
+                <h4>📐 The Model</h4>
+                <div class="formula">
+                    Y = β₀ + β₁ X + ε
+                </div>
+                <div class="description">
+                    We relate a dependent variable Y to one explanatory variable X with a straight line.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Wages vs education, consumption vs income, house price vs size.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Wage = β₀ + β₁·Education, where β₁ is the extra wage per extra year of schooling.
+                </div>
+            </div>
+
+            <div class="measure-card slope-card">
+                <h4>📈 Slope (β₁)</h4>
+                <div class="formula">
+                    β₁ = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²
+                </div>
+                <div class="description">
+                    The slope β₁ tells us how much Y changes on average when X increases by 1 unit.
+                </div>
+                <div class="use-cases">
+                    <strong>Interpretation:</strong> “Each extra unit of X is associated with β₁ extra units of Y, on average.”
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β₁ = 2 means each extra year of education increases predicted wage by $2/hour.
+                </div>
+            </div>
+
+            <div class="measure-card intercept-card">
+                <h4>📍 Intercept (β₀)</h4>
+                <div class="formula">
+                    β₀ = ȳ − β₁ x̄
+                </div>
+                <div class="description">
+                    The intercept is the predicted value of Y when X = 0 (if that is meaningful in context).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Starting level of Y when X is zero, baseline prediction.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Predicted consumption when income is zero.
+                </div>
+            </div>
+
+            <div class="measure-card prediction-card">
+                <h4>🔮 Predicted Value</h4>
+                <div class="formula">
+                    Ŷ = β₀ + β₁ X₀
+                </div>
+                <div class="description">
+                    Once we estimate β₀ and β₁, we can predict Y for a given value X₀.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Forecasting, what-if analysis, conditional predictions.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Predict wage for a worker with 16 years of education.
+                </div>
+            </div>
+
+            <div class="measure-card residual-card">
+                <h4>📏 Residuals</h4>
+                <div class="formula">
+                    eᵢ = yᵢ − ŷᵢ
+                </div>
+                <div class="description">
+                    The residual is the difference between the actual value and the predicted value.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Measuring prediction errors, checking model fit.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If actual wage is 25 and predicted is 23, residual = 2.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Simple Linear Regression Practice</h3>
+            <p>Generate a small dataset, then compute slope, intercept, predicted values, and residuals step by step.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Dataset</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Quantities to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    All questions come from the same simple linear regression line estimated by least squares.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkSlope" checked>
+                        <div><strong>📈 Slope (β₁)</strong><br>Average change in Y for a 1-unit increase in X.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkIntercept" checked>
+                        <div><strong>📍 Intercept (β₀)</strong><br>Predicted Y when X = 0.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkPrediction" checked>
+                        <div><strong>🔮 Predicted value Ŷ</strong><br>Prediction for a given X₀.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkResidual" checked>
+                        <div><strong>📏 Residual eᵢ</strong><br>Difference between actual and predicted Y for one observation.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Datasets Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Simple linear regression practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Small datasets for simple regression
+    var scenarios = [
+        {
+            id: "wageEdu",
+            title: "Hourly Wage vs Years of Education",
+            description: "You have data on a small group of workers: their hourly wage (Y, in $/hour) and years of education (X).",
+            context: "Estimate how wages increase with education using a simple linear regression.",
+            xLabel: "Years of education (X)",
+            yLabel: "Hourly wage (Y)",
+            data: [
+                {x: 10, y: 15},
+                {x: 12, y: 17},
+                {x: 14, y: 21},
+                {x: 16, y: 24},
+                {x: 18, y: 28}
+            ],
+            xPredict: 15
+        },
+        {
+            id: "consIncome",
+            title: "Household Consumption vs Income",
+            description: "A small sample of households reports their monthly income (X) and consumption spending (Y), both in $100s.",
+            context: "Estimate a simple consumption function relating spending to income.",
+            xLabel: "Monthly income (X, in hundreds of $)",
+            yLabel: "Monthly consumption (Y, in hundreds of $)",
+            data: [
+                {x: 15, y: 18},
+                {x: 18, y: 20},
+                {x: 20, y: 23},
+                {x: 22, y: 25},
+                {x: 25, y: 28}
+            ],
+            xPredict: 21
+        },
+        {
+            id: "houseSize",
+            title: "House Price vs Size",
+            description: "A real estate agent has data on house size in square metres (X) and sale price in $1000s (Y).",
+            context: "Estimate how price changes with size using a simple linear regression.",
+            xLabel: "Size (X, square metres)",
+            yLabel: "Price (Y, thousands of $)",
+            data: [
+                {x: 80,  y: 260},
+                {x: 90,  y: 275},
+                {x: 100, y: 290},
+                {x: 110, y: 310},
+                {x: 120, y: 330}
+            ],
+            xPredict: 105
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+        currentQuestions = [];
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        // Reset checkboxes
+        document.getElementById("chkSlope").checked = true;
+        document.getElementById("chkIntercept").checked = true;
+        document.getElementById("chkPrediction").checked = true;
+        document.getElementById("chkResidual").checked = true;
+    }
+
+    function displayData(scenario) {
+        var d = scenario.data;
+        var html = "";
+        html += '<h4>📋 Data</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>' + scenario.xLabel + '</strong> and <strong>' + scenario.yLabel + '</strong></p>';
+        html += '<table class="data-table">';
+        html += '<thead><tr><th>Observation</th><th>X</th><th>Y</th></tr></thead><tbody>';
+        for (var i = 0; i < d.length; i++) {
+            html += '<tr><td>' + (i+1) + '</td><td>' + d[i].x + '</td><td>' + d[i].y + '</td></tr>';
+        }
+        html += '</tbody></table>';
+        html += '</div>';
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a dataset first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkSlope      = document.getElementById("chkSlope").checked;
+        var chkIntercept  = document.getElementById("chkIntercept").checked;
+        var chkPrediction = document.getElementById("chkPrediction").checked;
+        var chkResidual   = document.getElementById("chkResidual").checked;
+
+        var reg = computeRegressionParams(currentScenario.data);
+
+        if (chkSlope) {
+            addSlopeQuestion(reg);
+        }
+        if (chkIntercept) {
+            addInterceptQuestion(reg);
+        }
+        if (chkPrediction) {
+            addPredictionQuestion(reg);
+        }
+        if (chkResidual) {
+            addResidualQuestion(reg);
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No questions selected. Tick at least one concept.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var i = 0; i < currentQuestions.length; i++) {
+            html += renderQuestionCard(currentQuestions[i], i);
+        }
+        container.innerHTML = html;
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function computeRegressionParams(data) {
+        var n = data.length;
+        var sumX = 0, sumY = 0;
+        var i;
+        for (i = 0; i < n; i++) {
+            sumX += data[i].x;
+            sumY += data[i].y;
+        }
+        var xbar = sumX / n;
+        var ybar = sumY / n;
+
+        var num = 0, den = 0;
+        for (i = 0; i < n; i++) {
+            var dx = data[i].x - xbar;
+            var dy = data[i].y - ybar;
+            num += dx * dy;
+            den += dx * dx;
+        }
+        var beta1 = num / den;
+        var beta0 = ybar - beta1 * xbar;
+
+        return {
+            beta0: beta0,
+            beta1: beta1,
+            xbar: xbar,
+            ybar: ybar
+        };
+    }
+
+    /* ---- Add questions ---- */
+
+    function addSlopeQuestion(reg) {
+        var q = {
+            conceptId: "slope",
+            title: "📈 Slope (β₁)",
+            prompt: "Use the least squares formula to compute the slope β₁ of the regression line.",
+            correctValue: reg.beta1,
+            format: "slope",
+            unitHint: "(units of Y per 1 unit of X)"
+        };
+        currentQuestions.push(q);
+    }
+
+    function addInterceptQuestion(reg) {
+        var q = {
+            conceptId: "intercept",
+            title: "📍 Intercept (β₀)",
+            prompt: "Using your slope β₁ and the sample means x̄ and ȳ, compute the intercept β₀ = ȳ − β₁x̄.",
+            correctValue: reg.beta0,
+            format: "intercept",
+            unitHint: "(units of Y when X = 0)"
+        };
+        currentQuestions.push(q);
+    }
+
+    function addPredictionQuestion(reg) {
+        var x0 = currentScenario.xPredict;
+        var yhat = reg.beta0 + reg.beta1 * x0;
+        var prompt = "Using your regression line, predict Y when X = " + x0 + ".";
+        var q = {
+            conceptId: "prediction",
+            title: "🔮 Predicted Value Ŷ",
+            prompt: prompt,
+            correctValue: yhat,
+            format: "prediction",
+            unitHint: "(Ŷ for X = " + x0 + ")"
+        };
+        currentQuestions.push(q);
+    }
+
+    function addResidualQuestion(reg) {
+        var n = currentScenario.data.length;
+        var idx = Math.floor(Math.random() * n); // 0-based
+        var obs = currentScenario.data[idx];
+        var yhat = reg.beta0 + reg.beta1 * obs.x;
+        var residual = obs.y - yhat;
+        var prompt = "For observation " + (idx+1) + " with X = " + obs.x + " and Y = " + obs.y +
+                     ", compute the residual eᵢ = yᵢ − ŷᵢ.";
+        var q = {
+            conceptId: "residual",
+            title: "📏 Residual for Observation " + (idx+1),
+            prompt: prompt,
+            correctValue: residual,
+            format: "residual",
+            unitHint: "(eᵢ)"
+        };
+        currentQuestions.push(q);
+    }
+
+    /* ---- Rendering ---- */
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="number" id="answer_' + index + '" step="any">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    /* ---- Answer checking ---- */
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var valStr = ansInput.value;
+            if (valStr === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            var userVal = parseFloat(valStr);
+            if (isNaN(userVal)) {
+                feedbackEl.textContent = "Please enter a numeric answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            var correct = q.correctValue;
+            var ok = isClose(userVal, correct);
+
+            if (ok) {
+                numCorrect++;
+                feedbackEl.textContent = "✅ Correct (expected about " + formatValue(correct) + ").";
+                feedbackEl.className = "feedback correct";
+            } else {
+                feedbackEl.textContent = "❌ Not quite. A good answer is about " + formatValue(correct) + ".";
+                feedbackEl.className = "feedback incorrect";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " questions correctly (within a small tolerance).");
+        interpLines.push("• Review the step-by-step explanations to strengthen your understanding of β₀, β₁, predictions, and residuals.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isClose(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tolerance = Math.max(0.05, Math.abs(correctVal) * 0.03); // about ±3% or at least 0.05
+        return diff <= tolerance;
+    }
+
+    function formatValue(val) {
+        return val.toFixed(3);
+    }
+
+    function getExplanationHtml(q) {
+        var html = "";
+        html += "<strong>How to compute this:</strong><br>";
+
+        if (q.conceptId === "slope") {
+            html += "1. Compute the sample means x̄ and ȳ.<br>";
+            html += "2. Compute Σ(xᵢ − x̄)(yᵢ − ȳ) across all observations.<br>";
+            html += "3. Compute Σ(xᵢ − x̄)².<br>";
+            html += "4. Use the formula β₁ = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)².";
+        } else if (q.conceptId === "intercept") {
+            html += "1. Use the formula β₀ = ȳ − β₁x̄.<br>";
+            html += "2. Take the sample mean of Y (ȳ) and X (x̄).<br>";
+            html += "3. Multiply β₁ by x̄ and subtract from ȳ.";
+        } else if (q.conceptId === "prediction") {
+            html += "1. Use your estimated regression line: Ŷ = β₀ + β₁X.<br>";
+            html += "2. Plug in the given value X₀.<br>";
+            html += "3. Compute Ŷ = β₀ + β₁·X₀.";
+        } else if (q.conceptId === "residual") {
+            html += "1. For the chosen observation, compute ŷᵢ = β₀ + β₁xᵢ.<br>";
+            html += "2. Then compute the residual eᵢ = yᵢ − ŷᵢ.<br>";
+            html += "3. Positive residual: actual Y is above the regression line; negative residual: below the line.";
+        } else {
+            html += "Review the regression formulas and substitute the dataset values carefully.";
+        }
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Simple regression practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
