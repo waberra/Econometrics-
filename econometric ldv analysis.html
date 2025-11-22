@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limited Dependent Variables: Logit, Probit & Selection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #991b1b;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #14b8a6, #10b981);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .ldv-concepts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .concept-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .concept-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .ldv-formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #f0f9ff;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .concept-card p {
+            color: #f0f9ff;
+            font-size: 0.95em;
+            margin: 8px 0;
+        }
+
+        .decision-making {
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .decision-making h3 {
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+
+        .scenario-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid #3b82f6;
+            transition: opacity 0.3s ease;
+        }
+
+        .scenario-title {
+            font-size: 1.5em;
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .policy-context {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .binary-outcome {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .binary-outcome h5 {
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .binary-outcome p {
+            color: #991b1b;
+            font-size: 0.9em;
+        }
+
+        .model-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .model-preview {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .model-preview h5 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .model-results {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+
+        .marginal-effects {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .marginal-effects h5 {
+            color: #ca8a04;
+            margin-bottom: 8px;
+        }
+
+        .marginal-effects p {
+            color: #78350f;
+            font-size: 0.9em;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .decision-card {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .decision-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .decision-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .decision-card h4 {
+            color: #1e40af;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .model-equation {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.8em;
+        }
+
+        .method-description {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .goodness-of-fit {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .goodness-of-fit h5 {
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        .goodness-of-fit p {
+            color: #1e3a8a;
+            font-size: 0.9em;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 10px;
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .feedback-section {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .feedback-section.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-title {
+            color: #16a34a;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .feedback-content {
+            color: #15803d;
+            line-height: 1.6;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .comparison-results {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .comparison-results h5 {
+            color: #ca8a04;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+            font-size: 0.9em;
+        }
+
+        .results-table th {
+            background: #f9fafb;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .best-model {
+            background: #dcfce7 !important;
+            font-weight: bold;
+        }
+
+        .economic-interpretation {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .economic-interpretation h5 {
+            color: #047857;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .economic-interpretation p {
+            color: #065f46;
+            line-height: 1.5;
+        }
+
+        .selection-bias-warning {
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .selection-bias-warning h5 {
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .selection-bias-warning p {
+            color: #991b1b;
+            font-size: 0.9em;
+        }
+
+        .probability-interpretation {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .probability-interpretation h5 {
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        .probability-interpretation p {
+            color: #1e3a8a;
+            font-size: 0.9em;
+        }
+
+        .classification-table {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .classification-table h5 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .classification-table table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .classification-table th,
+        .classification-table td {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            font-size: 0.9em;
+        }
+
+        .classification-table th {
+            background: #f3f4f6;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>🎯 Limited Dependent Variables</h1>
+            <p>Logit, Probit & Selection Models for Binary Outcomes (Wooldridge Ch. 17)</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🧠 Essential Limited Dependent Variable Concepts</h3>
+            
+            <div class="ldv-concepts">
+                <div class="concept-card">
+                    <h4>📊 Linear Probability Model (LPM)</h4>
+                    <div class="ldv-formula">P(Y=1|X) = β₀ + β₁X₁ + β₂X₂ + ... | OLS with binary Y</div>
+                    <p><strong>Advantages:</strong> Simple interpretation, easy to estimate</p>
+                    <p><strong>Problems:</strong> Predicted probabilities outside [0,1], heteroskedasticity</p>
+                    <p><strong>Use when:</strong> Quick analysis or linear marginal effects desired</p>
+                    <p><strong>Correction:</strong> Robust standard errors essential</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>📈 Logit Model</h4>
+                    <div class="ldv-formula">P(Y=1|X) = Λ(Xβ) = exp(Xβ)/[1+exp(Xβ)] | Logistic CDF</div>
+                    <p><strong>Distribution:</strong> Logistic (symmetric, heavier tails than normal)</p>
+                    <p><strong>Estimation:</strong> Maximum likelihood estimation (MLE)</p>
+                    <p><strong>Interpretation:</strong> Coefficients are log-odds ratios</p>
+                    <p><strong>Use when:</strong> Standard choice for binary outcomes</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>📉 Probit Model</h4>
+                    <div class="ldv-formula">P(Y=1|X) = Φ(Xβ) = ∫_{-∞}^{Xβ} φ(t)dt | Standard normal CDF</div>
+                    <p><strong>Distribution:</strong> Standard normal (symmetric, lighter tails)</p>
+                    <p><strong>Estimation:</strong> Maximum likelihood estimation (MLE)</p>
+                    <p><strong>Interpretation:</strong> Coefficients are index function parameters</p>
+                    <p><strong>Use when:</strong> Normal errors assumed or selection models needed</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🎯 Marginal Effects</h4>
+                    <div class="ldv-formula">∂P/∂X = φ(Xβ)β (Probit) | λ(Xβ)[1-λ(Xβ)]β (Logit)</div>
+                    <p><strong>Average Marginal Effect:</strong> Average ∂P/∂X across sample</p>
+                    <p><strong>Marginal at Mean:</strong> ∂P/∂X evaluated at sample means</p>
+                    <p><strong>Policy Relevance:</strong> Probability change from policy intervention</p>
+                    <p><strong>Standard Errors:</strong> Delta method for inference</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🔍 Goodness of Fit</h4>
+                    <div class="ldv-formula">Pseudo R² = 1 - L₁/L₀ | AIC = -2L + 2k | BIC = -2L + k ln(n)</div>
+                    <p><strong>Likelihood Ratio Test:</strong> Compare nested models</p>
+                    <p><strong>Classification Table:</strong> Predicted vs actual outcomes</p>
+                    <p><strong>ROC Curve:</strong> Sensitivity vs specificity trade-offs</p>
+                    <p><strong>Caution:</strong> Pseudo R² not comparable to OLS R²</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>⚠️ Selection Bias</h4>
+                    <div class="ldv-formula">E[Y|X,S=1] ≠ E[Y|X] if selection non-random | Heckman correction</div>
+                    <p><strong>Problem:</strong> Observing outcomes only for selected sample</p>
+                    <p><strong>Example:</strong> Wages only observed for employed workers</p>
+                    <p><strong>Solution:</strong> Heckman two-step, maximum likelihood</p>
+                    <p><strong>Identification:</strong> Need exclusion restriction for selection</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-making">
+            <h3>💼 Professional Limited Dependent Variable Analysis</h3>
+
+            <div class="scenario-section">
+                <div class="scenario-title" id="scenarioTitle">💼 Employment Training Program Effectiveness</div>
+                
+                <div class="policy-context" id="policyContext">
+                    <p><strong>Policy Question:</strong> Does participation in government job training programs increase employment probability for unemployed workers? We need to evaluate program effectiveness for budget allocation decisions.</p>
+                    
+                    <p><strong>Research Design:</strong> Survey data on unemployed workers eligible for training programs. Binary outcome: employed (1) or unemployed (0) six months post-program. Need to account for selection into training.</p>
+                    
+                    <p><strong>Policy Stakes:</strong> Program costs $2.4 billion annually. Evidence needed for program expansion/contraction decisions and targeting strategies.</p>
+                </div>
+
+                <div class="binary-outcome" id="binaryOutcome">
+                    <h5>🎯 Binary Outcome Variable</h5>
+                    <p>Employed = 1 if individual employed full-time six months after program eligibility, 0 otherwise. Sample: 8,450 unemployed workers, 62% participated in training, 67% employed at follow-up.</p>
+                </div>
+
+                <div class="model-comparison" id="modelComparison">
+                    <div class="model-preview">
+                        <h5>Linear Probability Model</h5>
+                        <div class="model-results">Training Coef: 0.156 (SE: 0.023)<br>R²: 0.234 | Some predicted probabilities > 1</div>
+                    </div>
+                    
+                    <div class="model-preview">
+                        <h5>Logit Model</h5>
+                        <div class="model-results">Training Coef: 0.789 (SE: 0.145)<br>Log-likelihood: -4,567 | Pseudo R²: 0.187</div>
+                    </div>
+                    
+                    <div class="model-preview">
+                        <h5>Probit Model</h5>
+                        <div class="model-results">Training Coef: 0.467 (SE: 0.089)<br>Log-likelihood: -4,589 | Pseudo R²: 0.184</div>
+                    </div>
+
+                    <div class="model-preview">
+                        <h5>Heckman Selection</h5>
+                        <div class="model-results">Training effect: 0.134 (SE: 0.087)<br>Selection λ: 0.145 (SE: 0.067) | Significant selection</div>
+                    </div>
+                </div>
+
+                <div class="marginal-effects">
+                    <h5>📊 Marginal Effects Comparison</h5>
+                    <p>LPM: +15.6 percentage points | Logit: +14.8 p.p. | Probit: +15.2 p.p. | Heckman: +13.4 p.p.<br>
+                    Training participation increases employment probability by ~15 percentage points before selection correction.</p>
+                </div>
+
+                <div class="selection-bias-warning">
+                    <h5>⚠️ Selection Bias Concerns</h5>
+                    <p>Workers self-select into training based on motivation, ability, and job market prospects. These unobserved characteristics also affect employment outcomes, potentially biasing upward the estimated training effect.</p>
+                </div>
+
+                <div class="goodness-of-fit">
+                    <h5>📈 Model Fit Statistics</h5>
+                    <p>LPM R²: 0.234 | Logit Pseudo R²: 0.187 | Probit Pseudo R²: 0.184<br>
+                    Logit vs Probit: LR test χ²(1) = 2.34, p = 0.126 (not significantly different)</p>
+                </div>
+
+                <div class="classification-table">
+                    <h5>🎯 Classification Accuracy (50% threshold)</h5>
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>Pred: Unemployed</th>
+                            <th>Pred: Employed</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Actual: Unemployed</strong></td>
+                            <td>1,856</td>
+                            <td>934</td>
+                            <td>2,790</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Actual: Employed</strong></td>
+                            <td>1,267</td>
+                            <td>4,393</td>
+                            <td>5,660</td>
+                        </tr>
+                    </table>
+                    <p>Overall accuracy: 74.0% | Sensitivity: 77.6% | Specificity: 66.5%</p>
+                </div>
+
+                <h4>🎯 Model Selection Decision</h4>
+                <p><strong>Question:</strong> Given the binary employment outcome and potential selection bias, which modeling approach is most appropriate for policy evaluation?</p>
+
+                <div class="decision-cards" id="decisionCards">
+                    <div class="decision-card" onclick="selectChoice(0)" data-index="0">
+                        <h4>Linear Probability Model</h4>
+                        <div class="model-equation">Employed = β₀ + β₁Training + β₂X + ε</div>
+                        <div class="method-description">
+                            Simple OLS with binary dependent variable. Easy interpretation but probability prediction issues.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(1)" data-index="1">
+                        <h4>Logit Model</h4>
+                        <div class="model-equation">P(Employed=1) = exp(Xβ)/[1+exp(Xβ)]</div>
+                        <div class="method-description">
+                            Logistic distribution, MLE estimation. Standard choice for binary outcomes with robust properties.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(2)" data-index="2">
+                        <h4>Probit Model</h4>
+                        <div class="model-equation">P(Employed=1) = Φ(Xβ)</div>
+                        <div class="method-description">
+                            Normal distribution assumption. Required for Heckman selection correction, similar results to logit.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(3)" data-index="3">
+                        <h4>Heckman Selection Model</h4>
+                        <div class="model-equation">Selection: Training* = Zγ + u | Outcome: Employed = Xβ + ε</div>
+                        <div class="method-description">
+                            Two-stage model correcting for selection bias in training participation. Most rigorous approach.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="submit-btn" onclick="evaluateChoice()">Evaluate Model Choice</button>
+                </div>
+
+                <div class="feedback-section" id="feedbackSection">
+                    <div class="feedback-title">📊 Expert Limited Dependent Variable Analysis</div>
+                    <div class="feedback-content" id="feedbackContent">
+                        <!-- Feedback will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateNewScenario()">🔄 Generate New LDV Challenge</button>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive LDV scenarios following Wooldridge Chapter 17
+        const ldvScenarios = [
+            {
+                title: "💼 Employment Training Program Effectiveness",
+                context: "Does participation in government job training programs increase employment probability for unemployed workers? We need to evaluate program effectiveness for budget allocation decisions.",
+                design: "Survey data on unemployed workers eligible for training programs. Binary outcome: employed (1) or unemployed (0) six months post-program. Need to account for selection into training.",
+                stakes: "Program costs $2.4 billion annually. Evidence needed for program expansion/contraction decisions and targeting strategies.",
+                outcome: "Employed = 1 if individual employed full-time six months after program eligibility, 0 otherwise. Sample: 8,450 unemployed workers, 62% participated in training, 67% employed at follow-up.",
+                models: {
+                    lpm: { coef: 0.156, se: 0.023, r2: 0.234, note: "Some predicted probabilities > 1" },
+                    logit: { coef: 0.789, se: 0.145, ll: -4567, pseudor2: 0.187 },
+                    probit: { coef: 0.467, se: 0.089, ll: -4589, pseudor2: 0.184 },
+                    heckman: { coef: 0.134, se: 0.087, lambda: 0.145, lambda_se: 0.067, note: "Significant selection" }
+                },
+                marginalEffects: "LPM: +15.6 percentage points | Logit: +14.8 p.p. | Probit: +15.2 p.p. | Heckman: +13.4 p.p.\nTraining participation increases employment probability by ~15 percentage points before selection correction.",
+                selectionBias: "Workers self-select into training based on motivation, ability, and job market prospects. These unobserved characteristics also affect employment outcomes, potentially biasing upward the estimated training effect.",
+                goodnessOfFit: "LPM R²: 0.234 | Logit Pseudo R²: 0.187 | Probit Pseudo R²: 0.184\nLogit vs Probit: LR test χ²(1) = 2.34, p = 0.126 (not significantly different)",
+                classification: {
+                    accuracy: "74.0%",
+                    sensitivity: "77.6%",
+                    specificity: "66.5%",
+                    matrix: [[1856, 934], [1267, 4393]]
+                },
+                choices: [
+                    {
+                        name: "Linear Probability Model",
+                        equation: "Employed = β₀ + β₁Training + β₂X + ε",
+                        description: "Simple OLS with binary dependent variable. Easy interpretation but probability prediction issues.",
+                        appropriate: false,
+                        reasoning: "Predicted probabilities exceed 1 for some observations. Heteroskedasticity violates OLS assumptions. Selection bias not addressed."
+                    },
+                    {
+                        name: "Logit Model",
+                        equation: "P(Employed=1) = exp(Xβ)/[1+exp(Xβ)]",
+                        description: "Logistic distribution, MLE estimation. Standard choice for binary outcomes with robust properties.",
+                        appropriate: false,
+                        reasoning: "Good for binary outcomes but doesn't address selection bias. Training participation is endogenous to unobserved worker characteristics."
+                    },
+                    {
+                        name: "Probit Model",
+                        equation: "P(Employed=1) = Φ(Xβ)",
+                        description: "Normal distribution assumption. Required for Heckman selection correction, similar results to logit.",
+                        appropriate: false,
+                        reasoning: "Better than LPM for binary outcomes but ignores selection bias from endogenous training participation."
+                    },
+                    {
+                        name: "Heckman Selection Model",
+                        equation: "Selection: Training* = Zγ + u | Outcome: Employed = Xβ + ε",
+                        description: "Two-stage model correcting for selection bias in training participation. Most rigorous approach.",
+                        appropriate: true,
+                        reasoning: "Accounts for selection bias in training participation. Significant lambda indicates selection correction important. Most credible causal estimate."
+                    }
+                ],
+                correctChoice: 3,
+                interpretation: "Heckman selection model shows training effect of 13.4 percentage points (SE = 8.7) after correcting for selection bias. Selection correction reduces estimated effect from 15.6% to 13.4%, confirming upward bias from worker self-selection.",
+                policyImplication: "Training programs have positive but modest employment effects after accounting for selection. Cost-effectiveness suggests targeting to workers with specific characteristics. Program design should enhance job matching and skill relevance for maximum impact."
+            },
+            {
+                title: "🎓 University Enrollment Access Programs",
+                context: "Do university access programs increase enrollment probability among low-income high school graduates? Provincial governments need evidence for program expansion and federal education transfer decisions.",
+                design: "Panel survey of high school graduates from low-income families. Binary outcome: enrolled in university (1) or not (0) within two years of graduation. Access program availability varies by region and time.",
+                stakes: "Programs cost $450 million across provinces. Need evidence for targeting and effectiveness to guide federal education transfers and provincial budget allocation.",
+                outcome: "University = 1 if enrolled in degree program within 24 months of graduation, 0 otherwise. Sample: 12,670 low-income graduates, 34% had access programs available, 28% enrolled in university.",
+                models: {
+                    lpm: { coef: 0.089, se: 0.015, r2: 0.156, note: "Robust standard errors applied" },
+                    logit: { coef: 0.478, se: 0.089, ll: -6234, pseudor2: 0.124 },
+                    probit: { coef: 0.287, se: 0.053, ll: -6245, pseudor2: 0.122 },
+                    heckman: { coef: 0.067, se: 0.034, lambda: 0.089, lambda_se: 0.045, note: "Modest selection effects" }
+                },
+                marginalEffects: "LPM: +8.9 percentage points | Logit: +8.4 p.p. | Probit: +8.6 p.p. | Heckman: +6.7 p.p.\nAccess programs increase university enrollment by ~8-9 percentage points, reduced to 6.7% after selection correction.",
+                selectionBias: "Access program availability may correlate with regional characteristics affecting university enrollment: proximity to universities, economic development, educational culture. Students in access regions may have different baseline characteristics.",
+                goodnessOfFit: "LPM R²: 0.156 | Logit Pseudo R²: 0.124 | Probit Pseudo R²: 0.122\nLogit vs Probit: LR test χ²(1) = 1.78, p = 0.182 (similar fit)",
+                classification: {
+                    accuracy: "72.3%",
+                    sensitivity: "45.2%",
+                    specificity: "83.7%",
+                    matrix: [[7845, 1285], [1954, 1586]]
+                },
+                choices: [
+                    {
+                        name: "Linear Probability Model",
+                        equation: "University = β₀ + β₁Access_Program + β₂X + ε",
+                        description: "OLS estimation with robust standard errors. Simple interpretation of percentage point effects.",
+                        appropriate: true,
+                        reasoning: "No probability prediction problems with these data. Linear marginal effects reasonable for policy analysis. Robust SEs address heteroskedasticity."
+                    },
+                    {
+                        name: "Logit Model",
+                        equation: "P(University=1) = exp(Xβ)/[1+exp(Xβ)]",
+                        description: "Logistic distribution with MLE. Standard approach for binary educational outcomes.",
+                        appropriate: true,
+                        reasoning: "Appropriate for binary outcome. No clear selection bias concerns since program availability largely exogenous to individual characteristics."
+                    },
+                    {
+                        name: "Probit Model",
+                        equation: "P(University=1) = Φ(Xβ)",
+                        description: "Normal distribution assumption. Commonly used for educational choice modeling.",
+                        appropriate: true,
+                        reasoning: "Equivalent to logit for this application. Normal distribution reasonable for educational choice latent variable."
+                    },
+                    {
+                        name: "Heckman Selection Model",
+                        equation: "Selection: Program_Available* = Zγ + u | Outcome: University = Xβ + ε",
+                        description: "Corrects for potential selection in program availability across regions and time periods.",
+                        appropriate: false,
+                        reasoning: "Selection model less necessary here. Program availability more exogenous than individual choice. Lambda marginally significant suggests minimal selection bias."
+                    }
+                ],
+                correctChoice: 1, // Could also be 0 or 2
+                interpretation: "Logit model shows access program availability increases university enrollment odds by factor of 1.61 (exp(0.478)), corresponding to 8.4 percentage point increase in enrollment probability. Effect robust across specifications.",
+                policyImplication: "University access programs have meaningful positive effects on enrollment among low-income students. Cost-effectiveness analysis suggests program expansion justified. Target programs to regions with low baseline enrollment and strong program implementation capacity."
+            },
+            {
+                title: "🏥 Healthcare Program Participation Decisions",
+                context: "What factors determine enrollment in voluntary preventive healthcare programs? Public Health Agency needs evidence for program design and targeting to maximize participation and health outcomes.",
+                design: "Cross-sectional survey of adults eligible for provincial preventive healthcare programs. Binary outcome: enrolled (1) or not enrolled (0) in any preventive program. Focus on identifying barriers to participation.",
+                stakes: "Programs cost $1.2 billion annually with 43% participation rate. Need to identify participation barriers and design interventions to increase uptake and health outcomes.",
+                outcome: "Enrolled = 1 if participated in any preventive health program in past 12 months, 0 otherwise. Sample: 15,480 eligible adults, 43% participated, variation across demographics and regions.",
+                models: {
+                    lpm: { coef: 0.234, se: 0.019, r2: 0.187, note: "Some predictions near 1" },
+                    logit: { coef: 1.234, se: 0.098, ll: -8934, pseudor2: 0.156 },
+                    probit: { coef: 0.723, se: 0.058, ll: -8967, pseudor2: 0.152 },
+                    heckman: { coef: 0.198, se: 0.056, lambda: 0.167, lambda_se: 0.078, note: "Significant selection" }
+                },
+                marginalEffects: "LPM: +23.4 percentage points | Logit: +21.7 p.p. | Probit: +22.1 p.p. | Heckman: +19.8 p.p.\nKey determinant increases participation probability by ~22 percentage points before selection correction.",
+                selectionBias: "Healthcare-conscious individuals both seek information about programs AND participate when available. Health status, health literacy, and preventive care attitudes affect both program awareness and participation decisions.",
+                goodnessOfFit: "LPM R²: 0.187 | Logit Pseudo R²: 0.156 | Probit Pseudo R²: 0.152\nLogit vs Probit: LR test χ²(1) = 2.89, p = 0.089 (marginally significant difference)",
+                classification: {
+                    accuracy: "69.8%",
+                    sensitivity: "58.3%",
+                    specificity: "77.2%",
+                    matrix: [[6814, 2009], [2673, 3984]]
+                },
+                choices: [
+                    {
+                        name: "Linear Probability Model",
+                        equation: "Enrolled = β₀ + β₁Health_Literacy + β₂Income + β₃X + ε",
+                        description: "Linear regression with binary outcome. Direct interpretation of marginal effects for policy design.",
+                        appropriate: false,
+                        reasoning: "Some predicted probabilities approach 1, violating probability constraints. Large marginal effects suggest nonlinearity better captured by nonlinear models."
+                    },
+                    {
+                        name: "Logit Model",
+                        equation: "P(Enrolled=1) = exp(Xβ)/[1+exp(Xβ)]",
+                        description: "Logistic regression for binary participation decision. Standard approach for healthcare utilization analysis.",
+                        appropriate: true,
+                        reasoning: "Appropriate for binary outcome with large effect sizes. Captures nonlinearity in probability response. Standard approach in health economics."
+                    },
+                    {
+                        name: "Probit Model",
+                        equation: "P(Enrolled=1) = Φ(Xβ)",
+                        description: "Normal distribution for participation decision. Common in healthcare choice modeling.",
+                        appropriate: true,
+                        reasoning: "Equivalent to logit for practical purposes. Normal distribution reasonable for healthcare decision-making latent variable."
+                    },
+                    {
+                        name: "Heckman Selection Model",
+                        equation: "Selection: Aware* = Zγ + u | Participation: Enrolled = Xβ + ε",
+                        description: "Two-stage model: first awareness of programs, then participation conditional on awareness.",
+                        appropriate: false,
+                        reasoning: "While conceptually appealing, selection correction reduces precision without strong identification. Need better exclusion restriction for awareness equation."
+                    }
+                ],
+                correctChoice: 1,
+                interpretation: "Logit model reveals strong effects of health literacy, income, and access factors on program participation. Health literacy improvement from 25th to 75th percentile increases participation odds by factor of 3.4, corresponding to 21.7 percentage point probability increase.",
+                policyImplication: "Healthcare program participation strongly driven by health literacy and income. Interventions should focus on improving health literacy through targeted education and reducing financial barriers. Outreach programs should prioritize low-income, low-literacy populations."
+            },
+            {
+                title: "🌍 Environmental Compliance Behavior",
+                context: "What determines business compliance with voluntary environmental programs? Environment Canada needs evidence for designing incentives and regulations to maximize participation and environmental benefits.",
+                design: "Survey of manufacturing firms eligible for voluntary environmental certification programs. Binary outcome: certified (1) or not certified (0). Analysis of firm characteristics and policy incentives affecting compliance decisions.",
+                stakes: "Voluntary programs achieve 23% participation rate among 8,900 eligible firms. Mandatory regulations being considered if voluntary approach insufficient for emission reduction targets.",
+                outcome: "Certified = 1 if firm achieved environmental certification in past 3 years, 0 otherwise. Sample: 4,350 manufacturing firms, 23% certified, variation by firm size, industry, and region.",
+                models: {
+                    lpm: { coef: 0.145, se: 0.028, r2: 0.203, note: "Robust SEs clustered by industry" },
+                    logit: { coef: 0.845, se: 0.167, ll: -2145, pseudor2: 0.178 },
+                    probit: { coef: 0.498, se: 0.098, ll: -2156, pseudor2: 0.174 },
+                    heckman: { coef: 0.123, se: 0.045, lambda: 0.098, lambda_se: 0.067, note: "Weak selection evidence" }
+                },
+                marginalEffects: "LPM: +14.5 percentage points | Logit: +13.8 p.p. | Probit: +14.1 p.p. | Heckman: +12.3 p.p.\nKey policy incentive increases certification probability by ~14 percentage points.",
+                selectionBias: "Firms with strong environmental management cultures both learn about programs AND comply when available. Unobserved management quality affects both program awareness and compliance capacity.",
+                goodnessOfFit: "LPM R²: 0.203 | Logit Pseudo R²: 0.178 | Probit Pseudo R²: 0.174\nLogit vs Probit: LR test χ²(1) = 1.45, p = 0.229 (no significant difference)",
+                classification: {
+                    accuracy: "77.1%",
+                    sensitivity: "34.2%",
+                    specificity: "89.6%",
+                    matrix: [[2999, 351], [659, 341]]
+                },
+                choices: [
+                    {
+                        name: "Linear Probability Model",
+                        equation: "Certified = β₀ + β₁Firm_Size + β₂Incentives + β₃X + ε",
+                        description: "Linear model with industry-clustered standard errors. Simple interpretation for policy design.",
+                        appropriate: true,
+                        reasoning: "No probability constraint violations. Linear effects reasonable for policy analysis. Clustered SEs appropriate for industry correlation."
+                    },
+                    {
+                        name: "Logit Model",
+                        equation: "P(Certified=1) = exp(Xβ)/[1+exp(Xβ)]",
+                        description: "Logistic regression for binary compliance decision. Standard for regulatory compliance analysis.",
+                        appropriate: true,
+                        reasoning: "Good fit for binary compliance outcome. Captures potential nonlinearities in firm decision-making. Standard in regulatory economics."
+                    },
+                    {
+                        name: "Probit Model",
+                        equation: "P(Certified=1) = Φ(Xβ)",
+                        description: "Normal distribution for compliance decision latent variable. Alternative to logistic specification.",
+                        appropriate: true,
+                        reasoning: "Equivalent to logit for practical purposes. Normal distribution plausible for firm decision-making process."
+                    },
+                    {
+                        name: "Random Effects Probit",
+                        equation: "P(Certified=1) = Φ(Xβ + α_industry) with α ~ N(0,σ²)",
+                        description: "Account for industry-specific unobserved factors affecting compliance through random effects.",
+                        appropriate: false,
+                        reasoning: "Random effects assumes industry effects uncorrelated with firm characteristics. Fixed effects or clustering more appropriate for industry heterogeneity."
+                    }
+                ],
+                correctChoice: 1,
+                interpretation: "Logit model shows firm size, financial incentives, and regulatory stringency are key drivers of environmental certification. Large firms (500+ employees) 4.2 times more likely to certify than small firms. Financial incentives increase odds by factor of 2.3.",
+                policyImplication: "Environmental compliance strongly size-dependent, suggesting need for differentiated policies. Small firm assistance programs and enhanced financial incentives could increase participation. Mandatory standards may be necessary for comprehensive coverage."
+            },
+            {
+                title: "🏠 Social Housing Application Success",
+                context: "What determines approval for social housing applications? Housing agencies need evidence for fair allocation policies and identifying barriers to access for vulnerable populations.",
+                design: "Administrative data on social housing applications across Canadian cities. Binary outcome: approved (1) or denied (0) for housing assistance. Analysis of applicant characteristics and regional variation in approval rates.",
+                stakes: "67,000 applications annually with 34% approval rate due to supply constraints. Need evidence for allocation criteria reform and advocacy for increased housing supply.",
+                outcome: "Approved = 1 if application approved for social housing within 12 months, 0 otherwise. Sample: 23,450 applications, 34% approved, variation by demographics and region.",
+                models: {
+                    lpm: { coef: 0.189, se: 0.021, r2: 0.246, note: "Regional fixed effects included" },
+                    logit: { coef: 0.923, se: 0.112, ll: -12456, pseudor2: 0.198 },
+                    probit: { coef: 0.556, se: 0.067, ll: -12478, pseudor2: 0.195 },
+                    heckman: { coef: 0.167, se: 0.038, lambda: 0.134, lambda_se: 0.056, note: "Application selection bias" }
+                },
+                marginalEffects: "LPM: +18.9 percentage points | Logit: +17.6 p.p. | Probit: +18.1 p.p. | Heckman: +16.7 p.p.\nKey eligibility factor increases approval probability by ~18 percentage points.",
+                selectionBias: "Most vulnerable individuals may be less likely to apply due to bureaucratic barriers, lack of information, or discouragement. Those who apply may be positively selected for persistence and information access.",
+                goodnessOfFit: "LPM R²: 0.246 | Logit Pseudo R²: 0.198 | Probit Pseudo R²: 0.195\nLogit vs Probit: LR test χ²(1) = 1.89, p = 0.169 (similar performance)",
+                classification: {
+                    accuracy: "71.4%",
+                    sensitivity: "52.8%",
+                    specificity: "81.3%",
+                    matrix: [[12589, 2897], [3769, 4195]]
+                },
+                choices: [
+                    {
+                        name: "Linear Probability Model with FE",
+                        equation: "Approved = β₀ + β₁Priority_Score + β₂Income + Regional_FE + ε",
+                        description: "Linear model with regional fixed effects. Controls for supply differences across cities.",
+                        appropriate: true,
+                        reasoning: "Regional FE control for supply constraints. No probability violations. Linear effects appropriate for administrative policy analysis."
+                    },
+                    {
+                        name: "Logit Model",
+                        equation: "P(Approved=1) = exp(Xβ)/[1+exp(Xβ)]",
+                        description: "Logistic regression for binary approval decision. Standard for administrative outcome analysis.",
+                        appropriate: true,
+                        reasoning: "Appropriate for binary administrative outcome. Captures nonlinearities in approval probability based on application characteristics."
+                    },
+                    {
+                        name: "Probit Model",
+                        equation: "P(Approved=1) = Φ(Xβ)",
+                        description: "Normal distribution for approval decision. Common in policy evaluation studies.",
+                        appropriate: true,
+                        reasoning: "Equivalent to logit. Normal distribution reasonable for administrative decision-making process."
+                    },
+                    {
+                        name: "Heckman Selection Model",
+                        equation: "Selection: Apply* = Zγ + u | Approval: Approved = Xβ + ε",
+                        description: "Two-stage model: first application decision, then approval conditional on application.",
+                        appropriate: true,
+                        reasoning: "Addresses selection bias in who applies. Significant lambda suggests most vulnerable may not apply, biasing observed approval patterns."
+                    }
+                ],
+                correctChoice: 3,
+                interpretation: "Heckman selection model reveals application selection bias reduces estimated approval effects. After correction, priority scoring and income effects remain significant but smaller. Selection correction important for understanding true access barriers.",
+                policyImplication: "Application selection bias suggests most vulnerable populations face barriers to applying. Outreach programs and application assistance needed. Approval criteria appear fair among applicants, but access barriers require attention for equitable housing policy."
+            }
+        ];
+
+        let currentScenario = null;
+        let selectedChoice = null;
+
+        function generateNewScenario() {
+            // Ensure we get a different scenario than the current one
+            let newScenario;
+            do {
+                newScenario = ldvScenarios[Math.floor(Math.random() * ldvScenarios.length)];
+            } while (currentScenario && newScenario.title === currentScenario.title && ldvScenarios.length > 1);
+            
+            currentScenario = newScenario;
+            selectedChoice = null;
+            
+            // Add visual transition
+            const scenarioSection = document.querySelector('.scenario-section');
+            scenarioSection.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                updateScenarioDisplay();
+                
+                // Reset feedback
+                document.getElementById('feedbackSection').classList.remove('show');
+                
+                // Restore opacity
+                scenarioSection.style.opacity = '1';
+            }, 300);
+        }
+
+        function updateScenarioDisplay() {
+            // Update scenario display
+            document.getElementById('scenarioTitle').textContent = currentScenario.title;
+            document.getElementById('policyContext').innerHTML = `
+                <p><strong>Policy Question:</strong> ${currentScenario.context}</p>
+                <p><strong>Research Design:</strong> ${currentScenario.design}</p>
+                <p><strong>Policy Stakes:</strong> ${currentScenario.stakes}</p>
+            `;
+            
+            document.getElementById('binaryOutcome').innerHTML = `
+                <h5>🎯 Binary Outcome Variable</h5>
+                <p>${currentScenario.outcome}</p>
+            `;
+
+            // Update model comparison
+            const modelComparison = document.getElementById('modelComparison');
+            modelComparison.innerHTML = `
+                <div class="model-preview">
+                    <h5>Linear Probability Model</h5>
+                    <div class="model-results">Coef: ${currentScenario.models.lpm.coef} (SE: ${currentScenario.models.lpm.se})<br>R²: ${currentScenario.models.lpm.r2} | ${currentScenario.models.lpm.note}</div>
+                </div>
+                
+                <div class="model-preview">
+                    <h5>Logit Model</h5>
+                    <div class="model-results">Coef: ${currentScenario.models.logit.coef} (SE: ${currentScenario.models.logit.se})<br>Log-likelihood: ${currentScenario.models.logit.ll} | Pseudo R²: ${currentScenario.models.logit.pseudor2}</div>
+                </div>
+                
+                <div class="model-preview">
+                    <h5>Probit Model</h5>
+                    <div class="model-results">Coef: ${currentScenario.models.probit.coef} (SE: ${currentScenario.models.probit.se})<br>Log-likelihood: ${currentScenario.models.probit.ll} | Pseudo R²: ${currentScenario.models.probit.pseudor2}</div>
+                </div>
+
+                <div class="model-preview">
+                    <h5>Heckman Selection</h5>
+                    <div class="model-results">Effect: ${currentScenario.models.heckman.coef} (SE: ${currentScenario.models.heckman.se})<br>Selection λ: ${currentScenario.models.heckman.lambda} (SE: ${currentScenario.models.heckman.lambda_se}) | ${currentScenario.models.heckman.note}</div>
+                </div>
+            `;
+
+            // Update marginal effects
+            document.querySelector('.marginal-effects p').textContent = currentScenario.marginalEffects;
+
+            // Update selection bias warning
+            document.querySelector('.selection-bias-warning p').textContent = currentScenario.selectionBias;
+
+            // Update goodness of fit
+            document.querySelector('.goodness-of-fit p').textContent = currentScenario.goodnessOfFit;
+
+            // Update classification table
+            const matrix = currentScenario.classification.matrix;
+            document.querySelector('.classification-table table').innerHTML = `
+                <tr>
+                    <th></th>
+                    <th>Pred: No</th>
+                    <th>Pred: Yes</th>
+                    <th>Total</th>
+                </tr>
+                <tr>
+                    <td><strong>Actual: No</strong></td>
+                    <td>${matrix[0][0]}</td>
+                    <td>${matrix[0][1]}</td>
+                    <td>${matrix[0][0] + matrix[0][1]}</td>
+                </tr>
+                <tr>
+                    <td><strong>Actual: Yes</strong></td>
+                    <td>${matrix[1][0]}</td>
+                    <td>${matrix[1][1]}</td>
+                    <td>${matrix[1][0] + matrix[1][1]}</td>
+                </tr>
+            `;
+            
+            // Update accuracy stats
+            document.querySelector('.classification-table p').textContent = `Overall accuracy: ${currentScenario.classification.accuracy} | Sensitivity: ${currentScenario.classification.sensitivity} | Specificity: ${currentScenario.classification.specificity}`;
+
+            // Create decision cards
+            const decisionCardsContainer = document.getElementById('decisionCards');
+            decisionCardsContainer.innerHTML = '';
+            
+            currentScenario.choices.forEach((choice, index) => {
+                const card = document.createElement('div');
+                card.className = 'decision-card';
+                card.onclick = () => selectChoice(index);
+                card.innerHTML = `
+                    <h4>${choice.name}</h4>
+                    <div class="model-equation">${choice.equation}</div>
+                    <div class="method-description">
+                        ${choice.description}
+                    </div>
+                `;
+                card.dataset.index = index;
+                decisionCardsContainer.appendChild(card);
+            });
+        }
+
+        function selectChoice(index) {
+            // Remove previous selection
+            document.querySelectorAll('.decision-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+            selectedChoice = index;
+        }
+
+        function evaluateChoice() {
+            if (selectedChoice === null) {
+                alert('Please select a model first.');
+                return;
+            }
+
+            const isCorrect = selectedChoice === currentScenario.correctChoice;
+            const selectedMethod = currentScenario.choices[selectedChoice];
+            const correctMethod = currentScenario.choices[currentScenario.correctChoice];
+
+            let feedbackContent = `
+                <div class="comparison-results">
+                    <h5>📊 Model Comparison Summary</h5>
+                    <table class="results-table">
+                        <tr>
+                            <th>Model</th>
+                            <th>Coefficient</th>
+                            <th>Marginal Effect</th>
+                            <th>Key Issue</th>
+                        </tr>
+                        <tr class="${selectedChoice === 0 ? 'best-model' : ''}">
+                            <td>LPM</td>
+                            <td>${currentScenario.models.lpm.coef}</td>
+                            <td>Direct interpretation</td>
+                            <td>Probability constraints</td>
+                        </tr>
+                        <tr class="${selectedChoice === 1 ? 'best-model' : ''}">
+                            <td>Logit</td>
+                            <td>${currentScenario.models.logit.coef}</td>
+                            <td>Computed from CDF</td>
+                            <td>Log-odds interpretation</td>
+                        </tr>
+                        <tr class="${selectedChoice === 2 ? 'best-model' : ''}">
+                            <td>Probit</td>
+                            <td>${currentScenario.models.probit.coef}</td>
+                            <td>Computed from CDF</td>
+                            <td>Index interpretation</td>
+                        </tr>
+                        <tr class="${selectedChoice === 3 ? 'best-model' : ''}">
+                            <td>Heckman</td>
+                            <td>${currentScenario.models.heckman.coef}</td>
+                            <td>Selection-corrected</td>
+                            <td>Two-stage complexity</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <h4>🎯 Your Choice: ${selectedMethod.name}</h4>
+                <p><strong>Reasoning:</strong> ${selectedMethod.reasoning}</p>
+                <p><strong>Assessment:</strong> ${isCorrect ? 
+                    '✅ <strong>Excellent model choice!</strong> This approach best addresses the data characteristics and potential biases.' : 
+                    '❌ <strong>Consider the limitations and selection issues.</strong> While this model has applications, there\'s a more appropriate approach.'}</p>
+
+                ${!isCorrect ? `
+                    <h4>💡 Optimal Model: ${correctMethod.name}</h4>
+                    <p><strong>Why this is preferred:</strong> ${correctMethod.reasoning}</p>
+                ` : ''}
+
+                <div class="economic-interpretation">
+                    <h5>📈 Economic Interpretation</h5>
+                    <p>${currentScenario.interpretation}</p>
+                </div>
+
+                <div class="economic-interpretation">
+                    <h5>🏛️ Policy Implications</h5>
+                    <p>${currentScenario.policyImplication}</p>
+                </div>
+
+                <h4>🎓 Limited Dependent Variable Guidelines:</h4>
+                <p>• <strong>Binary Outcomes:</strong> Use logit/probit instead of LPM when probability constraints bind</p>
+                <p>• <strong>Marginal Effects:</strong> Always report for policy interpretation, not raw coefficients</p>
+                <p>• <strong>Model Selection:</strong> Logit vs probit rarely matters; choose based on tradition/extensions</p>
+                <p>• <strong>Selection Bias:</strong> Address when outcome observed only for selected sample</p>
+                <p>• <strong>Goodness of Fit:</strong> Use multiple measures (pseudo R², classification, ROC)</p>
+                <p>• <strong>Sample Size:</strong> MLE requires large samples for reliable inference</p>
+            `;
+
+            document.getElementById('feedbackContent').innerHTML = feedbackContent;
+            document.getElementById('feedbackSection').classList.add('show');
+        }
+
+        // Initialize with random scenario
+        function initializeRandomScenario() {
+            generateNewScenario();
+        }
+        
+        setTimeout(initializeRandomScenario, 100);
+    </script>
+</body>
+</html>
