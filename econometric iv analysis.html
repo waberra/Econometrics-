@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrumental Variables & Causal Inference Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #991b1b;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #14b8a6, #10b981);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .iv-concepts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .concept-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .concept-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .iv-formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #f0f9ff;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .concept-card p {
+            color: #f0f9ff;
+            font-size: 0.95em;
+            margin: 8px 0;
+        }
+
+        .decision-making {
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .decision-making h3 {
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+
+        .scenario-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid #3b82f6;
+            transition: opacity 0.3s ease;
+        }
+
+        .scenario-title {
+            font-size: 1.5em;
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .economic-context {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .endogeneity-concern {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .endogeneity-concern h5 {
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .endogeneity-concern p {
+            color: #991b1b;
+            font-size: 0.9em;
+        }
+
+        .ols-results {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+            border: 1px solid #475569;
+        }
+
+        .phase-progress {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .phase-step {
+            background: #e2e8f0;
+            border: none;
+            padding: 12px 20px;
+            margin: 0 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #475569;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .phase-step.active {
+            background: #3b82f6;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .phase-step.completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .decision-card {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .decision-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .decision-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .decision-card h4 {
+            color: #1e40af;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .test-statistic {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.8em;
+        }
+
+        .method-description {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .instrument-validity {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .instrument-validity h5 {
+            color: #ca8a04;
+            margin-bottom: 8px;
+        }
+
+        .instrument-validity p {
+            color: #78350f;
+            font-size: 0.9em;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 10px;
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .feedback-section {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .feedback-section.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-title {
+            color: #16a34a;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .feedback-content {
+            color: #15803d;
+            line-height: 1.6;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .comparison-results {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .comparison-results h5 {
+            color: #ca8a04;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+            font-size: 0.9em;
+        }
+
+        .results-table th {
+            background: #f9fafb;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .causal-effect {
+            background: #dcfce7 !important;
+            font-weight: bold;
+        }
+
+        .economic-interpretation {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .economic-interpretation h5 {
+            color: #047857;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .economic-interpretation p {
+            color: #065f46;
+            line-height: 1.5;
+        }
+
+        .phase-content {
+            display: none;
+        }
+
+        .phase-content.active {
+            display: block;
+        }
+
+        .causal-chain {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .causal-chain h5 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .causal-arrows {
+            font-size: 1.2em;
+            color: #6b7280;
+            font-family: 'Courier New', monospace;
+        }
+
+        .weak-instrument-warning {
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .weak-instrument-warning h5 {
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .weak-instrument-warning p {
+            color: #991b1b;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>🎯 Instrumental Variables & Causal Inference</h1>
+            <p>Solving Endogeneity & Establishing Causality (Wooldridge Ch. 15)</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🧠 Essential IV Concepts & Causal Inference Framework</h3>
+            
+            <div class="iv-concepts">
+                <div class="concept-card">
+                    <h4>⚠️ The Endogeneity Problem</h4>
+                    <div class="iv-formula">Cov(X, ε) ≠ 0 → β̂ᵒᴸˢ inconsistent</div>
+                    <p><strong>Sources:</strong> Omitted variables, reverse causality, measurement error</p>
+                    <p><strong>Consequence:</strong> OLS estimates are biased and inconsistent</p>
+                    <p><strong>Detection:</strong> Hausman test, economic reasoning, residual analysis</p>
+                    <p><strong>Solution:</strong> Find valid instruments to break endogeneity</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🔧 Instrument Relevance</h4>
+                    <div class="iv-formula">Cov(Z, X) ≠ 0 | First-stage: X = π₀ + π₁Z + v</div>
+                    <p><strong>Condition:</strong> Instrument must be correlated with endogenous variable</p>
+                    <p><strong>Test:</strong> First-stage F-statistic > 10 (rule of thumb)</p>
+                    <p><strong>Weak IV Problem:</strong> F < 10 leads to biased, imprecise estimates</p>
+                    <p><strong>Economic Logic:</strong> Instrument affects X through observable channel</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🛡️ Instrument Exogeneity</h4>
+                    <div class="iv-formula">Cov(Z, ε) = 0 | Instrument uncorrelated with error</div>
+                    <p><strong>Condition:</strong> Instrument affects Y only through X</p>
+                    <p><strong>Test:</strong> Not directly testable (identifying assumption)</p>
+                    <p><strong>Over-ID Test:</strong> J-test when # instruments > # endogenous</p>
+                    <p><strong>Economic Logic:</strong> Exclusion restriction must be credible</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>📊 Two-Stage Least Squares</h4>
+                    <div class="iv-formula">Stage 1: X̂ = π̂₀ + π̂₁Z | Stage 2: Y = β̂₀ + β̂₁X̂ + û</div>
+                    <p><strong>Procedure:</strong> Predict X using Z, then regress Y on X̂</p>
+                    <p><strong>Properties:</strong> Consistent when instruments valid</p>
+                    <p><strong>Standard Errors:</strong> Must correct for two-stage estimation</p>
+                    <p><strong>Interpretation:</strong> Local Average Treatment Effect (LATE)</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🔍 Hausman Test</h4>
+                    <div class="iv-formula">H = (β̂ᴵⱽ - β̂ᵒᴸˢ)'[Var(β̂ᴵⱽ) - Var(β̂ᵒᴸˢ)]⁻¹(β̂ᴵⱽ - β̂ᵒᴸˢ)</div>
+                    <p><strong>Null:</strong> OLS and IV estimates should be similar</p>
+                    <p><strong>Alternative:</strong> Significant difference suggests endogeneity</p>
+                    <p><strong>Distribution:</strong> χ²(k) where k = number of endogenous variables</p>
+                    <p><strong>Interpretation:</strong> Reject H₀ → use IV; fail to reject → OLS acceptable</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>📈 Over-Identification Tests</h4>
+                    <div class="iv-formula">J = nR²ᵣₑₛᵢ𝒹ᵤₐₗₛ ~ χ²(L-K) | L = # instruments, K = # endogenous</div>
+                    <p><strong>Condition:</strong> Need more instruments than endogenous variables</p>
+                    <p><strong>Null:</strong> All instruments are exogenous</p>
+                    <p><strong>Test:</strong> Regress IV residuals on all instruments</p>
+                    <p><strong>Limitation:</strong> Cannot test individual instrument validity</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-making">
+            <h3>💼 Professional IV Analysis</h3>
+
+            <div class="scenario-section">
+                <div class="scenario-title" id="scenarioTitle">🎓 Returns to Education: Canadian University Access Study</div>
+                
+                <div class="economic-context" id="economicContext">
+                    <p><strong>Research Question:</strong> What is the causal effect of university education on earnings among Canadian workers? Standard wage regressions may suffer from ability bias and family background confounding.</p>
+                    
+                    <p><strong>Economic Theory:</strong> Human capital theory predicts positive education returns, but unobserved ability, family socioeconomic status, and motivation may be correlated with both education choice and earnings, causing upward bias in OLS estimates.</p>
+                </div>
+
+                <div class="endogeneity-concern" id="endogeneityConcern">
+                    <h5>⚠️ Endogeneity Concerns</h5>
+                    <p>Ability bias: High-ability individuals choose more education AND earn higher wages independently. Family background: Wealthy families provide both educational opportunities and networking advantages. Reverse causality: Expected high returns may increase education demand.</p>
+                </div>
+
+                <div class="ols-results" id="olsResults">
+                    <strong>Initial OLS Results (Potentially Biased):</strong><br>
+                    Log_Wage = 2.34 + 0.089*University + 0.032*Experience + 0.124*Male + 0.045*Urban<br>
+                              (0.045) (0.012)            (0.008)           (0.023)      (0.018)<br><br>
+                    n = 12,450 | R² = 0.387 | University coefficient suggests 8.9% return per year<br>
+                    Concern: Ability bias may inflate education coefficient
+                </div>
+
+                <div class="causal-chain" id="causalChain">
+                    <h5>🎯 Causal Identification Strategy</h5>
+                    <div class="causal-arrows">Distance to University → Education Choice → Wages</div>
+                    <p>Instrument: Distance to nearest university during age 18. Affects education access but shouldn't directly affect wages (except through education).</p>
+                </div>
+
+                <div class="phase-progress">
+                    <button class="phase-step active" onclick="switchPhase(1)">1. Endogeneity</button>
+                    <button class="phase-step" onclick="switchPhase(2)">2. Instruments</button>
+                    <button class="phase-step" onclick="switchPhase(3)">3. First Stage</button>
+                    <button class="phase-step" onclick="switchPhase(4)">4. IV Estimation</button>
+                    <button class="phase-step" onclick="switchPhase(5)">5. Validation</button>
+                </div>
+
+                <!-- Phase 1: Endogeneity Detection -->
+                <div class="phase-content active" id="phase1">
+                    <h4>🔍 Phase 1: Endogeneity Detection</h4>
+                    <p><strong>Question:</strong> How should we test whether education is endogenous in this wage equation?</p>
+
+                    <div class="decision-cards" id="phase1Cards">
+                        <div class="decision-card" onclick="selectChoice(1, 0)" data-phase="1" data-index="0">
+                            <h4>Hausman Test (IV vs OLS)</h4>
+                            <div class="test-statistic">χ²(1) = 12.45, p-value = 0.0004<br>H₀: E[University|ε] = 0</div>
+                            <div class="method-description">
+                                Compare IV and OLS estimates. Significant difference suggests endogeneity requiring IV approach.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(1, 1)" data-phase="1" data-index="1">
+                            <h4>Economic Reasoning Only</h4>
+                            <div class="test-statistic">No formal test<br>Theory-based argument</div>
+                            <div class="method-description">
+                                Rely on economic theory about ability bias and family background without statistical testing.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(1, 2)" data-phase="1" data-index="2">
+                            <h4>Durbin-Wu-Hausman Test</h4>
+                            <div class="test-statistic">F(1, 12444) = 11.78, p-value = 0.0006<br>Augmented regression approach</div>
+                            <div class="method-description">
+                                Include predicted residuals from first-stage in structural equation. Test coefficient significance.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(1, 3)" data-phase="1" data-index="3">
+                            <h4>Reverse Regression Test</h4>
+                            <div class="test-statistic">Education = f(Wage, controls)<br>R² = 0.134</div>
+                            <div class="method-description">
+                                Regress education on wages to test for reverse causality. Significant relationship suggests endogeneity.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Instrument Selection -->
+                <div class="phase-content" id="phase2">
+                    <h4>🔧 Phase 2: Instrument Selection</h4>
+                    <p><strong>Question:</strong> Which instrument is most credible for identifying causal education effects?</p>
+
+                    <div class="decision-cards" id="phase2Cards">
+                        <div class="decision-card" onclick="selectChoice(2, 0)" data-phase="2" data-index="0">
+                            <h4>Distance to University at Age 18</h4>
+                            <div class="test-statistic">Mean distance: 47.3 km<br>Variation: 15-180 km across regions</div>
+                            <div class="method-description">
+                                Geographic proximity affects education access but shouldn't directly impact wages. Classic Card (1993) approach.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(2, 1)" data-phase="2" data-index="1">
+                            <h4>Parent Education Level</h4>
+                            <div class="test-statistic">Correlation with own education: 0.67<br>Strong intergenerational transmission</div>
+                            <div class="method-description">
+                                Parent education strongly predicts own education choice through role modeling and financial support.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(2, 2)" data-phase="2" data-index="2">
+                            <h4>Provincial Tuition Policies</h4>
+                            <div class="test-statistic">Tuition variation: $3,200 - $8,900<br>Policy changes 1990-2010</div>
+                            <div class="method-description">
+                                Provincial tuition differences and policy changes create exogenous variation in education costs.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(2, 3)" data-phase="2" data-index="3">
+                            <h4>Birth Quarter (School Entry)</h4>
+                            <div class="test-statistic">Age at school entry varies by 11 months<br>Affects graduation timing</div>
+                            <div class="method-description">
+                                Birth quarter affects school entry age and graduation timing through compulsory education laws.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 3: First Stage Analysis -->
+                <div class="phase-content" id="phase3">
+                    <h4>📊 Phase 3: First-Stage Strength</h4>
+                    <p><strong>Question:</strong> How strong is the instrument in predicting education choice?</p>
+
+                    <div class="instrument-validity">
+                        <h5>First-Stage Regression Results:</h5>
+                        <p>University = 0.67 - 0.0045*Distance + 0.023*Family_Income + 0.089*Parent_Education + ε</p>
+                        <p>Distance coefficient: -0.0045 (SE = 0.0012), t = -3.75, F = 14.06</p>
+                    </div>
+
+                    <div class="decision-cards" id="phase3Cards">
+                        <div class="decision-card" onclick="selectChoice(3, 0)" data-phase="3" data-index="0">
+                            <h4>Strong Instrument (F > 10)</h4>
+                            <div class="test-statistic">F-statistic = 14.06<br>Critical value = 10 (weak IV threshold)</div>
+                            <div class="method-description">
+                                First-stage F exceeds rule-of-thumb threshold. Instrument sufficiently strong for reliable IV estimation.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(3, 1)" data-phase="3" data-index="1">
+                            <h4>Marginal Instrument (F ≈ 10)</h4>
+                            <div class="test-statistic">F-statistic = 9.8<br>Near weak instrument threshold</div>
+                            <div class="method-description">
+                                Borderline case requiring careful interpretation. Consider LIML or bias-corrected estimates.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(3, 2)" data-phase="3" data-index="2">
+                            <h4>Weak Instrument (F < 10)</h4>
+                            <div class="test-statistic">F-statistic = 6.2<br>Below weak instrument threshold</div>
+                            <div class="method-description">
+                                Weak instrument problem. IV estimates may be biased toward OLS and have poor finite-sample properties.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(3, 3)" data-phase="3" data-index="3">
+                            <h4>Need Multiple Instruments</h4>
+                            <div class="test-statistic">Single instrument F = 8.4<br>Combined instruments needed</div>
+                            <div class="method-description">
+                                Individual instrument too weak. Combine with other instruments to improve first-stage prediction.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 4: IV Estimation -->
+                <div class="phase-content" id="phase4">
+                    <h4>🎯 Phase 4: IV Estimation Results</h4>
+                    <p><strong>Question:</strong> How do IV results compare to OLS, and what do they imply about causal effects?</p>
+
+                    <div class="comparison-results">
+                        <h5>📊 OLS vs. IV Comparison</h5>
+                        <table class="results-table">
+                            <tr>
+                                <th>Method</th>
+                                <th>University Coefficient</th>
+                                <th>Standard Error</th>
+                                <th>95% CI</th>
+                                <th>Interpretation</th>
+                            </tr>
+                            <tr>
+                                <td>OLS</td>
+                                <td>0.089</td>
+                                <td>0.012</td>
+                                <td>[0.066, 0.112]</td>
+                                <td>8.9% return (biased upward)</td>
+                            </tr>
+                            <tr class="causal-effect">
+                                <td>2SLS IV</td>
+                                <td>0.064</td>
+                                <td>0.021</td>
+                                <td>[0.023, 0.105]</td>
+                                <td>6.4% causal return</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="decision-cards" id="phase4Cards">
+                        <div class="decision-card" onclick="selectChoice(4, 0)" data-phase="4" data-index="0">
+                            <h4>IV < OLS: Ability Bias Confirmed</h4>
+                            <div class="test-statistic">β̂ᴵⱽ = 0.064 < β̂ᵒᴸˢ = 0.089<br>Difference = 0.025 (2.5 p.p.)</div>
+                            <div class="method-description">
+                                Lower IV estimate confirms upward ability bias in OLS. Causal education return is 6.4%, not 8.9%.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(4, 1)" data-phase="4" data-index="1">
+                            <h4>IV ≈ OLS: No Endogeneity</h4>
+                            <div class="test-statistic">β̂ᴵⱽ = 0.087 ≈ β̂ᵒᴸˢ = 0.089<br>Difference = 0.002 (insignificant)</div>
+                            <div class="method-description">
+                                Similar estimates suggest endogeneity may not be severe. OLS provides consistent estimates.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(4, 2)" data-phase="4" data-index="2">
+                            <h4>IV > OLS: Measurement Error</h4>
+                            <div class="test-statistic">β̂ᴵⱽ = 0.134 > β̂ᵒᴸˢ = 0.089<br>Difference = 0.045 (upward)</div>
+                            <div class="method-description">
+                                Higher IV estimate suggests measurement error in education variable attenuating OLS estimates.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(4, 3)" data-phase="4" data-index="3">
+                            <h4>Imprecise IV: Need Better Instruments</h4>
+                            <div class="test-statistic">β̂ᴵⱽ = 0.078, SE = 0.087<br>95% CI: [-0.093, 0.249]</div>
+                            <div class="method-description">
+                                Large standard errors make IV estimates uninformative. Need stronger instruments for precision.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 5: Validation Tests -->
+                <div class="phase-content" id="phase5">
+                    <h4>🔍 Phase 5: Validity Testing</h4>
+                    <p><strong>Question:</strong> How can we validate our instrumental variables approach?</p>
+
+                    <div class="decision-cards" id="phase5Cards">
+                        <div class="decision-card" onclick="selectChoice(5, 0)" data-phase="5" data-index="0">
+                            <h4>Exclusion Restriction Check</h4>
+                            <div class="test-statistic">Distance → Wage (reduced form)<br>Coefficient = -0.00028, t = -1.23</div>
+                            <div class="method-description">
+                                Test whether distance directly affects wages. Non-significant result supports exclusion restriction.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(5, 1)" data-phase="5" data-index="1">
+                            <h4>Over-identification Test</h4>
+                            <div class="test-statistic">J-test = 2.34, χ²(1) = 3.84<br>p-value = 0.126 (fail to reject)</div>
+                            <div class="method-description">
+                                With multiple instruments, test whether all are exogenous. Non-rejection supports instrument validity.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(5, 2)" data-phase="5" data-index="2">
+                            <h4>Placebo Test</h4>
+                            <div class="test-statistic">Distance → Parent_Education<br>Coefficient = 0.0001, t = 0.45</div>
+                            <div class="method-description">
+                                Test instrument against predetermined variables. No effect on parent education supports exogeneity.
+                            </div>
+                        </div>
+                        
+                        <div class="decision-card" onclick="selectChoice(5, 3)" data-phase="5" data-index="3">
+                            <h4>Sensitivity Analysis</h4>
+                            <div class="test-statistic">Alternative instruments confirm<br>Range: 0.058 - 0.071</div>
+                            <div class="method-description">
+                                Test robustness using different instruments. Consistent estimates across approaches strengthen credibility.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="submit-btn" onclick="evaluatePhase()" id="evaluateBtn">Evaluate Choice</button>
+                    <button class="submit-btn" onclick="nextPhase()" id="nextBtn" style="display: none; background: linear-gradient(135deg, #3b82f6, #2563eb);">Next Phase →</button>
+                </div>
+
+                <div class="feedback-section" id="feedbackSection">
+                    <div class="feedback-title">📊 Expert Analysis & Causal Interpretation</div>
+                    <div class="feedback-content" id="feedbackContent">
+                        <!-- Feedback will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateNewScenario()">🔄 Generate New IV Challenge</button>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive IV scenarios following Wooldridge Chapter 15
+        const ivScenarios = [
+            {
+                title: "🎓 Returns to Education: Canadian University Access Study",
+                context: "What is the causal effect of university education on earnings among Canadian workers? Standard wage regressions may suffer from ability bias and family background confounding.",
+                theory: "Human capital theory predicts positive education returns, but unobserved ability, family socioeconomic status, and motivation may be correlated with both education choice and earnings, causing upward bias in OLS estimates.",
+                endogeneity: "Ability bias: High-ability individuals choose more education AND earn higher wages independently. Family background: Wealthy families provide both educational opportunities and networking advantages. Reverse causality: Expected high returns may increase education demand.",
+                olsResults: {
+                    equation: "Log_Wage = 2.34 + 0.089*University + 0.032*Experience + 0.124*Male + 0.045*Urban",
+                    se: "(0.045) (0.012)            (0.008)           (0.023)      (0.018)",
+                    stats: "n = 12,450 | R² = 0.387 | University coefficient suggests 8.9% return per year",
+                    concern: "Concern: Ability bias may inflate education coefficient"
+                },
+                causalChain: "Distance to University → Education Choice → Wages",
+                instrument: "Distance to nearest university during age 18. Affects education access but shouldn't directly affect wages (except through education).",
+                phases: [
+                    {
+                        phase: 1,
+                        title: "Endogeneity Detection",
+                        question: "How should we test whether education is endogenous in this wage equation?",
+                        choices: [
+                            {
+                                name: "Hausman Test (IV vs OLS)",
+                                statistic: "χ²(1) = 12.45, p-value = 0.0004\nH₀: E[University|ε] = 0",
+                                description: "Compare IV and OLS estimates. Significant difference suggests endogeneity requiring IV approach.",
+                                correct: true,
+                                reasoning: "Gold standard for testing endogeneity. Significant p-value confirms education is endogenous, justifying IV approach."
+                            },
+                            {
+                                name: "Economic Reasoning Only",
+                                statistic: "No formal test\nTheory-based argument",
+                                description: "Rely on economic theory about ability bias and family background without statistical testing.",
+                                correct: false,
+                                reasoning: "Insufficient for empirical work. Theory should be supplemented with formal statistical tests for credibility."
+                            },
+                            {
+                                name: "Durbin-Wu-Hausman Test",
+                                statistic: "F(1, 12444) = 11.78, p-value = 0.0006\nAugmented regression approach",
+                                description: "Include predicted residuals from first-stage in structural equation. Test coefficient significance.",
+                                correct: true,
+                                reasoning: "Alternative form of Hausman test. Equivalent to standard Hausman under certain conditions. Confirms endogeneity."
+                            },
+                            {
+                                name: "Reverse Regression Test",
+                                statistic: "Education = f(Wage, controls)\nR² = 0.134",
+                                description: "Regress education on wages to test for reverse causality. Significant relationship suggests endogeneity.",
+                                correct: false,
+                                reasoning: "Not a proper endogeneity test. High R² expected due to correlation, doesn't test structural assumptions."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 2,
+                        title: "Instrument Selection",
+                        question: "Which instrument is most credible for identifying causal education effects?",
+                        choices: [
+                            {
+                                name: "Distance to University at Age 18",
+                                statistic: "Mean distance: 47.3 km\nVariation: 15-180 km across regions",
+                                description: "Geographic proximity affects education access but shouldn't directly impact wages. Classic Card (1993) approach.",
+                                correct: true,
+                                reasoning: "Most credible instrument. Geographic distance affects education costs/access but is plausibly exogenous to ability and labor market outcomes."
+                            },
+                            {
+                                name: "Parent Education Level",
+                                statistic: "Correlation with own education: 0.67\nStrong intergenerational transmission",
+                                description: "Parent education strongly predicts own education choice through role modeling and financial support.",
+                                correct: false,
+                                reasoning: "Violates exclusion restriction. Parent education affects wages directly through networking, cultural capital, genetic ability transmission."
+                            },
+                            {
+                                name: "Provincial Tuition Policies",
+                                statistic: "Tuition variation: $3,200 - $8,900\nPolicy changes 1990-2010",
+                                description: "Provincial tuition differences and policy changes create exogenous variation in education costs.",
+                                correct: false,
+                                reasoning: "Tuition policies may reflect provincial economic conditions that also affect wages. Endogenous policy problem."
+                            },
+                            {
+                                name: "Birth Quarter (School Entry)",
+                                statistic: "Age at school entry varies by 11 months\nAffects graduation timing",
+                                description: "Birth quarter affects school entry age and graduation timing through compulsory education laws.",
+                                correct: false,
+                                reasoning: "Weak instrument for university completion. Effect operates through compulsory schooling, less relevant for higher education."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 3,
+                        title: "First-Stage Strength",
+                        question: "How strong is the instrument in predicting education choice?",
+                        choices: [
+                            {
+                                name: "Strong Instrument (F > 10)",
+                                statistic: "F-statistic = 14.06\nCritical value = 10 (weak IV threshold)",
+                                description: "First-stage F exceeds rule-of-thumb threshold. Instrument sufficiently strong for reliable IV estimation.",
+                                correct: true,
+                                reasoning: "F-statistic above 10 indicates strong instrument. Distance has sufficient predictive power for education choice."
+                            },
+                            {
+                                name: "Marginal Instrument (F ≈ 10)",
+                                statistic: "F-statistic = 9.8\nNear weak instrument threshold",
+                                description: "Borderline case requiring careful interpretation. Consider LIML or bias-corrected estimates.",
+                                correct: false,
+                                reasoning: "Close to weak instrument threshold. Would require additional robustness checks and alternative estimators."
+                            },
+                            {
+                                name: "Weak Instrument (F < 10)",
+                                statistic: "F-statistic = 6.2\nBelow weak instrument threshold",
+                                description: "Weak instrument problem. IV estimates may be biased toward OLS and have poor finite-sample properties.",
+                                correct: false,
+                                reasoning: "F-statistic too low for reliable IV estimation. Weak instruments cause bias and poor inference."
+                            },
+                            {
+                                name: "Need Multiple Instruments",
+                                statistic: "Single instrument F = 8.4\nCombined instruments needed",
+                                description: "Individual instrument too weak. Combine with other instruments to improve first-stage prediction.",
+                                correct: false,
+                                reasoning: "If single instrument strong, no need for multiple instruments. Adding weak instruments can worsen performance."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 4,
+                        title: "IV Estimation Results",
+                        question: "How do IV results compare to OLS, and what do they imply about causal effects?",
+                        choices: [
+                            {
+                                name: "IV < OLS: Ability Bias Confirmed",
+                                statistic: "β̂ᴵⱽ = 0.064 < β̂ᵒᴸˢ = 0.089\nDifference = 0.025 (2.5 p.p.)",
+                                description: "Lower IV estimate confirms upward ability bias in OLS. Causal education return is 6.4%, not 8.9%.",
+                                correct: true,
+                                reasoning: "Lower IV estimate consistent with ability bias theory. High-ability individuals choose education AND earn more independently."
+                            },
+                            {
+                                name: "IV ≈ OLS: No Endogeneity",
+                                statistic: "β̂ᴵⱽ = 0.087 ≈ β̂ᵒᴸˢ = 0.089\nDifference = 0.002 (insignificant)",
+                                description: "Similar estimates suggest endogeneity may not be severe. OLS provides consistent estimates.",
+                                correct: false,
+                                reasoning: "Contradicts Hausman test results showing significant endogeneity. If OLS and IV similar, Hausman test would not reject."
+                            },
+                            {
+                                name: "IV > OLS: Measurement Error",
+                                statistic: "β̂ᴵⱽ = 0.134 > β̂ᵒᴸˢ = 0.089\nDifference = 0.045 (upward)",
+                                description: "Higher IV estimate suggests measurement error in education variable attenuating OLS estimates.",
+                                correct: false,
+                                reasoning: "Unlikely with administrative education data. Ability bias typically dominates measurement error in education returns."
+                            },
+                            {
+                                name: "Imprecise IV: Need Better Instruments",
+                                statistic: "β̂ᴵⱽ = 0.078, SE = 0.087\n95% CI: [-0.093, 0.249]",
+                                description: "Large standard errors make IV estimates uninformative. Need stronger instruments for precision.",
+                                correct: false,
+                                reasoning: "With F = 14.06, instrument is strong enough for reasonable precision. This scenario shows inadequate first-stage."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 5,
+                        title: "Validity Testing",
+                        question: "How can we validate our instrumental variables approach?",
+                        choices: [
+                            {
+                                name: "Exclusion Restriction Check",
+                                statistic: "Distance → Wage (reduced form)\nCoefficient = -0.00028, t = -1.23",
+                                description: "Test whether distance directly affects wages. Non-significant result supports exclusion restriction.",
+                                correct: true,
+                                reasoning: "Direct test of exclusion restriction. Distance should only affect wages through education, not directly."
+                            },
+                            {
+                                name: "Over-identification Test",
+                                statistic: "J-test = 2.34, χ²(1) = 3.84\np-value = 0.126 (fail to reject)",
+                                description: "With multiple instruments, test whether all are exogenous. Non-rejection supports instrument validity.",
+                                correct: false,
+                                reasoning: "Only applicable with multiple instruments. Single instrument case cannot perform over-identification test."
+                            },
+                            {
+                                name: "Placebo Test",
+                                statistic: "Distance → Parent_Education\nCoefficient = 0.0001, t = 0.45",
+                                description: "Test instrument against predetermined variables. No effect on parent education supports exogeneity.",
+                                correct: false,
+                                reasoning: "Not a proper validity test. Distance could legitimately affect parent education through historical university location decisions."
+                            },
+                            {
+                                name: "Sensitivity Analysis",
+                                statistic: "Alternative instruments confirm\nRange: 0.058 - 0.071",
+                                description: "Test robustness using different instruments. Consistent estimates across approaches strengthen credibility.",
+                                correct: false,
+                                reasoning: "Good practice but not primary validity test. Alternative instruments may have different validity concerns."
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "🏭 Trade Policy Impact: NAFTA and Canadian Manufacturing",
+                context: "What is the causal effect of NAFTA trade exposure on Canadian manufacturing employment? Simple correlations may suffer from endogeneity as trade-intensive industries may have different unobserved characteristics.",
+                theory: "Trade theory predicts comparative advantage effects, but industry selection into trade, government targeting of trade policies, and reverse causality from employment to trade policy create endogeneity concerns.",
+                endogeneity: "Policy endogeneity: Government may target trade policies toward struggling industries. Industry selection: Trade-intensive industries may have unobserved productivity differences. Reverse causality: Employment changes may influence future trade policy.",
+                olsResults: {
+                    equation: "Employment_Change = 2.1 - 0.34*Trade_Exposure + 0.67*Productivity + 0.23*Capital_Intensity",
+                    se: "(1.2)               (0.15)              (0.12)           (0.09)",
+                    stats: "n = 847 industry-regions | R² = 0.456 | Trade exposure suggests -34% employment effect",
+                    concern: "Concern: Endogenous trade exposure may bias estimates"
+                },
+                causalChain: "Geographic Distance to US → Trade Exposure → Employment",
+                instrument: "Geographic distance to major US manufacturing centers. Affects transportation costs and trade intensity but not local labor demand directly.",
+                phases: [
+                    {
+                        phase: 1,
+                        title: "Endogeneity Detection",
+                        question: "How should we test whether trade exposure is endogenous in this employment equation?",
+                        choices: [
+                            {
+                                name: "Hausman Test (IV vs OLS)",
+                                statistic: "χ²(1) = 8.67, p-value = 0.003\nH₀: E[Trade_Exposure|ε] = 0",
+                                description: "Compare IV and OLS estimates of trade effects. Significant difference suggests endogeneity.",
+                                correct: true,
+                                reasoning: "Standard approach for testing trade policy endogeneity. Significant result confirms need for IV approach."
+                            },
+                            {
+                                name: "Policy Timing Test",
+                                statistic: "Pre-NAFTA correlation test\nρ(Trade, Employment) = -0.23",
+                                description: "Test whether trade exposure predates employment changes using pre-policy data.",
+                                correct: false,
+                                reasoning: "Useful for understanding but doesn't formally test endogeneity in structural equation."
+                            },
+                            {
+                                name: "Political Economy Test",
+                                statistic: "Trade_Exposure = f(Political_Variables)\nR² = 0.167",
+                                description: "Test whether political variables predict trade exposure, suggesting policy endogeneity.",
+                                correct: false,
+                                reasoning: "Suggestive but not formal endogeneity test. Political influence doesn't directly test structural assumptions."
+                            },
+                            {
+                                name: "Industrial Targeting Test",
+                                statistic: "Trade exposure vs. productivity\nCorrelation = -0.45",
+                                description: "Test whether government targets trade policies toward low-productivity industries.",
+                                correct: false,
+                                reasoning: "Descriptive relationship, not formal endogeneity test for structural equation."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 2,
+                        title: "Instrument Selection",
+                        question: "Which instrument best identifies causal trade effects on employment?",
+                        choices: [
+                            {
+                                name: "Distance to US Manufacturing Centers",
+                                statistic: "Mean distance: 234 km\nVariation: 89-756 km across regions",
+                                description: "Geographic proximity affects transportation costs and trade intensity but not local labor market conditions directly.",
+                                correct: true,
+                                reasoning: "Most credible instrument. Geographic distance affects trade costs but is exogenous to local employment shocks."
+                            },
+                            {
+                                name: "Pre-NAFTA Trade Patterns",
+                                statistic: "Historical trade intensity 1980-1993\nCorrelation with post-NAFTA: 0.78",
+                                description: "Use historical trade relationships to predict post-NAFTA exposure.",
+                                correct: false,
+                                reasoning: "Historical patterns may reflect persistent industry characteristics that also affect employment."
+                            },
+                            {
+                                name: "Exchange Rate Exposure",
+                                statistic: "CAD/USD sensitivity by industry\nRange: 0.12-1.67 elasticity",
+                                description: "Industry-specific exchange rate sensitivity creates variation in trade exposure.",
+                                correct: false,
+                                reasoning: "Exchange rates affect employment through multiple channels beyond trade, violating exclusion restriction."
+                            },
+                            {
+                                name: "Congressional Vote Patterns",
+                                statistic: "US Congressional district NAFTA support\nAffects trade implementation",
+                                description: "Political support in US affects bilateral trade implementation intensity.",
+                                correct: false,
+                                reasoning: "US political factors may be correlated with broader economic conditions affecting Canadian employment."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 3,
+                        title: "First-Stage Strength",
+                        question: "How strong is geographic distance in predicting trade exposure?",
+                        choices: [
+                            {
+                                name: "Strong Instrument (F > 10)",
+                                statistic: "F-statistic = 16.4\nDistance coefficient: -0.0023 (SE = 0.0006)",
+                                description: "Distance significantly reduces trade exposure. Each 100km increases costs, reducing trade intensity.",
+                                correct: true,
+                                reasoning: "Strong first-stage relationship. Geographic distance creates substantial trade cost variation."
+                            },
+                            {
+                                name: "Moderate Instrument (F ≈ 8)",
+                                statistic: "F-statistic = 7.8\nBelow conventional threshold",
+                                description: "Borderline instrument strength requiring robustness checks and alternative estimators.",
+                                correct: false,
+                                reasoning: "Below rule-of-thumb threshold. Would need additional instruments or LIML estimation."
+                            },
+                            {
+                                name: "Weak Instrument (F < 5)",
+                                statistic: "F-statistic = 4.2\nInsufficient predictive power",
+                                description: "Distance has limited effect on trade exposure. Weak instrument bias concerns.",
+                                correct: false,
+                                reasoning: "Too weak for reliable IV estimation. Distance should strongly affect transportation costs."
+                            },
+                            {
+                                name: "Non-linear Relationship",
+                                statistic: "Linear F = 6.8, Quadratic F = 12.1\nDistance² improves prediction",
+                                description: "Including distance-squared term improves first-stage fit and instrument strength.",
+                                correct: false,
+                                reasoning: "While possible, linear distance relationship should be strong enough given transportation cost theory."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 4,
+                        title: "IV Estimation Results",
+                        question: "What do IV results reveal about causal trade effects?",
+                        choices: [
+                            {
+                                name: "IV > |OLS|: True Trade Effects Larger",
+                                statistic: "β̂ᴵⱽ = -0.52 vs β̂ᵒᴸˢ = -0.34\nStronger negative effect",
+                                description: "IV estimates show larger negative employment effects than OLS, suggesting downward bias in simple correlations.",
+                                correct: true,
+                                reasoning: "Makes economic sense. Endogenous trade targeting toward struggling industries would bias OLS toward zero."
+                            },
+                            {
+                                name: "IV ≈ OLS: No Endogeneity",
+                                statistic: "β̂ᴵⱽ = -0.36 vs β̂ᵒᴸˢ = -0.34\nSimilar estimates",
+                                description: "Similar estimates suggest trade exposure may be exogenous to employment shocks.",
+                                correct: false,
+                                reasoning: "Contradicts Hausman test showing significant endogeneity."
+                            },
+                            {
+                                name: "IV < |OLS|: Measurement Error",
+                                statistic: "β̂ᴵⱽ = -0.21 vs β̂ᵒᴸˢ = -0.34\nSmaller negative effect",
+                                description: "Smaller IV estimate suggests measurement error in trade exposure variable attenuating OLS.",
+                                correct: false,
+                                reasoning: "Unlikely with administrative trade data. Policy endogeneity more plausible explanation."
+                            },
+                            {
+                                name: "Imprecise IV Estimates",
+                                statistic: "β̂ᴵⱽ = -0.48, SE = 0.34\n95% CI: [-1.15, 0.19]",
+                                description: "Large standard errors make IV estimates uninformative about trade effects.",
+                                correct: false,
+                                reasoning: "With F = 16.4, instrument should provide reasonable precision."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 5,
+                        title: "Validity Testing",
+                        question: "How can we validate the exclusion restriction for geographic distance?",
+                        choices: [
+                            {
+                                name: "Distance → Employment Test",
+                                statistic: "Reduced form: Distance → Employment\nCoefficient = 0.0012, t = 1.23",
+                                description: "Test whether distance directly affects employment. Insignificant result supports exclusion restriction.",
+                                correct: true,
+                                reasoning: "Direct test of exclusion restriction. Distance should only affect employment through trade, not directly."
+                            },
+                            {
+                                name: "Pre-NAFTA Placebo Test",
+                                statistic: "Distance effect pre-1994: 0.0003\nt-statistic = 0.45",
+                                description: "Test distance effects before NAFTA implementation as placebo. No effect supports validity.",
+                                correct: false,
+                                reasoning: "Good robustness check but distance could affect employment through other trade channels pre-NAFTA."
+                            },
+                            {
+                                name: "Border Effect Test",
+                                statistic: "Distance to border vs. distance to centers\nDifferent mechanisms",
+                                description: "Compare border distance effects with manufacturing center distance to test mechanisms.",
+                                correct: false,
+                                reasoning: "Tests mechanism but doesn't validate exclusion restriction for main instrument."
+                            },
+                            {
+                                name: "Industry Heterogeneity Test",
+                                statistic: "Distance effects vary by trade intensity\nRange: -0.67 to -0.23",
+                                description: "Test whether distance effects vary systematically across industries as theory predicts.",
+                                correct: false,
+                                reasoning: "Tests theory consistency but doesn't validate exclusion restriction."
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "🏥 Healthcare Access and Health Outcomes",
+                context: "What is the causal effect of healthcare access on health outcomes among Canadian seniors? Healthcare utilization may be endogenous to unobserved health status and preferences.",
+                theory: "Healthcare production theory predicts positive access effects, but unobserved health status, preferences for medical care, and reverse causality from health outcomes to healthcare seeking create identification challenges.",
+                endogeneity: "Health selection: Sicker individuals seek more healthcare AND have worse outcomes. Preference heterogeneity: Health-conscious individuals both seek care AND maintain better health. Reverse causality: Poor health outcomes increase healthcare demand.",
+                olsResults: {
+                    equation: "Health_Outcome = 3.45 + 0.67*Healthcare_Access + 0.34*Age + 0.23*Income - 0.12*Chronic",
+                    se: "(0.23)           (0.08)                 (0.05)    (0.07)       (0.04)",
+                    stats: "n = 18,650 seniors | R² = 0.542 | Healthcare access coefficient suggests positive health effects",
+                    concern: "Concern: Endogenous healthcare seeking may bias estimates upward"
+                },
+                causalChain: "Hospital Capacity → Healthcare Access → Health Outcomes",
+                instrument: "Local hospital capacity (beds per capita) determined by historical construction decisions. Affects access but not directly health through other channels.",
+                phases: [
+                    {
+                        phase: 1,
+                        title: "Endogeneity Detection",
+                        question: "How should we test for endogeneity in healthcare utilization?",
+                        choices: [
+                            {
+                                name: "Hausman Test (IV vs OLS)",
+                                statistic: "χ²(1) = 15.23, p-value < 0.001\nH₀: Exogenous healthcare access",
+                                description: "Compare IV and OLS healthcare access coefficients. Large difference suggests endogeneity.",
+                                correct: true,
+                                reasoning: "Standard test confirms healthcare access is endogenous to unobserved health factors."
+                            },
+                            {
+                                name: "Medical Theory Only",
+                                statistic: "Clinical evidence for access benefits\nNo statistical testing",
+                                description: "Rely on medical research showing access benefits without testing for selection bias.",
+                                correct: false,
+                                reasoning: "Medical efficacy doesn't address economic selection bias in observational data."
+                            },
+                            {
+                                name: "Health Status Controls",
+                                statistic: "Add observable health controls\nCoefficient changes from 0.67 to 0.52",
+                                description: "Control for observable health status to reduce selection bias.",
+                                correct: false,
+                                reasoning: "Controls help but don't eliminate unobserved health heterogeneity requiring IV approach."
+                            },
+                            {
+                                name: "Reverse Regression Test",
+                                statistic: "Healthcare_Access = f(Health_Outcome)\nStrong relationship",
+                                description: "Test whether health outcomes predict healthcare access, suggesting endogeneity.",
+                                correct: false,
+                                reasoning: "Expected relationship doesn't constitute formal endogeneity test for structural model."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 2,
+                        title: "Instrument Selection",
+                        question: "Which instrument best identifies causal healthcare effects?",
+                        choices: [
+                            {
+                                name: "Historical Hospital Capacity",
+                                statistic: "Beds per capita built 1960-1980\nVariation: 2.1-8.7 beds per 1000",
+                                description: "Hospital capacity from historical construction affects current access but reflects past, not current, health needs.",
+                                correct: true,
+                                reasoning: "Historical capacity decisions were based on past demographics, not current individual health status."
+                            },
+                            {
+                                name: "Physician Density",
+                                statistic: "Doctors per capita by region\nRange: 1.2-4.8 per 1000 residents",
+                                description: "Regional physician supply affects healthcare access through provider availability.",
+                                correct: false,
+                                reasoning: "Physician location may reflect current health needs and economic opportunities, violating exogeneity."
+                            },
+                            {
+                                name: "Insurance Coverage",
+                                statistic: "Supplementary insurance rates\nVariation: 45%-89% across regions",
+                                description: "Insurance coverage affects financial access to healthcare services.",
+                                correct: false,
+                                reasoning: "Insurance choice is endogenous to health status and risk preferences."
+                            },
+                            {
+                                name: "Travel Distance to Care",
+                                statistic: "Mean distance: 12.3 km\nRange: 0.8-67.2 km",
+                                description: "Geographic distance creates variation in access costs and convenience.",
+                                correct: false,
+                                reasoning: "People may sort into locations based on health needs and preferences for healthcare access."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 3,
+                        title: "First-Stage Strength",
+                        question: "How strong is hospital capacity in predicting healthcare access?",
+                        choices: [
+                            {
+                                name: "Strong Instrument (F > 10)",
+                                statistic: "F-statistic = 13.7\nCapacity coefficient: 0.089 (SE = 0.024)",
+                                description: "Hospital capacity significantly increases healthcare utilization. Strong first-stage relationship.",
+                                correct: true,
+                                reasoning: "Hospital capacity creates meaningful variation in healthcare access through supply constraints."
+                            },
+                            {
+                                name: "Weak Instrument (F < 10)",
+                                statistic: "F-statistic = 7.2\nBelow conventional threshold",
+                                description: "Hospital capacity has limited effect on individual access patterns. Weak instrument concerns.",
+                                correct: false,
+                                reasoning: "Hospital capacity should strongly affect access through bed availability and waiting times."
+                            },
+                            {
+                                name: "Non-monotonic Relationship",
+                                statistic: "Capacity effects plateau at high levels\nNeed quadratic specification",
+                                description: "Very high capacity shows diminishing effects on marginal access improvements.",
+                                correct: false,
+                                reasoning: "Linear relationship should be strong enough given capacity constraints in Canadian healthcare."
+                            },
+                            {
+                                name: "Heterogeneous Effects",
+                                statistic: "Effects vary by health condition\nF-stats: 15.2 (chronic), 8.1 (acute)",
+                                description: "Capacity effects differ between chronic care management and acute care access.",
+                                correct: false,
+                                reasoning: "While interesting, overall F-statistic should be sufficient for aggregate health outcomes."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 4,
+                        title: "IV Estimation Results",
+                        question: "What do IV results reveal about causal healthcare effects?",
+                        choices: [
+                            {
+                                name: "IV < OLS: Selection Bias Confirmed",
+                                statistic: "β̂ᴵⱽ = 0.42 vs β̂ᵒᴸˢ = 0.67\nSmaller causal effect",
+                                description: "Lower IV estimate suggests sicker people seek more care, biasing OLS upward.",
+                                correct: true,
+                                reasoning: "Classic healthcare selection bias. Sicker individuals use more healthcare AND have worse outcomes."
+                            },
+                            {
+                                name: "IV ≈ OLS: No Selection Bias",
+                                statistic: "β̂ᴵⱽ = 0.63 vs β̂ᵒᴸˢ = 0.67\nSimilar estimates",
+                                description: "Similar estimates suggest healthcare access may be exogenous to health selection.",
+                                correct: false,
+                                reasoning: "Contradicts Hausman test and expected healthcare selection patterns."
+                            },
+                            {
+                                name: "IV > OLS: Unobserved Healthy Behavior",
+                                statistic: "β̂ᴵⱽ = 0.84 vs β̂ᵒᴸˢ = 0.67\nLarger causal effect",
+                                description: "Higher IV estimate suggests health-conscious individuals seek care AND maintain good health.",
+                                correct: false,
+                                reasoning: "Unlikely direction for healthcare selection bias. Sicker individuals typically seek more care."
+                            },
+                            {
+                                name: "Insignificant IV Results",
+                                statistic: "β̂ᴵⱽ = 0.23, SE = 0.31\n95% CI: [-0.38, 0.84]",
+                                description: "Large standard errors make IV estimates uninformative about healthcare effects.",
+                                correct: false,
+                                reasoning: "With F = 13.7, instrument should provide reasonable precision for detection."
+                            }
+                        ]
+                    },
+                    {
+                        phase: 5,
+                        title: "Validity Testing",
+                        question: "How can we validate that hospital capacity doesn't directly affect health?",
+                        choices: [
+                            {
+                                name: "Reduced Form Test",
+                                statistic: "Hospital_Capacity → Health_Outcome\nCoefficient = 0.038, t = 1.67",
+                                description: "Test whether hospital capacity directly affects health outcomes. Marginal significance requires investigation.",
+                                correct: true,
+                                reasoning: "Direct test of exclusion restriction. Hospital capacity should only affect health through healthcare access."
+                            },
+                            {
+                                name: "Historical Placebo Test",
+                                statistic: "Pre-period health outcomes\nCapacity effect: 0.012, t = 0.54",
+                                description: "Test capacity effects on health outcomes before capacity mattered for access.",
+                                correct: false,
+                                reasoning: "Historical health data may not be comparable to current outcomes measurement."
+                            },
+                            {
+                                name: "Non-health Outcome Test",
+                                statistic: "Capacity effect on education outcomes\nCoefficient = 0.002, t = 0.23",
+                                description: "Test whether hospital capacity affects non-health outcomes as placebo test.",
+                                correct: false,
+                                reasoning: "Hospital capacity could legitimately affect education through family health effects."
+                            },
+                            {
+                                name: "Geographic Controls Test",
+                                statistic: "Add regional economic controls\nCapacity coefficient stable",
+                                description: "Test whether capacity effects robust to regional economic and demographic controls.",
+                                correct: false,
+                                reasoning: "Controls help but don't directly test exclusion restriction."
+                            }
+                        ]
+                    }
+                ]
+            }
+            // Additional scenarios would go here
+        ];
+
+        let currentScenario = null;
+        let currentPhase = 1;
+        let selectedChoice = null;
+        let phaseResults = {};
+
+        function generateNewScenario() {
+            // Ensure we get a different scenario than the current one
+            let newScenario;
+            do {
+                newScenario = ivScenarios[Math.floor(Math.random() * ivScenarios.length)];
+            } while (currentScenario && newScenario.title === currentScenario.title && ivScenarios.length > 1);
+            
+            currentScenario = newScenario;
+            currentPhase = 1;
+            selectedChoice = null;
+            phaseResults = {};
+            
+            // Add visual transition
+            const scenarioSection = document.querySelector('.scenario-section');
+            scenarioSection.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                updateScenarioDisplay();
+                switchPhase(1);
+                
+                // Reset feedback
+                document.getElementById('feedbackSection').classList.remove('show');
+                
+                // Restore opacity
+                scenarioSection.style.opacity = '1';
+            }, 300);
+        }
+
+        function updateScenarioDisplay() {
+            document.getElementById('scenarioTitle').textContent = currentScenario.title;
+            document.getElementById('economicContext').innerHTML = `
+                <p><strong>Research Question:</strong> ${currentScenario.context}</p>
+                <p><strong>Economic Theory:</strong> ${currentScenario.theory}</p>
+            `;
+            document.getElementById('endogeneityConcern').innerHTML = `
+                <h5>⚠️ Endogeneity Concerns</h5>
+                <p>${currentScenario.endogeneity}</p>
+            `;
+            document.getElementById('olsResults').innerHTML = `
+                <strong>Initial OLS Results (Potentially Biased):</strong><br>
+                ${currentScenario.olsResults.equation}<br>
+                ${currentScenario.olsResults.se}<br><br>
+                ${currentScenario.olsResults.stats}<br>
+                ${currentScenario.olsResults.concern}
+            `;
+            document.getElementById('causalChain').innerHTML = `
+                <h5>🎯 Causal Identification Strategy</h5>
+                <div class="causal-arrows">${currentScenario.causalChain}</div>
+                <p>${currentScenario.instrument}</p>
+            `;
+        }
+
+        function switchPhase(phase) {
+            currentPhase = phase;
+            selectedChoice = null;
+            
+            // Update phase buttons
+            document.querySelectorAll('.phase-step').forEach((btn, index) => {
+                btn.classList.remove('active', 'completed');
+                if (index + 1 === phase) {
+                    btn.classList.add('active');
+                } else if (index + 1 < phase) {
+                    btn.classList.add('completed');
+                }
+            });
+
+            // Show current phase content
+            document.querySelectorAll('.phase-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`phase${phase}`).classList.add('active');
+
+            // Update cards for current phase
+            updatePhaseCards();
+
+            // Reset feedback
+            document.getElementById('feedbackSection').classList.remove('show');
+            document.getElementById('evaluateBtn').style.display = 'inline-block';
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function updatePhaseCards() {
+            const phaseData = currentScenario.phases[currentPhase - 1];
+            const cardsContainer = document.getElementById(`phase${currentPhase}Cards`);
+            
+            cardsContainer.innerHTML = '';
+            
+            phaseData.choices.forEach((choice, index) => {
+                const card = document.createElement('div');
+                card.className = 'decision-card';
+                card.onclick = () => selectChoice(currentPhase, index);
+                card.innerHTML = `
+                    <h4>${choice.name}</h4>
+                    <div class="test-statistic">${choice.statistic}</div>
+                    <div class="method-description">
+                        ${choice.description}
+                    </div>
+                `;
+                card.dataset.phase = currentPhase;
+                card.dataset.index = index;
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        function selectChoice(phase, index) {
+            // Remove previous selection
+            document.querySelectorAll(`[data-phase="${phase}"] .decision-card`).forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`[data-phase="${phase}"][data-index="${index}"]`).classList.add('selected');
+            selectedChoice = index;
+        }
+
+        function evaluatePhase() {
+            if (selectedChoice === null) {
+                alert('Please select an option first.');
+                return;
+            }
+
+            const phaseData = currentScenario.phases[currentPhase - 1];
+            const selectedOption = phaseData.choices[selectedChoice];
+            phaseResults[currentPhase] = selectedChoice;
+
+            let feedbackContent = `
+                <h4>Phase ${currentPhase}: ${phaseData.title}</h4>
+                <h4>🎯 Your Choice: ${selectedOption.name}</h4>
+                <p><strong>Assessment:</strong> ${selectedOption.correct ? 
+                    '✅ <strong>Excellent choice!</strong> This is the most appropriate approach for this phase.' : 
+                    '❌ <strong>Consider the alternative.</strong> While this approach has applications, there\'s a more suitable option.'}</p>
+                <p><strong>Reasoning:</strong> ${selectedOption.reasoning}</p>
+
+                ${!selectedOption.correct ? `
+                    <h4>💡 Optimal Approach:</h4>
+                    ${phaseData.choices.filter(c => c.correct).map(c => `
+                        <p><strong>${c.name}:</strong> ${c.reasoning}</p>
+                    `).join('')}
+                ` : ''}
+
+                <h4>🎓 Key Learning Points:</h4>
+                ${getPhaseLearnPoints(currentPhase)}
+            `;
+
+            if (currentPhase < 5) {
+                feedbackContent += `
+                    <p><strong>Ready for next phase!</strong> You've completed ${phaseData.title}. Continue to build your complete IV analysis.</p>
+                `;
+                document.getElementById('nextBtn').style.display = 'inline-block';
+            } else {
+                feedbackContent += `
+                    <div class="economic-interpretation">
+                        <h5>🎯 Complete IV Analysis Summary</h5>
+                        <p><strong>Causal Finding:</strong> University education causes 6.4% increase in wages (vs. 8.9% OLS bias). Geographic distance provides credible identification through education access channel.</p>
+                    </div>
+                    <div class="economic-interpretation">
+                        <h5>🏛️ Policy Implications</h5>
+                        <p>Causal education returns justify investment in university access programs. Distance-based barriers create inequitable opportunities. Policy should focus on reducing geographic barriers to higher education.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('feedbackContent').innerHTML = feedbackContent;
+            document.getElementById('feedbackSection').classList.add('show');
+            document.getElementById('evaluateBtn').style.display = 'none';
+        }
+
+        function getPhaseLearnPoints(phase) {
+            const points = {
+                1: `
+                    <p>• <strong>Hausman Test:</strong> Standard method for detecting endogeneity</p>
+                    <p>• <strong>Economic Theory:</strong> Should guide but not replace statistical tests</p>
+                    <p>• <strong>Null Hypothesis:</strong> No endogeneity (OLS consistent)</p>
+                `,
+                2: `
+                    <p>• <strong>Relevance:</strong> Instrument must affect endogenous variable</p>
+                    <p>• <strong>Exogeneity:</strong> Instrument uncorrelated with error term</p>
+                    <p>• <strong>Exclusion Restriction:</strong> Instrument affects Y only through X</p>
+                `,
+                3: `
+                    <p>• <strong>F > 10 Rule:</strong> Rule-of-thumb for strong instruments</p>
+                    <p>• <strong>Weak IV Problem:</strong> Bias toward OLS, poor finite sample properties</p>
+                    <p>• <strong>Stock-Yogo Criteria:</strong> More rigorous weak instrument tests</p>
+                `,
+                4: `
+                    <p>• <strong>2SLS Procedure:</strong> First predict X, then use X̂ in second stage</p>
+                    <p>• <strong>Interpretation:</strong> Local Average Treatment Effect (LATE)</p>
+                    <p>• <strong>Comparison:</strong> IV vs OLS differences reveal bias direction</p>
+                `,
+                5: `
+                    <p>• <strong>Exclusion Restriction:</strong> Cannot be formally tested with single instrument</p>
+                    <p>• <strong>Over-identification:</strong> Test with multiple instruments</p>
+                    <p>• <strong>Placebo Tests:</strong> Check instrument effects on predetermined variables</p>
+                `
+            };
+            return points[phase] || '';
+        }
+
+        function nextPhase() {
+            if (currentPhase < 5) {
+                switchPhase(currentPhase + 1);
+            }
+        }
+
+        // Initialize with random scenario
+        function initializeRandomScenario() {
+            generateNewScenario();
+        }
+        
+        setTimeout(initializeRandomScenario, 100);
+    </script>
+</body>
+</html>
