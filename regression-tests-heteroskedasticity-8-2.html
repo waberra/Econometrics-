@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Testing for Heteroskedasticity (Wooldridge 8.2)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .bp-card      { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .white-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .logic-card   { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card{ background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Testing for Heteroskedasticity (Wooldridge 8.2)</h1>
+        <p>Practice Breusch–Pagan and White tests using nR² and χ² critical values</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Breusch–Pagan & White Tests</h3>
+        <div class="measures-grid">
+            <div class="measure-card bp-card">
+                <h4>Breusch–Pagan (BP) Test</h4>
+                <div class="formula">
+                    1. Run main OLS → get û<br>
+                    2. Regress û² on X<br>
+                    3. BP stat = n·R²  ~ χ²<sub>k</sub>
+                </div>
+                <div class="description">
+                    Tests whether the error variance depends on the regressors <em>linearly</em>. Uses an auxiliary regression of squared residuals on X.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Suspect variance rises with income, size, age, etc.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Wage regression where richer households show more dispersion in residuals.
+                </div>
+            </div>
+
+            <div class="measure-card white-card">
+                <h4>White Test</h4>
+                <div class="formula">
+                    û² on X, X², and cross-products<br>
+                    White stat = n·R² ~ χ²<sub>df</sub>
+                </div>
+                <div class="description">
+                    A more general test: allows arbitrary forms of heteroskedasticity by including squares and interactions of regressors in the auxiliary regression.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Want a general test without specifying how Var(u|X) changes.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Test uses R² from û² ~ X + X² + X₁X₂ + … and compares nR² to χ²<sub>df</sub>.
+                </div>
+            </div>
+
+            <div class="measure-card logic-card">
+                <h4>Logic & Hypotheses</h4>
+                <div class="formula">
+                    H₀: Homoskedasticity<br>
+                    H₁: Var(u|X) depends on X
+                </div>
+                <div class="description">
+                    If the regressors (or their functions) explain û² well, variance depends on X and we reject homoskedasticity.
+                </div>
+                <div class="use-cases">
+                    <strong>Decision rule:</strong> Reject H₀ if nR² > χ²<sub>crit</sub>(df).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> At 5% level with k = 3, χ²<sub>0.95,3</sub> ≈ 7.81.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    Tests vs Robust SEs
+                </div>
+                <div class="description">
+                    In practice, researchers often go straight to heteroskedasticity-robust standard errors. BP/White tests are useful to <em>document</em> heteroskedasticity and teach the logic.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Report both: robust SEs + a heteroskedasticity test as a diagnostic.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> Always comfortable with robust SEs; use tests mainly for understanding and reporting.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: BP & White Tests</h3>
+            <p>Each scenario gives you sample size n and R² from auxiliary regressions for the Breusch–Pagan and White tests. Compute nR², compare to χ² critical values, and decide whether to reject homoskedasticity.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the sample size (n), R² from the auxiliary regressions, and the χ² critical values shown. Remember: test statistic = n·R² and reject H₀ if n·R² &gt; χ²<sub>crit</sub>.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 BP statistic</strong><br>Compute nR² and compare to χ²<sub>crit</sub> for Breusch–Pagan.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 White statistic</strong><br>Compute nR² and compare to χ²<sub>crit</sub> for the White test.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Decisions at 5%</strong><br>Decide whether to reject H₀ for each test (enter 1 = reject, 0 = do not reject).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain what your decision means for using robust standard errors.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Heteroskedasticity tests (8.2) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios with n, R² (BP), R² (White), and χ² critical values
+    var scenarios = [
+        {
+            id: "wageEducBPWhite",
+            title: "Wage Equation: Testing for Heteroskedasticity",
+            description: "You estimate a log wage equation on a sample of workers and suspect that the variance of the error increases with education and experience.",
+            context: "Use the Breusch–Pagan and White tests to check for heteroskedasticity.",
+            mainModel: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·tenure + u",
+            n: 500,
+            // BP auxiliary regression: û² on educ, exper, tenure
+            bpR2: 0.060,
+            bp_df: 3,               // k restrictions
+            bp_chi2_crit_5: 7.81,   // χ²_0.95,3
+            // White auxiliary: û² on educ, exper, tenure, squares, and some cross-terms
+            whiteR2: 0.100,
+            white_df: 9,
+            white_chi2_crit_5: 16.92, // χ²_0.95,9
+            expertInterpretation:
+                "Both the Breusch–Pagan and White test statistics are well above their 5% χ² critical values. This is strong evidence that the error variance depends on the regressors. The OLS coefficients are still consistent under exogeneity, but the usual homoskedastic standard errors are unreliable. You should report heteroskedasticity-robust standard errors for inference."
+        },
+        {
+            id: "housePriceBPWhite",
+            title: "House Price Regression: Little Evidence of Heteroskedasticity",
+            description: "You regress house price on square footage, number of bedrooms, and age of the house. You run BP and White tests using the squared OLS residuals.",
+            context: "Evaluate whether the tests show strong evidence of heteroskedasticity.",
+            mainModel: "price = β₀ + β₁·sqft + β₂·bedrooms + β₃·age + u   (price in $1,000s)",
+            n: 300,
+            bpR2: 0.010,
+            bp_df: 3,
+            bp_chi2_crit_5: 7.81,
+            whiteR2: 0.015,
+            white_df: 6,
+            white_chi2_crit_5: 12.59, // χ²_0.95,6
+            expertInterpretation:
+                "For this house price regression, both BP and White statistics are well below their 5% χ² critical values. You would not reject homoskedasticity at the 5% level. In practice you can still use robust standard errors, but the tests suggest that heteroskedasticity is not a major concern here."
+        },
+        {
+            id: "consumptionBPWhite",
+            title: "Household Consumption and Income",
+            description: "You regress household annual consumption on income and family size using cross-sectional survey data. You suspect that richer households have more dispersed consumption.",
+            context: "Test for heteroskedasticity using both BP and White tests.",
+            mainModel: "cons = β₀ + β₁·income + β₂·famsize + u   (consumption and income in $1,000s)",
+            n: 800,
+            bpR2: 0.030,
+            bp_df: 2,
+            bp_chi2_crit_5: 5.99,   // χ²_0.95,2
+            whiteR2: 0.040,
+            white_df: 5,
+            white_chi2_crit_5: 11.07, // χ²_0.95,5
+            expertInterpretation:
+                "For this consumption regression, both the BP and White test statistics are noticeably larger than their 5% χ² critical values. This indicates clear heteroskedasticity related to income and/or family size. OLS is still consistent under exogeneity, but you should rely on heteroskedasticity-robust standard errors when forming t-tests and confidence intervals."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var bpStat = scenario.n * scenario.bpR2;
+        var whiteStat = scenario.n * scenario.whiteR2;
+
+        var html = "";
+        html += '<h4>📋 Main Regression and Auxiliary Test Regressions</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Main model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.mainModel;
+        html += '</p>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;"><strong>Sample size:</strong> n = ' + scenario.n + '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Test</th><th>Auxiliary regression</th><th>R²</th><th>df</th><th>χ²<sub>0.95,df</sub></th><th>n·R² (for info)</th></tr></thead><tbody>';
+
+        html += '<tr>';
+        html += '<td>Breusch–Pagan</td>';
+        html += '<td>û² on original regressors</td>';
+        html += '<td>' + scenario.bpR2.toFixed(3) + '</td>';
+        html += '<td>' + scenario.bp_df + '</td>';
+        html += '<td>' + scenario.bp_chi2_crit_5.toFixed(2) + '</td>';
+        html += '<td>' + bpStat.toFixed(2) + '</td>';
+        html += '</tr>';
+
+        html += '<tr>';
+        html += '<td>White</td>';
+        html += '<td>û² on regressors, squares, and cross-terms</td>';
+        html += '<td>' + scenario.whiteR2.toFixed(3) + '</td>';
+        html += '<td>' + scenario.white_df + '</td>';
+        html += '<td>' + scenario.white_chi2_crit_5.toFixed(2) + '</td>';
+        html += '<td>' + whiteStat.toFixed(2) + '</td>';
+        html += '</tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Reminder:</strong> For both tests, the statistic is n·R² and is compared to a χ² distribution with the given df under H₀ of homoskedasticity. Reject H₀ at 5% if n·R² &gt; χ²<sub>0.95,df</sub>.';
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var bpStat = s.n * s.bpR2;
+        var whiteStat = s.n * s.whiteR2;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "bpStat",
+                type: "numeric",
+                title: "🏁 Breusch–Pagan test statistic",
+                prompt: "Compute the Breusch–Pagan test statistic for this model: n·R² from the BP auxiliary regression.",
+                correctValue: bpStat,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "whiteStat",
+                type: "numeric",
+                title: "📊 White test statistic",
+                prompt: "Compute the White test statistic: n·R² from the White auxiliary regression.",
+                correctValue: whiteStat,
+                unitHint: ""
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "bpDecision",
+                type: "numeric",
+                title: "📉 BP decision at 5% (1 = reject, 0 = do not reject)",
+                prompt: "Using the 5% χ² critical value shown for BP, would you reject H₀ of homoskedasticity? Enter 1 if n·R² &gt; χ²<sub>crit</sub>, 0 otherwise.",
+                correctValue: (bpStat > s.bp_chi2_crit_5) ? 1 : 0,
+                unitHint: "(1 = reject, 0 = do not reject)"
+            });
+            currentQuestions.push({
+                conceptId: "whiteDecision",
+                type: "numeric",
+                title: "📉 White decision at 5% (1 = reject, 0 = do not reject)",
+                prompt: "Using the 5% χ² critical value shown for the White test, would you reject H₀ of homoskedasticity? Enter 1 if n·R² &gt; χ²<sub>crit</sub>, 0 otherwise.",
+                correctValue: (whiteStat > s.white_chi2_crit_5) ? 1 : 0,
+                unitHint: "(1 = reject, 0 = do not reject)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "In words, explain what your BP and White decisions imply about heteroskedasticity in this model and how that affects your choice of standard errors. Then compare to the expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Remember: Breusch–Pagan and White both use n·R² compared to χ². They test homoskedasticity of the errors, not validity of exogeneity or functional form.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var bpStat = s.n * s.bpR2;
+        var whiteStat = s.n * s.whiteR2;
+        var bpDecision = (bpStat > s.bp_chi2_crit_5) ? 1 : 0;
+        var whiteDecision = (whiteStat > s.white_chi2_crit_5) ? 1 : 0;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "bpStat") {
+            html += "The Breusch–Pagan test statistic is constructed as n·R² from the auxiliary regression of û² on the original regressors.<br>";
+            html += "Here, n = " + s.n + " and R²(BP) = " + s.bpR2.toFixed(3) + ", so:<br>";
+            html += "BP = n·R² = " + s.n + " × " + s.bpR2.toFixed(3) + " ≈ " + bpStat.toFixed(2) + ".";
+            html += "<br>Compare this to χ² with " + s.bp_df + " degrees of freedom.";
+        } else if (q.conceptId === "whiteStat") {
+            html += "The White test uses an auxiliary regression of û² on regressors, their squares, and cross-products.<br>";
+            html += "The test statistic is again n·R², but with more degrees of freedom (df = " + s.white_df + ").<br>";
+            html += "Here, White = " + s.n + " × " + s.whiteR2.toFixed(3) + " ≈ " + whiteStat.toFixed(2) + ".";
+        } else if (q.conceptId === "bpDecision") {
+            html += "Decision rule for BP at 5%: reject H₀ if n·R² &gt; χ²<sub>0.95," + s.bp_df + "</sub> = " +
+                    s.bp_chi2_crit_5.toFixed(2) + ".<br>";
+            html += "Here, BP = " + bpStat.toFixed(2) + ". So:";
+            if (bpDecision === 1) {
+                html += " " + bpStat.toFixed(2) + " &gt; " + s.bp_chi2_crit_5.toFixed(2) +
+                        " ⇒ reject H₀ of homoskedasticity (evidence of heteroskedasticity).";
+            } else {
+                html += " " + bpStat.toFixed(2) + " ≤ " + s.bp_chi2_crit_5.toFixed(2) +
+                        " ⇒ do not reject H₀ at the 5% level.";
+            }
+        } else if (q.conceptId === "whiteDecision") {
+            html += "Decision rule for White at 5%: reject H₀ if n·R² &gt; χ²<sub>0.95," + s.white_df + "</sub> = " +
+                    s.white_chi2_crit_5.toFixed(2) + ".<br>";
+            html += "Here, White = " + whiteStat.toFixed(2) + ". So:";
+            if (whiteDecision === 1) {
+                html += " " + whiteStat.toFixed(2) + " &gt; " +
+                        s.white_chi2_crit_5.toFixed(2) +
+                        " ⇒ reject H₀ of homoskedasticity (evidence of heteroskedasticity).";
+            } else {
+                html += " " + whiteStat.toFixed(2) + " ≤ " +
+                        s.white_chi2_crit_5.toFixed(2) +
+                        " ⇒ do not reject H₀ at the 5% level.";
+            }
+        } else if (q.conceptId === "interpret") {
+            html += "<em>" + s.expertInterpretation + "</em>";
+            html += "<br><br>Big picture: BP and White are <strong>diagnostics</strong>. Regardless of the test, a safe practice in cross-sectional data is to report heteroskedasticity-robust standard errors.";
+        } else {
+            html += "In both tests, R² comes from a regression of û² on functions of X. Multiplying R² by n produces a statistic with an approximate χ² distribution under H₀ of homoskedasticity.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Heteroskedasticity tests practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
