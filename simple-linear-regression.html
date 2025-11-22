@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Econometric Decision Making: Simple Linear Regression</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #8b4513, #a0522d);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #654321;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #2c5530, #355839);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .decision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .decision-card {
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .decision-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+
+        .functional-form-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-color: #1f4e79;
+            color: white;
+        }
+
+        .variable-selection-card {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-color: #a93226;
+            color: white;
+        }
+
+        .assumptions-card {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            border-color: #d68910;
+            color: white;
+        }
+
+        .interpretation-card {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border-color: #7d3c98;
+            color: white;
+        }
+
+        .specification-card {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            border-color: #148f77;
+            color: white;
+        }
+
+        .diagnostics-card {
+            background: linear-gradient(135deg, #e91e63, #ad1457);
+            border-color: #880e4f;
+            color: white;
+        }
+
+        .decision-card h4 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .decision-card .description {
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .decision-card .questions {
+            margin-bottom: 15px;
+            font-style: italic;
+            font-size: 0.95em;
+        }
+
+        .decision-card .examples {
+            font-size: 0.9em;
+            border-top: 2px solid rgba(255,255,255,0.3);
+            padding-top: 10px;
+        }
+
+        .interactive-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #2c5530;
+        }
+
+        .scenario-display {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #8b4513;
+            display: none;
+        }
+
+        .decision-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #3498db;
+            display: none;
+        }
+
+        .feedback-area {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #e74c3c;
+            display: none;
+        }
+
+        .implementation-area {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #9b59b6;
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2c5530, #355839);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 4px 10px rgba(44, 85, 48, 0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #355839, #2c5530);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(44, 85, 48, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #495057, #6c757d);
+            box-shadow: 0 6px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
+            color: #2c3e50;
+            border: 2px solid #bdc3c7;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background: linear-gradient(135deg, #d5dbdb, #bdc3c7);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #d5f4e6, #a8e6cf);
+            border-color: #27ae60;
+            color: #1e8449;
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, #fadbd8, #f1948a);
+            border-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, #d6eaf8, #aed6f1);
+            border-color: #3498db;
+            color: #1f4e79;
+        }
+
+        .data-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid #dee2e6;
+        }
+
+        .scatter-plot {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .equation-display {
+            background: linear-gradient(135deg, #f4f4f4, #e8e8e8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #3498db;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .reasoning-textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 1em;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .feedback-box {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .feedback-correct {
+            background: #d4f6d4;
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+
+        .feedback-incorrect {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            color: #721c24;
+        }
+
+        .feedback-partial {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+
+        .progress-display {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 3px solid #5f3dc4;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .decision-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>🧮 Econometric Decision Making</h1>
+            <p>Master the Art of Methodological Choice in Simple Linear Regression</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🎯 Key Decision Points in Linear Regression</h3>
+            <div class="decision-grid">
+                <div class="decision-card functional-form-card">
+                    <h4>📊 Functional Form</h4>
+                    <div class="description">
+                        <strong>The Foundation Decision</strong><br>
+                        How should you model the relationship between Y and X?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Linear? Log-linear? Log-log? Polynomial?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Income vs education, GDP vs population, price elasticity
+                    </div>
+                </div>
+
+                <div class="decision-card variable-selection-card">
+                    <h4>🔍 Variable Selection</h4>
+                    <div class="description">
+                        <strong>What to Include</strong><br>
+                        Which explanatory variables matter for your research question?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Controls needed? Interaction terms? Time trends?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Omitted variable bias, multicollinearity, parsimony
+                    </div>
+                </div>
+
+                <div class="decision-card assumptions-card">
+                    <h4>⚖️ OLS Assumptions</h4>
+                    <div class="description">
+                        <strong>Validity Check</strong><br>
+                        Are the classical linear regression assumptions satisfied?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Linearity? Independence? Homoskedasticity? Normality?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Residual analysis, diagnostic tests, assumption violations
+                    </div>
+                </div>
+
+                <div class="decision-card interpretation-card">
+                    <h4>📖 Interpretation</h4>
+                    <div class="description">
+                        <strong>Making Sense of Results</strong><br>
+                        How do you interpret coefficients meaningfully?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Economic significance? Causal vs correlation? Policy relevance?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Units, elasticities, confidence intervals, practical importance
+                    </div>
+                </div>
+
+                <div class="decision-card specification-card">
+                    <h4>🎯 Specification Issues</h4>
+                    <div class="description">
+                        <strong>Model Adequacy</strong><br>
+                        Is your model correctly specified for the research question?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Missing variables? Wrong functional form? Structural breaks?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Theory guidance, specification tests, robustness checks
+                    </div>
+                </div>
+
+                <div class="decision-card diagnostics-card">
+                    <h4>🔬 Diagnostics & Robustness</h4>
+                    <div class="description">
+                        <strong>Testing Your Results</strong><br>
+                        How confident should you be in your findings?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Outliers? Influential observations? Sensitivity analysis?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Cook's distance, leverage, alternative specifications
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactive-section">
+            <div class="control-panel">
+                <h3>🎮 Interactive Econometric Decision Making</h3>
+                <p>Practice making methodological choices with real Canadian economic data!</p>
+                <p style="font-size: 0.9em; color: #6c757d; margin-top: 10px;">
+                    ✨ <strong>Learn by Doing:</strong> Analyze economic scenarios and make regression modeling decisions like a professional econometrician.
+                </p>
+                <button class="btn" onclick="generateScenario()">📊 Generate Economic Scenario</button>
+                <button class="btn btn-secondary" onclick="resetAnalysis()">🔄 Reset Analysis</button>
+            </div>
+
+            <div id="scenarioDisplay" class="scenario-display">
+                <h3 id="scenarioTitle">📋 Economic Analysis Scenario</h3>
+                <div id="scenarioDescription"></div>
+                <div id="dataDisplay"></div>
+                <div id="visualDisplay"></div>
+            </div>
+
+            <div id="decisionSection" class="decision-section">
+                <h3>🤔 Your Econometric Decisions</h3>
+                <div id="currentDecisionArea"></div>
+                <div id="reasoningArea" style="margin-top: 20px;">
+                    <h4>📝 Your Reasoning:</h4>
+                    <textarea id="studentReasoning" class="reasoning-textarea" placeholder="Explain your methodological choice and the economic reasoning behind it..."></textarea>
+                </div>
+                <button class="btn" onclick="submitDecision()" id="submitBtn" style="margin-top: 15px;">📝 Submit Analysis</button>
+            </div>
+
+            <div id="feedbackArea" class="feedback-area">
+                <h3>🧠 Expert Econometrician Feedback</h3>
+                <div id="feedbackContent"></div>
+                <button class="btn" onclick="proceedToImplementation()" id="implementBtn">🧮 Show Implementation</button>
+            </div>
+
+            <div id="implementationArea" class="implementation-area">
+                <h3>📊 Econometric Implementation</h3>
+                <div id="implementationContent"></div>
+                <button class="btn" onclick="generateScenario()">➡️ Try Another Scenario</button>
+            </div>
+
+            <div class="progress-display">
+                <h3>🎯 Econometric Learning Progress</h3>
+                <div>Scenarios Analyzed: <span id="scenariosCompleted">0</span></div>
+                <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                    Building expertise in econometric methodology and research design
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScenario = {};
+        let currentDecisionType = "";
+        let studentChoices = [];
+        let studentReasoning = "";
+        let scenariosCompleted = 0;
+        let decisionStep = 0;
+
+        const scenarios = [
+            {
+                title: "Canadian Provincial Income and Education Analysis",
+                description: "Analyzing the relationship between average education levels and median household income across Canadian provinces",
+                context: "Policy research for federal education funding allocation",
+                researchQuestion: "How does provincial education level affect household income?",
+                yVariable: "Median Household Income (CAD)",
+                xVariable: "Average Years of Education",
+                data: {
+                    provinces: ["BC", "AB", "SK", "MB", "ON", "QC", "NB", "NS", "PE", "NL"],
+                    education: [13.8, 13.2, 12.1, 12.9, 13.5, 12.8, 12.3, 12.7, 12.4, 11.9],
+                    income: [72500, 78200, 68900, 66800, 74100, 61200, 58400, 62300, 59800, 64200]
+                },
+                economicTheory: "Human capital theory suggests education increases productivity and wages",
+                dataType: "cross-sectional"
+            },
+            {
+                title: "Housing Prices and Mortgage Rates in Toronto",
+                description: "Examining the relationship between mortgage interest rates and average housing prices in the Greater Toronto Area",
+                context: "Bank of Canada monetary policy impact assessment",
+                researchQuestion: "How do mortgage rates affect housing prices?",
+                yVariable: "Average House Price ($000s CAD)",
+                xVariable: "5-Year Mortgage Rate (%)",
+                data: {
+                    years: ["2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"],
+                    mortgageRate: [4.79, 4.64, 4.44, 4.69, 5.34, 5.19, 4.74, 4.79, 6.81, 6.45],
+                    housePrice: [588, 622, 730, 822, 787, 819, 929, 1108, 1123, 1086]
+                },
+                economicTheory: "Higher borrowing costs should reduce demand and lower prices",
+                dataType: "time-series"
+            },
+            {
+                title: "Agricultural Productivity and Farm Size",
+                description: "Studying the relationship between farm size and crop yield per hectare in Saskatchewan",
+                context: "Agricultural efficiency research for policy optimization",
+                researchQuestion: "Does larger farm size lead to higher productivity?",
+                yVariable: "Crop Yield (tonnes per hectare)",
+                xVariable: "Farm Size (hectares)",
+                data: {
+                    farms: ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10"],
+                    farmSize: [125, 250, 450, 680, 850, 1200, 1450, 1800, 2100, 2650],
+                    yield: [3.2, 3.8, 4.1, 4.3, 4.0, 3.9, 3.7, 3.5, 3.4, 3.2]
+                },
+                economicTheory: "Economies of scale vs. decreasing returns to scale in agriculture",
+                dataType: "cross-sectional"
+            },
+            {
+                title: "Tourism Revenue and Exchange Rates",
+                description: "Analyzing how Canadian dollar strength affects international tourism revenue in British Columbia",
+                context: "Tourism industry competitiveness study",
+                researchQuestion: "How does currency strength impact tourism revenue?",
+                yVariable: "Tourism Revenue (millions CAD)",
+                xVariable: "CAD/USD Exchange Rate",
+                data: {
+                    years: ["2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"],
+                    exchangeRate: [0.906, 0.783, 0.755, 0.771, 0.771, 0.754, 0.746, 0.797, 0.769, 0.740],
+                    tourism: [4200, 4850, 5100, 4950, 4800, 5200, 2100, 2800, 4600, 5400]
+                },
+                economicTheory: "Weaker domestic currency makes tourism more affordable for foreigners",
+                dataType: "time-series"
+            },
+            {
+                title: "University Enrollment and Graduate Earnings",
+                description: "Examining the relationship between university program enrollment and average graduate starting salaries",
+                context: "Higher education return-on-investment analysis",
+                researchQuestion: "Do programs with higher enrollment have different graduate earnings?",
+                yVariable: "Average Starting Salary (CAD)",
+                xVariable: "Program Enrollment",
+                data: {
+                    programs: ["Engineering", "Business", "Computer Science", "Arts", "Sciences", "Education", "Medicine", "Law", "Nursing", "Social Work"],
+                    enrollment: [1250, 2100, 850, 3200, 1800, 950, 180, 220, 420, 380],
+                    salary: [75000, 58000, 78000, 42000, 48000, 52000, 95000, 85000, 62000, 45000]
+                },
+                economicTheory: "Supply and demand in labor markets affect wage premiums",
+                dataType: "cross-sectional"
+            },
+            {
+                title: "Technology Adoption and Learning Curves",
+                description: "Analyzing the relationship between cumulative production experience and manufacturing costs in Canadian aerospace industry",
+                context: "Industrial efficiency and competitiveness study for Innovation Canada", 
+                researchQuestion: "How do manufacturing costs change with production experience?",
+                yVariable: "Unit Production Cost (CAD)",
+                xVariable: "Cumulative Units Produced",
+                data: {
+                    quarters: ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10"],
+                    experience: [100, 250, 420, 680, 950, 1350, 1800, 2400, 3100, 3950],
+                    cost: [145000, 128000, 118000, 110000, 104000, 99500, 96200, 93800, 92100, 90800]
+                },
+                economicTheory: "Learning-by-doing suggests costs decline with experience, following power law or exponential decay",
+                dataType: "time-series"
+            }
+        ];
+
+        const decisionTypes = [
+            {
+                id: "functional_form",
+                title: "Functional Form Decision",
+                question: "How should you model the relationship between the variables?",
+                options: [
+                    {
+                        id: "linear",
+                        label: "Linear Model",
+                        description: "Y = α + βX + ε",
+                        detail: "Assumes constant marginal effect of X on Y"
+                    },
+                    {
+                        id: "log_linear",
+                        label: "Log-Linear Model", 
+                        description: "log(Y) = α + βX + ε",
+                        detail: "X has constant percentage effect on Y (semi-elasticity)"
+                    },
+                    {
+                        id: "linear_log",
+                        label: "Linear-Log Model",
+                        description: "Y = α + β⋅log(X) + ε", 
+                        detail: "Diminishing marginal effect of X on Y"
+                    },
+                    {
+                        id: "log_log",
+                        label: "Log-Log Model",
+                        description: "log(Y) = α + β⋅log(X) + ε",
+                        detail: "β represents elasticity (constant percentage relationship)"
+                    },
+                    {
+                        id: "polynomial",
+                        label: "Polynomial Model",
+                        description: "Y = α + β₁X + β₂X² + ε",
+                        detail: "Allows for non-linear relationship with turning points"
+                    },
+                    {
+                        id: "exponential",
+                        label: "Exponential Model",
+                        description: "Y = α⋅e^(βX) or log(Y) = log(α) + βX",
+                        detail: "Captures exponential growth/decay processes"
+                    },
+                    {
+                        id: "reciprocal",
+                        label: "Reciprocal Model", 
+                        description: "Y = α + β/X + ε",
+                        detail: "Shows asymptotic behavior and diminishing effects"
+                    }
+                ]
+            },
+            {
+                id: "interpretation",
+                title: "Coefficient Interpretation",
+                question: "How would you interpret the coefficient β in your chosen model?",
+                options: [
+                    {
+                        id: "unit_change",
+                        label: "Unit Change",
+                        description: "One unit increase in X leads to β unit increase in Y",
+                        detail: "Appropriate for linear models"
+                    },
+                    {
+                        id: "percentage_change",
+                        label: "Percentage Change",
+                        description: "One unit increase in X leads to β% change in Y",
+                        detail: "Appropriate for log-linear models"
+                    },
+                    {
+                        id: "elasticity",
+                        label: "Elasticity",
+                        description: "1% increase in X leads to β% change in Y",
+                        detail: "Appropriate for log-log models"
+                    },
+                    {
+                        id: "marginal_effect",
+                        label: "Marginal Effect",
+                        description: "β depends on the level of X (non-constant)",
+                        detail: "Appropriate for non-linear models"
+                    },
+                    {
+                        id: "exponential_rate",
+                        label: "Growth/Decay Rate", 
+                        description: "β represents the exponential growth rate",
+                        detail: "Appropriate for exponential models: Y changes by β×100% per unit of X"
+                    },
+                    {
+                        id: "diminishing_effect",
+                        label: "Diminishing Effect",
+                        description: "Effect of X on Y decreases as X increases",
+                        detail: "Appropriate for reciprocal models: marginal effect = -β/X²"
+                    }
+                ]
+            },
+            {
+                id: "specification",
+                title: "Model Specification Concerns",
+                question: "What specification issues should you consider for this analysis?",
+                options: [
+                    {
+                        id: "omitted_variables",
+                        label: "Omitted Variable Bias",
+                        description: "Important explanatory variables might be missing",
+                        detail: "Could bias coefficient estimates"
+                    },
+                    {
+                        id: "reverse_causality",
+                        label: "Reverse Causality",
+                        description: "Y might also influence X",
+                        detail: "Violates exogeneity assumption"
+                    },
+                    {
+                        id: "measurement_error",
+                        label: "Measurement Error",
+                        description: "Variables might be measured imprecisely",
+                        detail: "Can attenuate coefficient estimates"
+                    },
+                    {
+                        id: "structural_breaks",
+                        label: "Structural Breaks",
+                        description: "Relationship might change over time/groups",
+                        detail: "Requires testing for parameter stability"
+                    },
+                    {
+                        id: "heterogeneity",
+                        label: "Unobserved Heterogeneity",
+                        description: "Units might differ in unobservable ways",
+                        detail: "Could confound the relationship"
+                    }
+                ]
+            }
+        ];
+
+        // Expert recommendations for each scenario and decision type
+        const expertRecommendations = {
+            "Canadian Provincial Income and Education Analysis": {
+                functional_form: {
+                    best: ["linear_log", "reciprocal"],
+                    reasoning: "Education has diminishing returns - each additional year matters less at higher levels. Linear-log or reciprocal both capture this economic intuition, with reciprocal showing asymptotic approach to maximum income.",
+                    alternatives: ["linear"],
+                    avoid: ["log_linear", "log_log", "exponential"],
+                    avoid_reasons: {
+                        "log_linear": "Education increases are discrete (years), not continuous percentage changes",
+                        "log_log": "Education levels near zero would create mathematical problems",
+                        "exponential": "Would imply accelerating returns to education, contradicting human capital theory"
+                    }
+                },
+                interpretation: {
+                    best: ["marginal_effect"],
+                    reasoning: "With linear-log model, interpretation is: one additional year of education increases income by β dollars",
+                    avoid: ["elasticity"],
+                    avoid_reasons: {
+                        "elasticity": "Only appropriate for log-log models"
+                    }
+                },
+                specification: {
+                    best: ["omitted_variables"],
+                    reasoning: "Provincial differences in cost of living, industry composition, and natural resources could bias results",
+                    concerns: ["heterogeneity"],
+                    minor: ["measurement_error"]
+                }
+            },
+            "Housing Prices and Mortgage Rates in Toronto": {
+                functional_form: {
+                    best: ["log_linear", "exponential"],
+                    reasoning: "Mortgage rates affect housing demand through affordability - a percentage-based relationship. Exponential form captures how small rate changes can have large multiplicative effects on monthly payments and affordability.",
+                    alternatives: ["linear"],
+                    avoid: ["log_log", "reciprocal"],
+                    avoid_reasons: {
+                        "log_log": "Interest rates near zero create mathematical issues, and economic theory suggests percentage effects",
+                        "reciprocal": "Would imply diminishing rate sensitivity at high rates, but affordability effects remain strong"
+                    }
+                },
+                interpretation: {
+                    best: ["percentage_change"],
+                    reasoning: "One percentage point increase in mortgage rates leads to β% change in house prices (semi-elasticity)",
+                    avoid: ["elasticity"],
+                    avoid_reasons: {
+                        "elasticity": "Interest rates are already in percentage form"
+                    }
+                },
+                specification: {
+                    best: ["omitted_variables", "reverse_causality"],
+                    reasoning: "Missing variables: income, supply constraints, immigration. Reverse causality: house prices might influence monetary policy",
+                    concerns: ["structural_breaks"],
+                    minor: ["measurement_error"]
+                }
+            },
+            "Agricultural Productivity and Farm Size": {
+                functional_form: {
+                    best: ["polynomial", "reciprocal"],
+                    reasoning: "Agricultural economics suggests economies of scale initially, then decreasing returns. Polynomial captures U-shaped relationship, while reciprocal shows productivity approaching maximum efficiency asymptote.",
+                    alternatives: ["linear_log"],
+                    avoid: ["log_log", "exponential"],
+                    avoid_reasons: {
+                        "log_log": "Farm size of zero creates mathematical problems",
+                        "exponential": "Would suggest unlimited productivity growth with farm size, violating economic intuition about land constraints"
+                    }
+                },
+                interpretation: {
+                    best: ["marginal_effect"],
+                    reasoning: "With polynomial model, marginal effect depends on farm size level. Need to evaluate at specific points.",
+                    avoid: ["elasticity"],
+                    avoid_reasons: {
+                        "elasticity": "Only appropriate for log-log models"
+                    }
+                },
+                specification: {
+                    best: ["omitted_variables", "heterogeneity"],
+                    reasoning: "Soil quality, weather patterns, technology adoption, and farmer experience vary across farms",
+                    concerns: ["measurement_error"],
+                    minor: ["reverse_causality"]
+                }
+            },
+            "Tourism Revenue and Exchange Rates": {
+                functional_form: {
+                    best: ["log_log", "exponential"],
+                    reasoning: "Exchange rate elasticity of tourism demand - both variables naturally in ratio form. Exponential form captures how currency changes can have multiplicative effects on tourism competitiveness.",
+                    alternatives: ["log_linear"],
+                    avoid: ["linear", "reciprocal"],
+                    avoid_reasons: {
+                        "linear": "Exchange rates are ratios, economic theory suggests elasticity relationship",
+                        "reciprocal": "Would imply tourism becomes insensitive to exchange rates at extreme values, contradicting economic theory"
+                    }
+                },
+                interpretation: {
+                    best: ["elasticity"],
+                    reasoning: "1% appreciation of CAD leads to β% change in tourism revenue - this is a standard elasticity",
+                    avoid: ["unit_change"],
+                    avoid_reasons: {
+                        "unit_change": "Exchange rates are ratios, unit changes aren't meaningful"
+                    }
+                },
+                specification: {
+                    best: ["omitted_variables", "structural_breaks"],
+                    reasoning: "Missing: global economic conditions, competitor destinations. COVID-19 caused structural break in 2020",
+                    concerns: ["reverse_causality"],
+                    minor: ["measurement_error"]
+                }
+            },
+            "University Enrollment and Graduate Earnings": {
+                functional_form: {
+                    best: ["linear", "reciprocal"],
+                    reasoning: "Market forces create relatively linear relationship, but reciprocal could capture how salary premiums diminish as program enrollment increases (supply and demand effects).",
+                    alternatives: ["linear_log"],
+                    avoid: ["log_log", "exponential"],
+                    avoid_reasons: {
+                        "log_log": "Enrollment of zero creates mathematical issues",
+                        "exponential": "Would suggest that very popular programs have exponentially higher salaries, which market forces would arbitrage away"
+                    }
+                },
+                interpretation: {
+                    best: ["unit_change"],
+                    reasoning: "Each additional student enrolled associated with β dollar change in average starting salary",
+                    avoid: ["elasticity"],
+                    avoid_reasons: {
+                        "elasticity": "Only appropriate for log-log models"
+                    }
+                },
+                specification: {
+                    best: ["omitted_variables", "reverse_causality"],
+                    reasoning: "Program quality, selectivity, industry demand missing. High salaries might attract more students",
+                    concerns: ["heterogeneity"],
+                    minor: ["measurement_error"]
+                }
+            },
+            "Technology Adoption and Learning Curves": {
+                functional_form: {
+                    best: ["reciprocal", "exponential"],
+                    reasoning: "Learning curves typically follow power laws. Reciprocal form captures costs approaching a minimum asymptote, while exponential decay models continuous improvement. Both reflect diminishing returns to experience.",
+                    alternatives: ["linear_log", "polynomial"],
+                    avoid: ["linear", "log_linear"],
+                    avoid_reasons: {
+                        "linear": "Learning curves are inherently non-linear - constant cost reductions contradict economic theory",
+                        "log_linear": "Would imply percentage cost reductions, but learning effects typically diminish absolutely"
+                    }
+                },
+                interpretation: {
+                    best: ["diminishing_effect", "exponential_rate"],
+                    reasoning: "With reciprocal: marginal cost savings decrease as experience increases. With exponential: costs decline at constant rate per unit of experience.",
+                    avoid: ["unit_change"],
+                    avoid_reasons: {
+                        "unit_change": "Learning effects are non-linear and context-dependent"
+                    }
+                },
+                specification: {
+                    best: ["omitted_variables", "measurement_error"],
+                    reasoning: "Missing variables: technology changes, worker turnover, input prices. Experience measurement might not capture all learning sources.",
+                    concerns: ["structural_breaks"],
+                    minor: ["reverse_causality"]
+                }
+            }
+        };
+
+        function generateScenario() {
+            const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+            currentScenario = scenario;
+            decisionStep = 0;
+            
+            document.getElementById('scenarioDisplay').style.display = 'block';
+            document.getElementById('decisionSection').style.display = 'none';
+            document.getElementById('feedbackArea').style.display = 'none';
+            document.getElementById('implementationArea').style.display = 'none';
+            
+            displayScenario();
+        }
+
+        function displayScenario() {
+            document.getElementById('scenarioTitle').textContent = `📊 ${currentScenario.title}`;
+            
+            document.getElementById('scenarioDescription').innerHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>📋 Research Context:</h4>
+                    <p><strong>Description:</strong> ${currentScenario.description}</p>
+                    <p><strong>Policy Context:</strong> ${currentScenario.context}</p>
+                    <p><strong>Research Question:</strong> ${currentScenario.researchQuestion}</p>
+                    
+                    <div style="margin-top: 15px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                        <h5>🎯 Economic Theory:</h5>
+                        <p>${currentScenario.economicTheory}</p>
+                    </div>
+                </div>
+            `;
+            
+            displayData();
+            createScatterPlot();
+            
+            // Start first decision after brief delay
+            setTimeout(() => {
+                document.getElementById('decisionSection').style.display = 'block';
+                presentDecision();
+            }, 1000);
+        }
+
+        function displayData() {
+            let dataHTML = `
+                <div class="data-display">
+                    <h4>📊 Dataset:</h4>
+                    <p><strong>Dependent Variable:</strong> ${currentScenario.yVariable}</p>
+                    <p><strong>Independent Variable:</strong> ${currentScenario.xVariable}</p>
+                    <p><strong>Data Type:</strong> ${currentScenario.dataType}</p>
+                    <p><strong>Observations:</strong> ${Object.values(currentScenario.data)[0].length}</p>
+                    
+                    <div style="margin-top: 15px;">
+                        <h5>Sample Data Points:</h5>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+            `;
+            
+            const labels = Object.values(currentScenario.data)[0];
+            const xData = Object.values(currentScenario.data)[1];
+            const yData = Object.values(currentScenario.data)[2];
+            
+            for (let i = 0; i < Math.min(5, labels.length); i++) {
+                dataHTML += `
+                    <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                        <div><strong>${labels[i]}</strong></div>
+                        <div>X: ${xData[i]}</div>
+                        <div>Y: ${yData[i]}</div>
+                    </div>
+                `;
+            }
+            
+            dataHTML += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('dataDisplay').innerHTML = dataHTML;
+        }
+
+        function createScatterPlot() {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'scatter-plot';
+            canvas.id = 'scatterCanvas';
+            
+            document.getElementById('visualDisplay').innerHTML = `
+                <h4>📈 Data Visualization:</h4>
+            `;
+            document.getElementById('visualDisplay').appendChild(canvas);
+            
+            // Simple scatter plot using canvas (could be enhanced with Chart.js)
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+            
+            const xData = Object.values(currentScenario.data)[1];
+            const yData = Object.values(currentScenario.data)[2];
+            
+            const xMin = Math.min(...xData);
+            const xMax = Math.max(...xData);
+            const yMin = Math.min(...yData);
+            const yMax = Math.max(...yData);
+            
+            const margin = 40;
+            const width = canvas.width - 2 * margin;
+            const height = canvas.height - 2 * margin;
+            
+            // Draw axes
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, canvas.height - margin);
+            ctx.lineTo(canvas.width - margin, canvas.height - margin);
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+            
+            // Plot points
+            ctx.fillStyle = '#3498db';
+            for (let i = 0; i < xData.length; i++) {
+                const x = margin + ((xData[i] - xMin) / (xMax - xMin)) * width;
+                const y = canvas.height - margin - ((yData[i] - yMin) / (yMax - yMin)) * height;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Add labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText(currentScenario.xVariable, canvas.width - 100, canvas.height - 10);
+            ctx.save();
+            ctx.translate(15, 100);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(currentScenario.yVariable, 0, 0);
+            ctx.restore();
+        }
+
+        function presentDecision() {
+            const decisionType = decisionTypes[decisionStep];
+            currentDecisionType = decisionType.id;
+            
+            let decisionHTML = `
+                <h4>${decisionType.title}</h4>
+                <p style="margin: 15px 0; font-weight: 500;">${decisionType.question}</p>
+                
+                <div class="options-grid">
+            `;
+            
+            decisionType.options.forEach(option => {
+                decisionHTML += `
+                    <div class="option-btn" onclick="selectOption('${option.id}', this)">
+                        <div style="font-weight: bold; margin-bottom: 8px;">${option.label}</div>
+                        <div style="font-size: 0.9em; margin-bottom: 8px; font-family: 'Times New Roman', serif;">${option.description}</div>
+                        <div style="font-size: 0.8em; color: #666;">${option.detail}</div>
+                    </div>
+                `;
+            });
+            
+            decisionHTML += `</div>`;
+            
+            document.getElementById('currentDecisionArea').innerHTML = decisionHTML;
+            document.getElementById('studentReasoning').value = '';
+            studentChoices = [];
+        }
+
+        function selectOption(optionId, element) {
+            // Reset all options
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Select this option
+            element.classList.add('selected');
+            studentChoices = [optionId];
+        }
+
+        function submitDecision() {
+            studentReasoning = document.getElementById('studentReasoning').value.trim();
+            
+            if (studentChoices.length === 0) {
+                alert('Please select an option before submitting.');
+                return;
+            }
+            
+            if (studentReasoning.length < 20) {
+                alert('Please provide detailed reasoning for your choice (at least 20 characters).');
+                return;
+            }
+            
+            showFeedback();
+        }
+
+        function showFeedback() {
+            document.getElementById('feedbackArea').style.display = 'block';
+            
+            const scenario = currentScenario.title;
+            const decisionType = currentDecisionType;
+            const expertRec = expertRecommendations[scenario][decisionType];
+            const studentChoice = studentChoices[0];
+            
+            let feedbackHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🎯 Your Analysis vs Expert Recommendation</h4>
+                    
+                    <div style="margin: 20px 0;">
+                        <h5>📝 Your Reasoning:</h5>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
+                            "${studentReasoning}"
+                        </div>
+                    </div>
+            `;
+            
+            // Check if choice is correct
+            const isCorrect = expertRec.best.includes(studentChoice);
+            const isAlternative = expertRec.alternatives && expertRec.alternatives.includes(studentChoice);
+            const isAvoid = expertRec.avoid && expertRec.avoid.includes(studentChoice);
+            
+            if (isCorrect) {
+                feedbackHTML += `
+                    <div class="feedback-correct">
+                        <strong>✅ Excellent Choice!</strong> You selected the expert-recommended approach.
+                    </div>
+                `;
+            } else if (isAlternative) {
+                feedbackHTML += `
+                    <div class="feedback-partial">
+                        <strong>⚠️ Reasonable Alternative:</strong> Your choice is defensible but not the strongest option.
+                    </div>
+                `;
+            } else if (isAvoid) {
+                feedbackHTML += `
+                    <div class="feedback-incorrect">
+                        <strong>❌ Problematic Choice:</strong> ${expertRec.avoid_reasons[studentChoice]}
+                    </div>
+                `;
+            } else {
+                feedbackHTML += `
+                    <div class="feedback-incorrect">
+                        <strong>❌ Not Recommended:</strong> This choice has significant methodological concerns.
+                    </div>
+                `;
+            }
+            
+            feedbackHTML += `
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🧠 Expert Analysis</h4>
+                    <p><strong>Recommended:</strong> ${expertRec.best.map(choice => 
+                        decisionTypes.find(dt => dt.id === currentDecisionType).options.find(opt => opt.id === choice).label
+                    ).join(', ')}</p>
+                    
+                    <p><strong>Expert Reasoning:</strong></p>
+                    <p>${expertRec.reasoning}</p>
+                </div>
+            `;
+            
+            feedbackHTML += `</div>`;
+            
+            document.getElementById('feedbackContent').innerHTML = feedbackHTML;
+            
+            // Scroll to feedback
+            document.getElementById('feedbackArea').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function proceedToImplementation() {
+            decisionStep++;
+            
+            if (decisionStep < decisionTypes.length) {
+                // More decisions to make
+                document.getElementById('feedbackArea').style.display = 'none';
+                presentDecision();
+                document.getElementById('decisionSection').style.display = 'block';
+            } else {
+                // Show final implementation
+                document.getElementById('implementationArea').style.display = 'block';
+                showImplementation();
+                
+                scenariosCompleted++;
+                document.getElementById('scenariosCompleted').textContent = scenariosCompleted;
+            }
+        }
+
+        function showImplementation() {
+            const scenario = currentScenario.title;
+            const functionalForm = expertRecommendations[scenario].functional_form.best[0];
+            
+            let implementationHTML = `
+                <h4>📊 Final Econometric Model</h4>
+                
+                <div class="equation-display">
+                    ${getEquationDisplay(functionalForm)}
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>📈 Estimated Results</h4>
+                    ${getSimulatedResults(functionalForm)}
+                </div>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>⚠️ Important Limitations</h4>
+                    <ul>
+                        <li>This is a simple bivariate regression - real research requires more controls</li>
+                        <li>Correlation does not imply causation - consider endogeneity issues</li>
+                        <li>Small sample sizes limit generalizability</li>
+                        <li>Model assumptions should be tested with diagnostic procedures</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🎯 Economic Interpretation</h4>
+                    ${getEconomicInterpretation(functionalForm)}
+                </div>
+            `;
+            
+            document.getElementById('implementationContent').innerHTML = implementationHTML;
+            
+            // Scroll to implementation
+            document.getElementById('implementationArea').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getEquationDisplay(functionalForm) {
+            const scenarios = {
+                "linear": `${currentScenario.yVariable} = α + β × ${currentScenario.xVariable} + ε`,
+                "log_linear": `ln(${currentScenario.yVariable}) = α + β × ${currentScenario.xVariable} + ε`,
+                "linear_log": `${currentScenario.yVariable} = α + β × ln(${currentScenario.xVariable}) + ε`,
+                "log_log": `ln(${currentScenario.yVariable}) = α + β × ln(${currentScenario.xVariable}) + ε`,
+                "polynomial": `${currentScenario.yVariable} = α + β₁ × ${currentScenario.xVariable} + β₂ × ${currentScenario.xVariable}² + ε`,
+                "exponential": `${currentScenario.yVariable} = α × e^(β × ${currentScenario.xVariable}) × ε`,
+                "reciprocal": `${currentScenario.yVariable} = α + β/${currentScenario.xVariable} + ε`
+            };
+            
+            return scenarios[functionalForm] || scenarios["linear"];
+        }
+
+        function getSimulatedResults(functionalForm) {
+            // Simulated results for demonstration
+            const results = {
+                "linear": {
+                    alpha: "32,450",
+                    beta: "2,850",
+                    r_squared: "0.73",
+                    interpretation: "Each additional year of education is associated with $2,850 higher median income"
+                },
+                "log_linear": {
+                    alpha: "10.85",
+                    beta: "0.04",
+                    r_squared: "0.68", 
+                    interpretation: "Each percentage point increase in mortgage rates reduces house prices by 4%"
+                },
+                "linear_log": {
+                    alpha: "-125,400",
+                    beta: "28,500",
+                    r_squared: "0.71",
+                    interpretation: "Income increases by $28,500 for each unit increase in log(education)"
+                },
+                "log_log": {
+                    alpha: "8.42",
+                    beta: "-1.25",
+                    r_squared: "0.66",
+                    interpretation: "Tourism revenue elasticity with respect to exchange rate is -1.25"
+                },
+                "polynomial": {
+                    alpha: "1.8",
+                    beta1: "0.0012",
+                    beta2: "-0.0000004",
+                    r_squared: "0.82",
+                    interpretation: "Yield initially increases with farm size, then decreases (inverted U-shape)"
+                },
+                "exponential": {
+                    alpha: "450,000",
+                    beta: "-0.15",
+                    r_squared: "0.71",
+                    interpretation: "House prices decline exponentially by 15% per percentage point increase in mortgage rates"
+                },
+                "reciprocal": {
+                    alpha: "4.2",
+                    beta: "12,500",
+                    r_squared: "0.78",
+                    interpretation: "Productivity approaches maximum of 4.2 tonnes/hectare as farm size increases"
+                }
+            };
+            
+            const result = results[functionalForm] || results["linear"];
+            
+            if (functionalForm === "polynomial") {
+                return `
+                    <p><strong>α̂ =</strong> ${result.alpha} &nbsp;&nbsp; <strong>β̂₁ =</strong> ${result.beta1} &nbsp;&nbsp; <strong>β̂₂ =</strong> ${result.beta2}</p>
+                    <p><strong>R² =</strong> ${result.r_squared}</p>
+                    <p><strong>Interpretation:</strong> ${result.interpretation}</p>
+                `;
+            } else {
+                return `
+                    <p><strong>α̂ =</strong> ${result.alpha} &nbsp;&nbsp; <strong>β̂ =</strong> ${result.beta}</p>
+                    <p><strong>R² =</strong> ${result.r_squared}</p>
+                    <p><strong>Interpretation:</strong> ${result.interpretation}</p>
+                `;
+            }
+        }
+
+        function getEconomicInterpretation(functionalForm) {
+            const interpretations = {
+                "Canadian Provincial Income and Education Analysis": "Human capital theory supported - education has diminishing returns to income. Policy implications for education funding allocation.",
+                "Housing Prices and Mortgage Rates in Toronto": "Monetary policy transmission mechanism confirmed - interest rates significantly affect housing affordability and prices.",
+                "Agricultural Productivity and Farm Size": "Evidence of economies of scale initially, followed by decreasing returns - optimal farm size considerations for policy.",
+                "Tourism Revenue and Exchange Rates": "Exchange rate competitiveness matters for tourism industry - implications for monetary policy and industry support.",
+                "University Enrollment and Graduate Earnings": "Labor market signaling and supply/demand dynamics visible - information for students and education planners.",
+                "Technology Adoption and Learning Curves": "Learning-by-doing effects confirmed - costs decline with experience following predictable patterns. Important for industrial policy and R&D investment decisions."
+            };
+            
+            return interpretations[currentScenario.title] || "Economic relationships confirmed with important policy implications.";
+        }
+
+        function resetAnalysis() {
+            scenariosCompleted = 0;
+            decisionStep = 0;
+            studentChoices = [];
+            studentReasoning = "";
+            document.getElementById('scenariosCompleted').textContent = '0';
+            document.getElementById('scenarioDisplay').style.display = 'none';
+            document.getElementById('decisionSection').style.display = 'none';
+            document.getElementById('feedbackArea').style.display = 'none';
+            document.getElementById('implementationArea').style.display = 'none';
+        }
+
+        // Initialize display
+        document.getElementById('scenariosCompleted').textContent = '0';
+    </script>
+</body>
+</html>
