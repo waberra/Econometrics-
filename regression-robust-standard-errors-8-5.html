@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Robust Standard Errors (Wooldridge 8.5)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .robust-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .tstat-card    { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .compare-card  { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Robust Standard Errors (Wooldridge 8.5)</h1>
+        <p>Practice computing robust t-statistics, confidence intervals, and comparing robust vs usual SEs</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: OLS with Heteroskedasticity-Robust SEs</h3>
+        <div class="measures-grid">
+            <div class="measure-card robust-card">
+                <h4>Why Robust Standard Errors?</h4>
+                <div class="formula">
+                    OLS β̂ is unbiased if E(u|X)=0<br>
+                    but usual Var(β̂) is wrong under heteroskedasticity
+                </div>
+                <div class="description">
+                    Heteroskedasticity does not bias OLS coefficients, but it invalidates the usual formula for the standard errors. Robust (Eicker–Huber–White) SEs correct the variance estimate without changing β̂.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Almost always in cross-sectional work, whether or not you formally test for heteroskedasticity.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Wage equation with high variance among low-education workers.
+                </div>
+            </div>
+
+            <div class="measure-card tstat-card">
+                <h4>Robust t-Tests</h4>
+                <div class="formula">
+                    t<sub>usual</sub> = β̂ / se(β̂)<br>
+                    t<sub>robust</sub> = β̂ / se<sub>robust</sub>(β̂)
+                </div>
+                <div class="description">
+                    The t-statistic formula is the same; only the standard error changes. In large samples we usually compare |t| to 1.96 for a 5% two-sided test.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Report t<sub>robust</sub> and p-values based on robust SEs.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β̂ = 0.5, se_robust = 0.20 ⇒ t_robust = 2.5.
+                </div>
+            </div>
+
+            <div class="measure-card compare-card">
+                <h4>Robust vs Usual Inference</h4>
+                <div class="formula">
+                    95% CI: β̂ ± 1.96·SE
+                </div>
+                <div class="description">
+                    Usual SEs assume homoskedasticity. If that assumption is wrong, confidence intervals and significance levels can be misleading. Robust SEs often change the width of the CI and sometimes flip significance.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Always check whether conclusions depend on using robust vs usual SEs.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> t_usual = 2.2 (significant), t_robust = 1.7 (not significant at 5%).
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    Default: OLS + robust SEs
+                </div>
+                <div class="description">
+                    In many empirical papers, OLS with robust SEs is the default. FGLS or WLS are useful refinements but rely on correct modeling of the variance. Robust SEs are valid under very general heteroskedasticity.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Cross-sectional regressions, difference-in-differences, many micro applications.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> Report robust SEs unless you have a very strong reason not to.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Robust vs Usual SEs</h3>
+            <p>Each scenario gives you an OLS coefficient, the usual (homoskedastic) SE, and the robust SE. Compute t-statistics, 95% confidence intervals, and decide whether the variable is significant under each approach.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Assume a large sample so that the 5% two-sided critical value is about 1.96. Compute t-statistics, confidence intervals, and significance using both usual and robust SEs.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 t-statistics (usual & robust)</strong><br>Compute t using usual and robust SEs.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Robust 95% confidence interval</strong><br>Compute β̂ ± 1.96·se_robust.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Significance at 5%</strong><br>Decide if the effect is significant using usual vs robust SEs (1 = reject H₀, 0 = do not reject).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain why robust SEs might change your conclusion.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Robust SEs (8.5) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios with a key coefficient (beta), usual SE, robust SE
+    var scenarios = [
+        {
+            id: "wageEducation",
+            title: "Log Wage Regression: Effect of Education",
+            description: "You estimate a log wage equation on a large cross-section of workers. The coefficient on years of education is of primary interest.",
+            context: "Compare usual and robust inference for the return to education.",
+            mainModel: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·tenure + u",
+            coefName: "educ",
+            beta: 0.08,       // 8% return per year
+            se_ols: 0.015,
+            se_robust: 0.025,
+            tcrit: 1.96,
+            expertInterpretation:
+                "Using usual SEs, the return to education looks precisely estimated and highly significant. Using robust SEs, the standard error is larger and the t-statistic is smaller, but still above 1.96. Here, both usual and robust inference suggest that education has a positive, statistically significant effect on wages at the 5% level, but robust SEs give you a more conservative measure of precision."
+        },
+        {
+            id: "trainingProgram",
+            title: "Training Program Impact on Earnings",
+            description: "You evaluate a job training program with a treatment dummy (Train = 1 if the worker participated, 0 otherwise). The outcome is annual earnings.",
+            context: "Check whether the estimated training effect remains significant under robust SEs.",
+            mainModel: "earnings = β₀ + β₁·Train + β₂·exper + β₃·educ + u",
+            coefName: "Train",
+            beta: 1200,       // $1,200 effect
+            se_ols: 500,
+            se_robust: 900,
+            tcrit: 1.96,
+            expertInterpretation:
+                "With the usual SE, the training effect appears statistically significant. The robust SE is much larger, reflecting heteroskedasticity or outliers. Once you switch to robust SEs, the t-statistic falls below 1.96, and the effect is no longer significant at the 5% level. This is a classic example where robust inference changes the policy conclusion."
+        },
+        {
+            id: "classSize",
+            title: "Class Size and Test Scores",
+            description: "You regress average test scores on class size and controls at the classroom level. You are interested in whether smaller classes improve scores.",
+            context: "Compare usual vs robust SEs for the class size coefficient.",
+            mainModel: "score = β₀ + β₁·classize + β₂·income + β₃·pupil_teacher + u",
+            coefName: "classize",
+            beta: -0.40,      // negative effect of larger classes
+            se_ols: 0.18,
+            se_robust: 0.22,
+            tcrit: 1.96,
+            expertInterpretation:
+                "Both usual and robust SEs suggest that larger class sizes are associated with lower test scores, and the effect is statistically significant at 5%. However, the robust SE is somewhat larger, giving a smaller t-statistic and a wider confidence interval. Robust SEs again give a more cautious assessment of precision while leaving the basic conclusion unchanged."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var t_ols = scenario.beta / scenario.se_ols;
+        var t_robust = scenario.beta / scenario.se_robust;
+
+        var html = "";
+        html += '<h4>📋 OLS Coefficient and Standard Errors</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Main model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.mainModel;
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Coefficient</th><th>β̂</th><th>SE (usual)</th><th>SE (robust)</th></tr></thead><tbody>';
+        html += '<tr><td>' + scenario.coefName + '</td><td>' + scenario.beta.toFixed(3) +
+                '</td><td>' + scenario.se_ols.toFixed(3) +
+                '</td><td>' + scenario.se_robust.toFixed(3) + '</td></tr>';
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Reminder:</strong> t-statistics are t = β̂ / SE. For large samples, a two-sided 5% test uses |t| &gt; 1.96 as the rejection rule.';
+        html += ' The coefficient estimate β̂ is the same; only the SE changes when you switch from usual to robust.';
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var t_ols = s.beta / s.se_ols;
+        var t_robust = s.beta / s.se_robust;
+        var tcrit = s.tcrit;
+        var signif_ols = (Math.abs(t_ols) > tcrit) ? 1 : 0;
+        var signif_robust = (Math.abs(t_robust) > tcrit) ? 1 : 0;
+        var ci_low_robust = s.beta - tcrit * s.se_robust;
+        var ci_high_robust = s.beta + tcrit * s.se_robust;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "tUsual",
+                type: "numeric",
+                title: "🏁 t-statistic using usual SE",
+                prompt: "Compute the t-statistic for " + s.coefName + " using the usual (homoskedastic) SE: t_usual = β̂ / SE_usual.",
+                correctValue: t_ols,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "tRobust",
+                type: "numeric",
+                title: "🏁 t-statistic using robust SE",
+                prompt: "Compute the t-statistic for " + s.coefName + " using the robust SE: t_robust = β̂ / SE_robust.",
+                correctValue: t_robust,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "ciLowRobust",
+                type: "numeric",
+                title: "📊 Lower end of 95% robust CI",
+                prompt: "Using the robust SE and a 5% two-sided critical value of 1.96, compute the lower bound of the 95% confidence interval for " + s.coefName + ".",
+                correctValue: ci_low_robust,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "ciHighRobust",
+                type: "numeric",
+                title: "📊 Upper end of 95% robust CI",
+                prompt: "Compute the upper bound of the same 95% robust confidence interval.",
+                correctValue: ci_high_robust,
+                unitHint: ""
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "signifUsual",
+                type: "numeric",
+                title: "📉 Significance with usual SE (1 = reject, 0 = do not reject)",
+                prompt: "At the 5% level, using the usual SE and critical value 1.96, is the coefficient statistically significant? Enter 1 if |t_usual| &gt; 1.96, 0 otherwise.",
+                correctValue: signif_ols,
+                unitHint: "(1 = reject H₀, 0 = do not reject)"
+            });
+            currentQuestions.push({
+                conceptId: "signifRobust",
+                type: "numeric",
+                title: "📉 Significance with robust SE (1 = reject, 0 = do not reject)",
+                prompt: "At the 5% level, using the robust SE and critical value 1.96, is the coefficient statistically significant? Enter 1 if |t_robust| &gt; 1.96, 0 otherwise.",
+                correctValue: signif_robust,
+                unitHint: "(1 = reject H₀, 0 = do not reject)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "In words, explain how using robust SEs changes (or does not change) your substantive conclusion in this scenario. Then compare to the expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Remember: coefficients (β̂) do not change when you switch to robust SEs, only the estimated precision and t-statistics do.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.01, Math.abs(correctVal) * 0.03); // ±3% or at least 0.01
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var t_ols = s.beta / s.se_ols;
+        var t_robust = s.beta / s.se_robust;
+        var tcrit = s.tcrit;
+        var signif_ols = (Math.abs(t_ols) > tcrit) ? 1 : 0;
+        var signif_robust = (Math.abs(t_robust) > tcrit) ? 1 : 0;
+        var ci_low_robust = s.beta - tcrit * s.se_robust;
+        var ci_high_robust = s.beta + tcrit * s.se_robust;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "tUsual") {
+            html += "The usual t-statistic assumes homoskedasticity: t_usual = β̂ / SE_usual.<br>";
+            html += "Here, β̂ = " + s.beta.toFixed(3) + " and SE_usual = " + s.se_ols.toFixed(3) +
+                    ", so t_usual ≈ " + t_ols.toFixed(3) + ".";
+            html += " We compare |t_usual| to 1.96 for a 5% two-sided test.";
+        } else if (q.conceptId === "tRobust") {
+            html += "The robust t-statistic is t_robust = β̂ / SE_robust, using a heteroskedasticity-robust SE.<br>";
+            html += "Here, SE_robust = " + s.se_robust.toFixed(3) +
+                    ", so t_robust ≈ " + t_robust.toFixed(3) + ".";
+            html += " The formula is the same, but SE_robust is computed differently.";
+        } else if (q.conceptId === "ciLowRobust" || q.conceptId === "ciHighRobust") {
+            html += "A 95% robust confidence interval uses β̂ ± 1.96·SE_robust.<br>";
+            html += "Lower bound = β̂ − 1.96·SE_robust ≈ " + ci_low_robust.toFixed(3) + ".<br>";
+            html += "Upper bound = β̂ + 1.96·SE_robust ≈ " + ci_high_robust.toFixed(3) + ".";
+        } else if (q.conceptId === "signifUsual") {
+            html += "For the usual SE, we reject H₀: β = 0 at 5% if |t_usual| &gt; 1.96.<br>";
+            html += "|t_usual| ≈ " + Math.abs(t_ols).toFixed(3) + ".";
+            if (signif_ols === 1) {
+                html += " Since this exceeds 1.96, we reject H₀ using usual SEs.";
+            } else {
+                html += " Since this does not exceed 1.96, we do not reject H₀ using usual SEs.";
+            }
+        } else if (q.conceptId === "signifRobust") {
+            html += "For the robust SE, we reject H₀ at 5% if |t_robust| &gt; 1.96.<br>";
+            html += "|t_robust| ≈ " + Math.abs(t_robust).toFixed(3) + ".";
+            if (signif_robust === 1) {
+                html += " This exceeds 1.96, so the effect remains significant with robust SEs.";
+            } else {
+                html += " This does not exceed 1.96, so the effect is not significant once we use robust SEs.";
+            }
+        } else if (q.conceptId === "interpret") {
+            html += "<em>" + s.expertInterpretation + "</em>";
+            html += "<br><br>Big picture: robust SEs change your assessment of precision, not the estimated effect itself. They are designed to protect inference against heteroskedasticity.";
+        } else {
+            html += "The key is that robust SEs adjust the estimated variance of β̂ for heteroskedasticity, which changes t-statistics and confidence intervals but leaves β̂ unchanged.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Robust SEs practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
