@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional Form & Model Specification Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #991b1b;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #14b8a6, #10b981);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .function-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .function-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .function-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .function-equation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #f0f9ff;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .function-card p {
+            color: #f0f9ff;
+            font-size: 0.95em;
+            margin: 8px 0;
+        }
+
+        .decision-making {
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .decision-making h3 {
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+
+        .scenario-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid #3b82f6;
+            transition: opacity 0.3s ease;
+        }
+
+        .scenario-title {
+            font-size: 1.5em;
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .economic-context {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .data-characteristics {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+            border: 1px solid #475569;
+        }
+
+        .scatter-plot-hint {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .scatter-plot-hint h5 {
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+
+        .scatter-plot-hint p {
+            color: #78350f;
+            font-size: 0.9em;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .decision-card {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .decision-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .decision-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .decision-card h4 {
+            color: #1e40af;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .equation-display {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .interpretation-note {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .feedback-section {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .feedback-section.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-title {
+            color: #16a34a;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .feedback-content {
+            color: #15803d;
+            line-height: 1.6;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .model-comparison {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .model-comparison h5 {
+            color: #ca8a04;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+            font-size: 0.9em;
+        }
+
+        .comparison-table th {
+            background: #f9fafb;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .best-model {
+            background: #dcfce7 !important;
+            font-weight: bold;
+        }
+
+        .economic-insight {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .economic-insight h5 {
+            color: #047857;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .economic-insight p {
+            color: #065f46;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>📐 Functional Form Analysis</h1>
+            <p>Additive vs. Multiplicative Functions & Model Specification (Wooldridge Ch. 6)</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🧠 Essential Function Types & Economic Applications</h3>
+            
+            <div class="function-types">
+                <div class="function-card">
+                    <h4>➕ Linear Additive Functions</h4>
+                    <div class="function-equation">Y = β₀ + β₁X₁ + β₂X₂ + β₃X₁X₂</div>
+                    <p><strong>Effects:</strong> Add together independently</p>
+                    <p><strong>Interpretation:</strong> Constant marginal effects</p>
+                    <p><strong>Use when:</strong> Linear relationships, policy analysis</p>
+                    <p><strong>Example:</strong> Income = Education + Experience + Education×Experience</p>
+                </div>
+                
+                <div class="function-card">
+                    <h4>✖️ Multiplicative Functions</h4>
+                    <div class="function-equation">Y = β₀X₁^β₁X₂^β₂ → log(Y) = log(β₀) + β₁log(X₁) + β₂log(X₂)</div>
+                    <p><strong>Effects:</strong> Multiply together exponentially</p>
+                    <p><strong>Interpretation:</strong> Constant elasticities (% effects)</p>
+                    <p><strong>Use when:</strong> Production functions, demand analysis</p>
+                    <p><strong>Example:</strong> Output = Capital^α × Labor^β (Cobb-Douglas)</p>
+                </div>
+                
+                <div class="function-card">
+                    <h4>📈 Semi-Log Functions</h4>
+                    <div class="function-equation">log(Y) = β₀ + β₁X₁ + β₂X₂</div>
+                    <p><strong>Effects:</strong> Percentage change in Y per unit change in X</p>
+                    <p><strong>Interpretation:</strong> Semi-elasticities (100×β₁% effect)</p>
+                    <p><strong>Use when:</strong> Growth rates, returns to education</p>
+                    <p><strong>Example:</strong> log(Wage) = Education + Experience</p>
+                </div>
+                
+                <div class="function-card">
+                    <h4>🎯 Polynomial Functions</h4>
+                    <div class="function-equation">Y = β₀ + β₁X + β₂X² + β₃X³</div>
+                    <p><strong>Effects:</strong> Non-linear relationships with turning points</p>
+                    <p><strong>Interpretation:</strong> Marginal effects depend on X level</p>
+                    <p><strong>Use when:</strong> Diminishing returns, life-cycle effects</p>
+                    <p><strong>Example:</strong> Earnings = Age + Age² (inverted U-shape)</p>
+                </div>
+                
+                <div class="function-card">
+                    <h4>🔄 Interaction Functions</h4>
+                    <div class="function-equation">Y = β₀ + β₁X₁ + β₂X₂ + β₃(X₁ × X₂)</div>
+                    <p><strong>Effects:</strong> Effect of X₁ depends on level of X₂</p>
+                    <p><strong>Interpretation:</strong> Cross-partial derivatives matter</p>
+                    <p><strong>Use when:</strong> Complementary/substitute effects</p>
+                    <p><strong>Example:</strong> Productivity = Capital + Labor + (Capital×Labor)</p>
+                </div>
+                
+                <div class="function-card">
+                    <h4>🏭 Translog Functions</h4>
+                    <div class="function-equation">log(Y) = β₀ + Σβᵢlog(Xᵢ) + ½ΣΣβᵢⱼlog(Xᵢ)log(Xⱼ)</div>
+                    <p><strong>Effects:</strong> Flexible approximation to any production function</p>
+                    <p><strong>Interpretation:</strong> Variable elasticities and substitution</p>
+                    <p><strong>Use when:</strong> Complex production relationships</p>
+                    <p><strong>Example:</strong> Flexible manufacturing systems</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-making">
+            <h3>💼 Professional Function Selection Analysis</h3>
+
+            <div class="scenario-section">
+                <div class="scenario-title" id="scenarioTitle">🏭 Canadian Manufacturing Production Function</div>
+                
+                <div class="economic-context" id="economicContext">
+                    <p><strong>Research Question:</strong> Analyzing the production relationship between capital, labor, and output in Canadian manufacturing firms to understand returns to scale and factor substitution patterns.</p>
+                    
+                    <p><strong>Economic Theory:</strong> Classical production theory suggests either Cobb-Douglas (constant elasticity) or CES (constant elasticity of substitution) relationships. Policy question focuses on whether factors are complements or substitutes.</p>
+                </div>
+
+                <div class="data-characteristics" id="dataCharacteristics">
+                    <strong>Dataset Characteristics:</strong><br>
+                    • Sample: 1,250 Canadian manufacturing firms, 2015-2020<br>
+                    • Dependent: Annual Output (millions CAD)<br>
+                    • Independent: Capital Stock (millions CAD), Labor Hours (thousands), Technology Index<br>
+                    • Range: Output (0.5M - 850M), Capital (0.2M - 200M), Labor (2K - 50K hours)
+                </div>
+
+                <div class="scatter-plot-hint" id="scatterHint">
+                    <h5>📊 Data Pattern Analysis</h5>
+                    <p>Log-log plots show strong linear relationships. Residual plots from linear model show heteroskedasticity. Capital and labor show potential complementarity at higher levels.</p>
+                </div>
+
+                <div class="economic-insight">
+                    <h5>🎯 Your Functional Form Decision</h5>
+                    <p><strong>Question:</strong> Given the economic theory, data characteristics, and research objectives, which functional form best captures the production relationship?</p>
+                </div>
+
+                <div class="decision-cards" id="decisionCards">
+                    <div class="decision-card" onclick="selectChoice(0)" data-index="0">
+                        <h4>Linear Additive Production</h4>
+                        <div class="equation-display">Output = β₀ + β₁Capital + β₂Labor + β₃Technology</div>
+                        <div class="interpretation-note">
+                            <strong>Interpretation:</strong> One additional million in capital adds β₁ million in output regardless of labor level. Constant marginal products.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(1)" data-index="1">
+                        <h4>Cobb-Douglas (Multiplicative)</h4>
+                        <div class="equation-display">log(Output) = β₀ + β₁log(Capital) + β₂log(Labor) + β₃log(Technology)</div>
+                        <div class="interpretation-note">
+                            <strong>Interpretation:</strong> β₁ is capital elasticity - a 1% increase in capital raises output by β₁%. Constant returns if β₁ + β₂ = 1.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(2)" data-index="2">
+                        <h4>Additive with Interactions</h4>
+                        <div class="equation-display">Output = β₀ + β₁Capital + β₂Labor + β₃Technology + β₄(Capital×Labor)</div>
+                        <div class="interpretation-note">
+                            <strong>Interpretation:</strong> β₄ captures whether capital and labor are complements (β₄ > 0) or substitutes (β₄ < 0) in production.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(3)" data-index="3">
+                        <h4>Translog Flexible Form</h4>
+                        <div class="equation-display">log(Output) = β₀ + β₁log(Capital) + β₂log(Labor) + β₃[log(Capital)]² + β₄log(Capital)log(Labor)</div>
+                        <div class="interpretation-note">
+                            <strong>Interpretation:</strong> Variable elasticities that depend on input levels. Most flexible functional form for production analysis.
+                        </div>
+                    </div>
+                </div>
+
+                <button class="submit-btn" id="submitBtn" onclick="evaluateDecision()">Evaluate My Functional Form Choice</button>
+
+                <div class="feedback-section" id="feedbackSection">
+                    <div class="feedback-title">📊 Expert Analysis & Model Comparison</div>
+                    <div class="feedback-content" id="feedbackContent">
+                        <!-- Feedback will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateNewScenario()">🔄 Generate New Functional Form Challenge</button>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive functional form scenarios following Wooldridge Chapter 6
+        const functionalFormScenarios = [
+            {
+                title: "🏭 Canadian Manufacturing Production Function",
+                context: "Analyzing the production relationship between capital, labor, and output in Canadian manufacturing firms to understand returns to scale and factor substitution patterns.",
+                theory: "Classical production theory suggests either Cobb-Douglas (constant elasticity) or CES (constant elasticity of substitution) relationships. Policy question focuses on whether factors are complements or substitutes.",
+                data: {
+                    sample: "1,250 Canadian manufacturing firms, 2015-2020",
+                    dependent: "Annual Output (millions CAD)",
+                    independent: "Capital Stock (millions CAD), Labor Hours (thousands), Technology Index",
+                    range: "Output (0.5M - 850M), Capital (0.2M - 200M), Labor (2K - 50K hours)"
+                },
+                patterns: "Log-log plots show strong linear relationships. Residual plots from linear model show heteroskedasticity. Capital and labor show potential complementarity at higher levels.",
+                functions: [
+                    {
+                        name: "Linear Additive Production",
+                        equation: "Output = β₀ + β₁Capital + β₂Labor + β₃Technology",
+                        interpretation: "One additional million in capital adds β₁ million in output regardless of labor level. Constant marginal products.",
+                        appropriate: false,
+                        reasoning: "Violates economic theory of production functions. Implies perfect substitutability and constant returns regardless of scale."
+                    },
+                    {
+                        name: "Cobb-Douglas (Multiplicative)",
+                        equation: "log(Output) = β₀ + β₁log(Capital) + β₂log(Labor) + β₃log(Technology)",
+                        interpretation: "β₁ is capital elasticity - a 1% increase in capital raises output by β₁%. Constant returns if β₁ + β₂ = 1.",
+                        appropriate: true,
+                        reasoning: "Matches economic theory and data patterns. Log-linear relationship visible in scatter plots. Allows elasticity interpretation and returns-to-scale testing."
+                    },
+                    {
+                        name: "Additive with Interactions",
+                        equation: "Output = β₀ + β₁Capital + β₂Labor + β₃Technology + β₄(Capital×Labor)",
+                        interpretation: "β₄ captures whether capital and labor are complements (β₄ > 0) or substitutes (β₄ < 0) in production.",
+                        appropriate: false,
+                        reasoning: "Still assumes linear relationships between logs of inputs and levels of output. Interaction doesn't address fundamental functional form issues."
+                    },
+                    {
+                        name: "Translog Flexible Form",
+                        equation: "log(Output) = β₀ + β₁log(Capital) + β₂log(Labor) + β₃[log(Capital)]² + β₄log(Capital)log(Labor)",
+                        interpretation: "Variable elasticities that depend on input levels. Most flexible functional form for production analysis.",
+                        appropriate: false,
+                        reasoning: "Overly complex for this research question. Cobb-Douglas adequately captures the relationships shown in data patterns."
+                    }
+                ],
+                correctChoice: 1,
+                modelComparison: {
+                    linear: { r2: 0.742, aic: 15847.3, bic: 15871.2, rmse: 45.67 },
+                    cobbdouglas: { r2: 0.891, aic: 12234.7, bic: 12258.6, rmse: 0.287 },
+                    interaction: { r2: 0.756, aic: 15734.1, bic: 15764.8, rmse: 44.12 },
+                    translog: { r2: 0.903, aic: 12156.4, bic: 12201.5, rmse: 0.271 }
+                },
+                economicInsight: "Cobb-Douglas specification confirms economic theory: β₁ = 0.35 (capital elasticity), β₂ = 0.58 (labor elasticity), β₁ + β₂ = 0.93 (slightly decreasing returns to scale). Technology coefficient shows 12.3% output boost per unit improvement.",
+                policyImplication: "Findings support balanced capital-labor investment strategies. Slightly decreasing returns suggest optimal firm sizes exist. Technology investments show strong multiplicative effects on traditional inputs."
+            },
+            {
+                title: "💰 Canadian Returns to Education Analysis",
+                context: "Investigating the relationship between education, experience, and wages to determine whether returns to schooling follow additive or multiplicative patterns.",
+                theory: "Human capital theory suggests multiplicative effects (log-wages) due to compounding returns. Alternative view emphasizes additive skill acquisition with diminishing marginal returns.",
+                data: {
+                    sample: "8,740 Canadian workers from Labour Force Survey 2020-2022",
+                    dependent: "Hourly Wage (CAD)",
+                    independent: "Years of Education, Years of Experience, Experience², Gender, Province",
+                    range: "Wages ($15 - $85/hour), Education (8-20 years), Experience (0-45 years)"
+                },
+                patterns: "Wage distribution is right-skewed. Log-wages show normal distribution. Education-wage relationship appears exponential. Experience shows quadratic pattern.",
+                functions: [
+                    {
+                        name: "Linear Additive Wage Function",
+                        equation: "Wage = β₀ + β₁Education + β₂Experience + β₃Experience² + β₄Gender",
+                        interpretation: "Each additional year of education adds β₁ dollars per hour to wages, regardless of education level.",
+                        appropriate: false,
+                        reasoning: "Violates right-skewed wage distribution. Implies constant dollar returns to education regardless of initial level."
+                    },
+                    {
+                        name: "Semi-Log (Multiplicative Returns)",
+                        equation: "log(Wage) = β₀ + β₁Education + β₂Experience + β₃Experience² + β₄Gender",
+                        interpretation: "Each additional year of education increases wages by approximately 100×β₁ percent. Constant percentage returns.",
+                        appropriate: true,
+                        reasoning: "Matches human capital theory and empirical wage distributions. Education has multiplicative effects on earning capacity."
+                    },
+                    {
+                        name: "Polynomial Education Function",
+                        equation: "Wage = β₀ + β₁Education + β₂Education² + β₃Experience + β₄Experience²",
+                        interpretation: "Allows for diminishing or increasing returns to education through quadratic term β₂.",
+                        appropriate: false,
+                        reasoning: "Doesn't address fundamental distributional issues. Quadratic education rarely supported by theory or data."
+                    },
+                    {
+                        name: "Interactive Education-Experience",
+                        equation: "log(Wage) = β₀ + β₁Education + β₂Experience + β₃(Education×Experience) + β₄Gender",
+                        interpretation: "Returns to education depend on experience level through interaction term β₃.",
+                        appropriate: false,
+                        reasoning: "While theoretically interesting, simple semi-log captures main relationships. Interaction adds complexity without clear theoretical motivation."
+                    }
+                ],
+                correctChoice: 1,
+                modelComparison: {
+                    linear: { r2: 0.423, aic: 67834.2, bic: 67858.1, rmse: 12.47 },
+                    semilog: { r2: 0.567, aic: 8734.6, bic: 8758.5, rmse: 0.431 },
+                    polynomial: { r2: 0.435, aic: 67745.8, bic: 67775.5, rmse: 12.33 },
+                    interaction: { r2: 0.573, aic: 8723.4, bic: 8753.1, rmse: 0.427 }
+                },
+                economicInsight: "Semi-log specification reveals 8.7% return per year of education, 3.2% return per year of experience (declining quadratically), and 18.3% gender wage gap. Results consistent with human capital theory.",
+                policyImplication: "Multiplicative returns justify education investment as percentage gains compound over careers. Experience premium validates on-the-job training programs. Gender gap requires targeted policy intervention."
+            },
+            {
+                title: "🏠 Canadian Housing Price Determinants",
+                context: "Analyzing factors affecting housing prices across Canadian metropolitan areas to understand whether price relationships are additive or multiplicative.",
+                theory: "Housing economics suggests multiplicative effects due to amenity bundling and location premiums. Alternative hedonic models use additive characteristic pricing.",
+                data: {
+                    sample: "15,650 residential sales from MLS, 2020-2023",
+                    dependent: "Sale Price (CAD)",
+                    independent: "Square Footage, Lot Size, Age, Bedrooms, Metro Area, Distance to CBD",
+                    range: "Prices ($180K - $2.8M), Size (800-4500 sqft), Age (0-120 years)"
+                },
+                patterns: "Price distribution highly right-skewed. Log-prices approximate normality. Size-price relationship appears exponential. Location effects show multiplicative premiums.",
+                functions: [
+                    {
+                        name: "Linear Hedonic Price Model",
+                        equation: "Price = β₀ + β₁SqFt + β₂LotSize + β₃Age + β₄Bedrooms + β₅DistanceCBD",
+                        interpretation: "Each additional square foot adds β₁ dollars to price, regardless of house size or location.",
+                        appropriate: false,
+                        reasoning: "Ignores right-skewed price distribution. Assumes constant marginal values regardless of property characteristics."
+                    },
+                    {
+                        name: "Log-Log Multiplicative Model",
+                        equation: "log(Price) = β₀ + β₁log(SqFt) + β₂log(LotSize) + β₃Age + β₄Bedrooms + β₅log(DistanceCBD)",
+                        interpretation: "β₁ is size elasticity - a 1% increase in square footage raises price by β₁%. Constant elasticity relationships.",
+                        appropriate: true,
+                        reasoning: "Captures exponential size-price relationships and right-skewed distributions. Elasticity interpretation matches economic theory."
+                    },
+                    {
+                        name: "Semi-Log Location Premium",
+                        equation: "log(Price) = β₀ + β₁SqFt + β₂LotSize + β₃Age + β₄Bedrooms + β₅DistanceCBD",
+                        interpretation: "House characteristics have percentage effects on price. Each square foot raises price by 100×β₁ percent.",
+                        appropriate: false,
+                        reasoning: "Mixes level and log specifications inconsistently. Size-price relationship shows elasticity, not semi-elasticity patterns."
+                    },
+                    {
+                        name: "Spline Function by Size",
+                        equation: "Price = β₀ + β₁SqFt + β₂(SqFt-2000)⁺ + β₃LotSize + β₄Age",
+                        interpretation: "Different size premiums below and above 2000 sqft threshold through spline specification.",
+                        appropriate: false,
+                        reasoning: "Arbitrary threshold selection. Data shows smooth exponential relationship without clear breakpoints."
+                    }
+                ],
+                correctChoice: 1,
+                modelComparison: {
+                    linear: { r2: 0.634, aic: 234567.8, bic: 234591.7, rmse: 87450 },
+                    loglog: { r2: 0.782, aic: 23456.7, bic: 23480.6, rmse: 0.234 },
+                    semilog: { r2: 0.698, aic: 34567.8, bic: 34591.7, rmse: 0.287 },
+                    spline: { r2: 0.641, aic: 234234.5, bic: 234264.2, rmse: 86890 }
+                },
+                economicInsight: "Log-log specification reveals size elasticity of 1.24 (luxury effect), lot size elasticity of 0.18, and 2.3% annual depreciation. Distance elasticity of -0.15 confirms location premiums.",
+                policyImplication: "Multiplicative size effects suggest progressivity in housing wealth. Location elasticity supports transit-oriented development policies. Age depreciation validates maintenance and renovation incentives."
+            },
+            {
+                title: "🌱 Environmental Kuznets Curve for Canadian Emissions",
+                context: "Testing whether the relationship between income and CO2 emissions follows an inverted-U pattern (polynomial) or exponential decay (multiplicative) as provinces develop.",
+                theory: "Environmental Kuznets Curve theory predicts inverted-U relationship: emissions rise then fall with income. Alternative theories suggest multiplicative technology effects.",
+                data: {
+                    sample: "13 Canadian provinces/territories, 1990-2020 (403 observations)",
+                    dependent: "CO2 Emissions per capita (tonnes)",
+                    independent: "GDP per capita (thousands CAD), Manufacturing share (%), Energy price index",
+                    range: "Emissions (8.5-25.3 tonnes), GDP ($28K-$78K), Manufacturing (3.2%-18.7%)"
+                },
+                patterns: "Emissions show inverted-U against GDP. Manufacturing share correlates positively. Energy prices show negative correlation. Some provinces peak earlier than others.",
+                functions: [
+                    {
+                        name: "Linear Income-Emissions",
+                        equation: "CO2 = β₀ + β₁GDP + β₂Manufacturing + β₃EnergyPrice",
+                        interpretation: "Each thousand dollars of GDP adds β₁ tonnes of emissions, regardless of development level.",
+                        appropriate: false,
+                        reasoning: "Ignores inverted-U pattern visible in data. Environmental theory predicts non-linear relationships."
+                    },
+                    {
+                        name: "Quadratic Environmental Kuznets",
+                        equation: "CO2 = β₀ + β₁GDP + β₂GDP² + β₃Manufacturing + β₄EnergyPrice",
+                        interpretation: "Inverted-U if β₁ > 0 and β₂ < 0. Turning point at GDP = -β₁/(2β₂). Peak emissions occur at middle income levels.",
+                        appropriate: true,
+                        reasoning: "Directly tests Environmental Kuznets Curve hypothesis. Quadratic captures inverted-U relationship observed in data patterns."
+                    },
+                    {
+                        name: "Log-Log Multiplicative Model",
+                        equation: "log(CO2) = β₀ + β₁log(GDP) + β₂log(Manufacturing) + β₃log(EnergyPrice)",
+                        interpretation: "Constant elasticity relationships. β₁ is income elasticity of emissions - percentage change effects.",
+                        appropriate: false,
+                        reasoning: "Cannot capture inverted-U pattern. Log-log implies monotonic relationship between income and emissions."
+                    },
+                    {
+                        name: "Cubic Polynomial Extension",
+                        equation: "CO2 = β₀ + β₁GDP + β₂GDP² + β₃GDP³ + β₄Manufacturing + β₅EnergyPrice",
+                        interpretation: "More flexible polynomial allowing multiple turning points. Can capture N-shaped relationships.",
+                        appropriate: false,
+                        reasoning: "Overfitting concern with limited data. Environmental theory suggests single peak, not multiple turning points."
+                    }
+                ],
+                correctChoice: 1,
+                modelComparison: {
+                    linear: { r2: 0.523, aic: 1234.5, bic: 1258.4, rmse: 3.89 },
+                    quadratic: { r2: 0.734, aic: 987.6, bic: 1017.3, rmse: 2.67 },
+                    loglog: { r2: 0.612, aic: 1156.7, bic: 1180.6, rmse: 0.234 },
+                    cubic: { r2: 0.748, aic: 989.3, bic: 1025.8, rmse: 2.61 }
+                },
+                economicInsight: "Quadratic specification confirms Environmental Kuznets Curve: turning point at $52,400 GDP per capita. Manufacturing adds 0.34 tonnes per percentage point share. Energy prices reduce emissions by 0.15 tonnes per index point.",
+                policyImplication: "Confirms EKC exists for Canadian provinces. Policy should focus on accelerating transition through technology rather than growth restrictions. Energy pricing effectively reduces emissions."
+            },
+            {
+                title: "📊 Canadian Stock Market Volatility Clustering",
+                context: "Analyzing whether stock return volatility follows multiplicative (GARCH) or additive time-varying patterns in response to market shocks and economic indicators.",
+                theory: "Financial theory suggests volatility clustering through multiplicative heteroskedasticity. Alternative models propose additive variance components from different risk factors.",
+                data: {
+                    sample: "TSX daily returns, 2015-2023 (2,087 observations)",
+                    dependent: "Return Volatility (squared returns)",
+                    independent: "Lagged volatility, VIX index, CAD/USD exchange rate changes, Oil price changes",
+                    range: "Daily returns (-8.7% to +6.2%), VIX (11.5-76.8), Oil (-40% to +25% daily)"
+                },
+                patterns: "Volatility shows clustering: high volatility periods persist. Log-volatility more normally distributed. Strong persistence and external shock effects.",
+                functions: [
+                    {
+                        name: "Linear Volatility Model",
+                        equation: "Volatility = β₀ + β₁Lag_Volatility + β₂VIX + β₃ExchangeRate + β₄OilPrice",
+                        interpretation: "Additive volatility components. Each VIX point adds β₂ to volatility level.",
+                        appropriate: false,
+                        reasoning: "Ignores multiplicative nature of financial volatility. Cannot capture volatility clustering effectively."
+                    },
+                    {
+                        name: "Log-Volatility (Multiplicative)",
+                        equation: "log(Volatility) = β₀ + β₁log(Lag_Volatility) + β₂log(VIX) + β₃ExchangeRate + β₄OilPrice",
+                        interpretation: "Multiplicative volatility persistence. β₁ is volatility elasticity - percentage effects dominate.",
+                        appropriate: true,
+                        reasoning: "Captures multiplicative nature of financial volatility. Log specification handles right-skewed volatility distribution and clustering."
+                    },
+                    {
+                        name: "Square Root Volatility",
+                        equation: "√Volatility = β₀ + β₁√Lag_Volatility + β₂√VIX + β₃ExchangeRate + β₄OilPrice",
+                        interpretation: "Square root transformation moderates extreme values while preserving non-linear relationships.",
+                        appropriate: false,
+                        reasoning: "Less common in finance literature. Log specification better captures multiplicative volatility dynamics."
+                    },
+                    {
+                        name: "Threshold Volatility Model",
+                        equation: "Volatility = β₀ + β₁Lag_Volatility + β₂VIX + β₃(VIX>30)×VIX + β₄ExchangeRate",
+                        interpretation: "Different VIX effects during high fear periods (VIX > 30). Regime-dependent relationships.",
+                        appropriate: false,
+                        reasoning: "Arbitrary threshold. Multiplicative log specification captures non-linear effects more naturally."
+                    }
+                ],
+                correctChoice: 1,
+                modelComparison: {
+                    linear: { r2: 0.234, aic: 3456.7, bic: 3480.6, rmse: 0.0089 },
+                    logvol: { r2: 0.567, aic: 2234.5, bic: 2258.4, rmse: 1.234 },
+                    sqrt: { r2: 0.334, aic: 3234.6, bic: 3258.5, rmse: 0.0456 },
+                    threshold: { r2: 0.267, aic: 3345.7, bic: 3375.4, rmse: 0.0082 }
+                },
+                economicInsight: "Log-volatility specification shows 0.78 persistence parameter (volatility clustering), 0.34 VIX elasticity (fear transmission), and significant oil shock effects (0.12 elasticity). Exchange rate volatility adds 15% to market volatility.",
+                policyImplication: "High persistence justifies volatility forecasting models. VIX transmission suggests international risk spillovers require monitoring. Oil price shocks significantly affect Canadian market stability through energy sector exposure."
+            },
+            {
+                title: "🚗 Canadian Transportation Demand Analysis",
+                context: "Modeling gasoline consumption to determine whether demand follows multiplicative (constant elasticity) or additive patterns with respect to price, income, and vehicle efficiency.",
+                theory: "Consumer demand theory typically assumes multiplicative utility functions leading to constant elasticity demand. Alternative behavioral models suggest additive components.",
+                data: {
+                    sample: "Provincial monthly data, 2010-2022 (1,560 observations)",
+                    dependent: "Gasoline consumption per capita (litres)",
+                    independent: "Gasoline price ($/litre), Disposable income (thousands), Vehicle fuel efficiency (L/100km), Temperature",
+                    range: "Consumption (35-95 L/month), Price ($0.89-$1.67), Income ($2.8K-$5.2K), Efficiency (6.2-12.8 L/100km)"
+                },
+                patterns: "Consumption shows log-linear relationship with price and income. Strong seasonality. Efficiency improvements reduce consumption multiplicatively.",
+                functions: [
+                    {
+                        name: "Linear Demand Function",
+                        equation: "Consumption = β₀ + β₁Price + β₂Income + β₃Efficiency + β₄Temperature",
+                        interpretation: "Each dollar increase in gasoline price reduces consumption by β₁ litres, regardless of income level.",
+                        appropriate: false,
+                        reasoning: "Contradicts consumer theory of proportional responses. Ignores income effects on price sensitivity."
+                    },
+                    {
+                        name: "Log-Log Demand (Constant Elasticity)",
+                        equation: "log(Consumption) = β₀ + β₁log(Price) + β₂log(Income) + β₃log(Efficiency) + β₄Temperature",
+                        interpretation: "β₁ is price elasticity, β₂ is income elasticity. Constant percentage responses to percentage changes.",
+                        appropriate: true,
+                        reasoning: "Matches consumer theory and observed log-linear patterns. Elasticity interpretation directly relevant for policy analysis."
+                    },
+                    {
+                        name: "Semi-Log Price Effects",
+                        equation: "log(Consumption) = β₀ + β₁Price + β₂log(Income) + β₃Efficiency + β₄Temperature",
+                        interpretation: "Level price effects on percentage consumption changes. Mixed elasticity and semi-elasticity interpretation.",
+                        appropriate: false,
+                        reasoning: "Inconsistent functional form mixing. Price should have same type of effect as other continuous variables."
+                    },
+                    {
+                        name: "Translog Demand System",
+                        equation: "log(Consumption) = β₀ + β₁log(Price) + β₂log(Income) + β₃[log(Price)]² + β₄log(Price)log(Income)",
+                        interpretation: "Variable elasticities depending on price and income levels. Flexible approximation to any demand function.",
+                        appropriate: false,
+                        reasoning: "Unnecessarily complex for this application. Standard log-log captures main relationships adequately."
+                    }
+                ],
+                correctChoice: 1,
+                modelComparison: {
+                    linear: { r2: 0.456, aic: 4567.8, bic: 4591.7, rmse: 8.67 },
+                    loglog: { r2: 0.723, aic: 2345.6, bic: 2369.5, rmse: 0.167 },
+                    semilog: { r2: 0.634, aic: 3456.7, bic: 3480.6, rmse: 0.234 },
+                    translog: { r2: 0.735, aic: 2334.5, bic: 2370.0, rmse: 0.159 }
+                },
+                economicInsight: "Log-log demand reveals price elasticity of -0.67 (inelastic), income elasticity of 0.43 (normal good), and efficiency elasticity of -0.89 (strong conservation effect). Seasonal temperature effects show 2.3% consumption increase per degree.",
+                policyImplication: "Inelastic demand suggests carbon taxes have limited consumption effects but generate substantial revenue. Income elasticity confirms gasoline as normal good. Vehicle efficiency standards highly effective for reducing consumption."
+            }
+        ];
+
+        let currentScenario = null;
+        let selectedChoice = null;
+
+        function generateNewScenario() {
+            // Ensure we get a different scenario than the current one
+            let newScenario;
+            do {
+                newScenario = functionalFormScenarios[Math.floor(Math.random() * functionalFormScenarios.length)];
+            } while (currentScenario && newScenario.title === currentScenario.title && functionalFormScenarios.length > 1);
+            
+            currentScenario = newScenario;
+            selectedChoice = null;
+            
+            // Add visual transition
+            const scenarioSection = document.querySelector('.scenario-section');
+            scenarioSection.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                // Update scenario display
+                document.getElementById('scenarioTitle').textContent = currentScenario.title;
+                document.getElementById('economicContext').innerHTML = `
+                    <p><strong>Research Question:</strong> ${currentScenario.context}</p>
+                    <p><strong>Economic Theory:</strong> ${currentScenario.theory}</p>
+                `;
+                
+                document.getElementById('dataCharacteristics').innerHTML = `
+                    <strong>Dataset Characteristics:</strong><br>
+                    • Sample: ${currentScenario.data.sample}<br>
+                    • Dependent: ${currentScenario.data.dependent}<br>
+                    • Independent: ${currentScenario.data.independent}<br>
+                    • Range: ${currentScenario.data.range}
+                `;
+
+                document.getElementById('scatterHint').innerHTML = `
+                    <h5>📊 Data Pattern Analysis</h5>
+                    <p>${currentScenario.patterns}</p>
+                `;
+
+                // Create decision cards
+                const decisionCardsContainer = document.getElementById('decisionCards');
+                decisionCardsContainer.innerHTML = '';
+                
+                currentScenario.functions.forEach((func, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'decision-card';
+                    card.onclick = () => selectChoice(index);
+                    card.innerHTML = `
+                        <h4>${func.name}</h4>
+                        <div class="equation-display">${func.equation}</div>
+                        <div class="interpretation-note">
+                            <strong>Interpretation:</strong> ${func.interpretation}
+                        </div>
+                    `;
+                    card.dataset.index = index;
+                    decisionCardsContainer.appendChild(card);
+                });
+
+                // Reset feedback
+                document.getElementById('feedbackSection').classList.remove('show');
+                
+                // Restore opacity
+                scenarioSection.style.opacity = '1';
+            }, 300);
+        }
+
+        function selectChoice(index) {
+            // Remove previous selection
+            document.querySelectorAll('.decision-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+            selectedChoice = index;
+        }
+
+        function evaluateDecision() {
+            if (selectedChoice === null) {
+                alert('Please select a functional form first.');
+                return;
+            }
+
+            const isCorrect = selectedChoice === currentScenario.correctChoice;
+            const selectedFunction = currentScenario.functions[selectedChoice];
+            const correctFunction = currentScenario.functions[currentScenario.correctChoice];
+
+            let feedbackContent = `
+                <div class="model-comparison">
+                    <h5>📊 Model Comparison Results</h5>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Model</th>
+                            <th>R²</th>
+                            <th>AIC</th>
+                            <th>BIC</th>
+                            <th>RMSE</th>
+                        </tr>
+                        <tr class="${currentScenario.modelComparison.linear === currentScenario.modelComparison[Object.keys(currentScenario.modelComparison)[currentScenario.correctChoice]] ? 'best-model' : ''}">
+                            <td>Linear</td>
+                            <td>${currentScenario.modelComparison.linear.r2}</td>
+                            <td>${currentScenario.modelComparison.linear.aic}</td>
+                            <td>${currentScenario.modelComparison.linear.bic}</td>
+                            <td>${currentScenario.modelComparison.linear.rmse}</td>
+                        </tr>
+                        <tr class="${selectedChoice === 1 ? 'best-model' : ''}">
+                            <td>${currentScenario.functions[1].name}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[1].r2}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[1].aic}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[1].bic}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[1].rmse}</td>
+                        </tr>
+                        <tr class="${selectedChoice === 2 ? 'best-model' : ''}">
+                            <td>${currentScenario.functions[2].name}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[2].r2}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[2].aic}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[2].bic}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[2].rmse}</td>
+                        </tr>
+                        <tr class="${selectedChoice === 3 ? 'best-model' : ''}">
+                            <td>${currentScenario.functions[3].name}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[3].r2}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[3].aic}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[3].bic}</td>
+                            <td>${Object.values(currentScenario.modelComparison)[3].rmse}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <h4>🎯 Your Choice: ${selectedFunction.name}</h4>
+                <p><strong>Reasoning:</strong> ${selectedFunction.reasoning}</p>
+                <p><strong>Assessment:</strong> ${isCorrect ? 
+                    '✅ <strong>Excellent functional form choice!</strong> Your selection optimally captures the economic relationships and data patterns.' : 
+                    '❌ <strong>Consider the theoretical and empirical evidence.</strong> While this specification has applications, there\'s a more appropriate functional form for this context.'}</p>
+
+                ${!isCorrect ? `
+                    <h4>💡 Optimal Functional Form: ${correctFunction.name}</h4>
+                    <p><strong>Why this is preferred:</strong> ${correctFunction.reasoning}</p>
+                ` : ''}
+
+                <div class="economic-insight">
+                    <h5>📈 Economic Interpretation</h5>
+                    <p>${currentScenario.economicInsight}</p>
+                </div>
+
+                <div class="economic-insight">
+                    <h5>🏛️ Policy Implications</h5>
+                    <p>${currentScenario.policyImplication}</p>
+                </div>
+
+                <h4>🎓 Functional Form Selection Principles:</h4>
+                <p>• <strong>Economic Theory:</strong> Match functional form to theoretical predictions (elasticity vs. marginal effects)</p>
+                <p>• <strong>Data Patterns:</strong> Use scatter plots and residual analysis to identify relationships</p>
+                <p>• <strong>Distributional Issues:</strong> Log transformations for right-skewed dependent variables</p>
+                <p>• <strong>Interpretation:</strong> Choose form that provides meaningful policy-relevant parameters</p>
+                <p>• <strong>Model Selection:</strong> Compare AIC, BIC, and adjusted R² for nested and non-nested models</p>
+                <p>• <strong>Robustness:</strong> Test functional form assumptions with RESET tests and residual diagnostics</p>
+            `;
+
+            document.getElementById('feedbackContent').innerHTML = feedbackContent;
+            document.getElementById('feedbackSection').classList.add('show');
+        }
+
+        // Initialize with first scenario
+        currentScenario = functionalFormScenarios[0];
+        
+        function initializeRandomScenario() {
+            generateNewScenario();
+        }
+        
+        setTimeout(initializeRandomScenario, 100);
+    </script>
+</body>
+</html>
