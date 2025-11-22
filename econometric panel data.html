@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Data Methods: Fixed vs Random Effects</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #991b1b;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #14b8a6, #10b981);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .panel-concepts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .concept-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .concept-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .panel-formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #f0f9ff;
+            margin: 10px 0;
+            font-size: 0.85em;
+        }
+
+        .concept-card p {
+            color: #f0f9ff;
+            font-size: 0.95em;
+            margin: 8px 0;
+        }
+
+        .decision-making {
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .decision-making h3 {
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+
+        .scenario-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid #3b82f6;
+            transition: opacity 0.3s ease;
+        }
+
+        .scenario-title {
+            font-size: 1.5em;
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .panel-context {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .data-structure {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+            border: 1px solid #475569;
+        }
+
+        .unobserved-heterogeneity {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .unobserved-heterogeneity h5 {
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .unobserved-heterogeneity p {
+            color: #991b1b;
+            font-size: 0.9em;
+        }
+
+        .method-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .method-preview {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .method-preview h5 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .method-preview .results {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .decision-card {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .decision-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .decision-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .decision-card h4 {
+            color: #1e40af;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .test-statistic {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.8em;
+        }
+
+        .method-description {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .hausman-test {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .hausman-test h5 {
+            color: #ca8a04;
+            margin-bottom: 8px;
+        }
+
+        .hausman-test p {
+            color: #78350f;
+            font-size: 0.9em;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 10px;
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .feedback-section {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .feedback-section.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-title {
+            color: #16a34a;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .feedback-content {
+            color: #15803d;
+            line-height: 1.6;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .comparison-results {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .comparison-results h5 {
+            color: #ca8a04;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+            font-size: 0.9em;
+        }
+
+        .results-table th {
+            background: #f9fafb;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .preferred-method {
+            background: #dcfce7 !important;
+            font-weight: bold;
+        }
+
+        .economic-interpretation {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .economic-interpretation h5 {
+            color: #047857;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .economic-interpretation p {
+            color: #065f46;
+            line-height: 1.5;
+        }
+
+        .time-variation-note {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .time-variation-note h5 {
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        .time-variation-note p {
+            color: #1e3a8a;
+            font-size: 0.9em;
+        }
+
+        .panel-structure {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .panel-structure h5 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .panel-structure p {
+            color: #6b7280;
+            font-size: 0.9em;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>📊 Panel Data Methods</h1>
+            <p>Fixed vs Random Effects & Longitudinal Analysis (Wooldridge Ch. 13)</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🧠 Essential Panel Data Concepts & Methods</h3>
+            
+            <div class="panel-concepts">
+                <div class="concept-card">
+                    <h4>📋 Pooled Cross-Section</h4>
+                    <div class="panel-formula">y_it = β₀ + β₁x_it + ε_it | Ignore panel structure</div>
+                    <p><strong>Assumption:</strong> No unobserved heterogeneity across entities</p>
+                    <p><strong>Problem:</strong> Biased if unobserved factors correlate with X</p>
+                    <p><strong>Use when:</strong> Unobserved heterogeneity negligible</p>
+                    <p><strong>Standard Errors:</strong> Must cluster by entity</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🎯 Fixed Effects (Within)</h4>
+                    <div class="panel-formula">y_it - ȳ_i = β₁(x_it - x̄_i) + (ε_it - ε̄_i) | Remove α_i</div>
+                    <p><strong>Controls:</strong> All time-invariant unobserved heterogeneity</p>
+                    <p><strong>Identification:</strong> Within-entity variation only</p>
+                    <p><strong>Cost:</strong> Cannot estimate time-invariant effects</p>
+                    <p><strong>Use when:</strong> α_i correlated with x_it (often true)</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🎲 Random Effects (GLS)</h4>
+                    <div class="panel-formula">y_it = β₀ + β₁x_it + α_i + ε_it | α_i ~ N(0, σ²_α)</div>
+                    <p><strong>Assumption:</strong> α_i uncorrelated with all x_it</p>
+                    <p><strong>Advantage:</strong> Efficient, estimates time-invariant effects</p>
+                    <p><strong>Cost:</strong> Inconsistent if assumption fails</p>
+                    <p><strong>Use when:</strong> α_i random (rare in practice)</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🔍 Hausman Test</h4>
+                    <div class="panel-formula">H = (β̂_FE - β̂_RE)'[Var(β̂_FE) - Var(β̂_RE)]⁻¹(β̂_FE - β̂_RE)</div>
+                    <p><strong>H₀:</strong> Random effects assumption valid (α_i ⊥ x_it)</p>
+                    <p><strong>H₁:</strong> Correlation exists, use fixed effects</p>
+                    <p><strong>Distribution:</strong> χ²(k) where k = number of time-varying variables</p>
+                    <p><strong>Decision:</strong> Reject H₀ → FE; fail to reject → RE</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>⏰ Time-Invariant Variables</h4>
+                    <div class="panel-formula">Education, Gender, Race → Dropped in FE | Identified in RE</div>
+                    <p><strong>FE Problem:</strong> Cannot estimate constant characteristics</p>
+                    <p><strong>RE Advantage:</strong> Estimates both time-varying and invariant</p>
+                    <p><strong>Alternative:</strong> First-difference for time-varying only</p>
+                    <p><strong>Policy:</strong> Important for demographic analysis</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>📊 Clustered Standard Errors</h4>
+                    <div class="panel-formula">SE_clustered = √[Σ_i (X'_i X_i)⁻¹ X'_i ε_i ε'_i X_i (X'_i X_i)⁻¹]</div>
+                    <p><strong>Problem:</strong> Serial correlation within entities</p>
+                    <p><strong>Solution:</strong> Cluster at entity level (robust to correlation)</p>
+                    <p><strong>Alternative:</strong> HAC standard errors for time correlation</p>
+                    <p><strong>Rule:</strong> Always cluster in panel data</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-making">
+            <h3>💼 Professional Panel Data Analysis</h3>
+
+            <div class="scenario-section">
+                <div class="scenario-title" id="scenarioTitle">🏥 Provincial Healthcare Efficiency Analysis</div>
+                
+                <div class="panel-context" id="panelContext">
+                    <p><strong>Research Question:</strong> Do increases in healthcare spending improve health outcomes across Canadian provinces? We have panel data tracking spending and outcomes over time.</p>
+                    
+                    <p><strong>Policy Relevance:</strong> Federal health transfers depend on understanding causal relationship between spending and outcomes. Provincial governments need guidance on optimal spending levels.</p>
+                    
+                    <p><strong>Panel Structure:</strong> 13 provinces/territories observed over 15 years (1995-2009), balanced panel with N=13, T=15, NT=195 total observations.</p>
+                </div>
+
+                <div class="data-structure" id="dataStructure">
+                    <strong>Panel Data Structure:</strong><br>
+                    Variables: Health_Outcome (0-100 index), Spending_per_capita ($CAD), GDP_per_capita, Population_65plus (%), Urban_rate (%)<br>
+                    Panel: Province_ID (1-13), Year (1995-2009)<br>
+                    Sample: N=13 provinces × T=15 years = 195 observations<br>
+                    Balance: Complete balanced panel, no missing observations
+                </div>
+
+                <div class="unobserved-heterogeneity" id="unobservedHeterogeneity">
+                    <h5>⚠️ Unobserved Heterogeneity Concerns</h5>
+                    <p>Provinces have persistent unmeasured characteristics affecting both spending and outcomes: institutional quality, political preferences, geographic factors, cultural attitudes toward health, administrative efficiency. These time-invariant factors may correlate with spending decisions.</p>
+                </div>
+
+                <div class="panel-structure">
+                    <h5>📊 Panel Data Visualization</h5>
+                    <p>Province_1: [Y₁₁, Y₁₂, ..., Y₁₁₅] | Province_2: [Y₂₁, Y₂₂, ..., Y₂₁₅] | ... | Province_13: [Y₁₃₁, Y₁₃₂, ..., Y₁₃₁₅]</p>
+                </div>
+
+                <div class="method-comparison" id="methodComparison">
+                    <div class="method-preview">
+                        <h5>Pooled OLS Results</h5>
+                        <div class="results">Spending Coef: 0.045 (SE: 0.012)<br>R²: 0.387 | Ignores province effects</div>
+                    </div>
+                    
+                    <div class="method-preview">
+                        <h5>Fixed Effects Results</h5>
+                        <div class="results">Spending Coef: 0.023 (SE: 0.019)<br>R²-within: 0.234 | Controls α_i</div>
+                    </div>
+                    
+                    <div class="method-preview">
+                        <h5>Random Effects Results</h5>
+                        <div class="results">Spending Coef: 0.038 (SE: 0.014)<br>R²-overall: 0.356 | Assumes α_i ⊥ X</div>
+                    </div>
+                </div>
+
+                <div class="hausman-test">
+                    <h5>🔍 Hausman Test Results</h5>
+                    <p>H₀: Random effects assumption valid (α_i independent of regressors)<br>
+                    χ²(4) = 18.67, p-value = 0.0009<br>
+                    Strong evidence against random effects assumption</p>
+                </div>
+
+                <div class="time-variation-note">
+                    <h5>⏰ Time-Invariant Variables Consideration</h5>
+                    <p>Geographic factors (size, remoteness), cultural characteristics, and institutional features cannot be estimated with fixed effects but may be important for policy analysis.</p>
+                </div>
+
+                <h4>🎯 Panel Method Selection Decision</h4>
+                <p><strong>Question:</strong> Given the healthcare spending analysis context, data structure, and test results, which panel data method is most appropriate?</p>
+
+                <div class="decision-cards" id="decisionCards">
+                    <div class="decision-card" onclick="selectChoice(0)" data-index="0">
+                        <h4>Pooled OLS</h4>
+                        <div class="test-statistic">Ignore panel structure<br>Treat as 195 independent observations</div>
+                        <div class="method-description">
+                            Assume no systematic differences across provinces. Standard cross-sectional analysis pooling all observations.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(1)" data-index="1">
+                        <h4>Fixed Effects (Within Estimator)</h4>
+                        <div class="test-statistic">Control for unobserved α_i<br>Use within-province variation only</div>
+                        <div class="method-description">
+                            Remove time-invariant provincial characteristics through entity demeaning. Most credible for causal inference.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(2)" data-index="2">
+                        <h4>Random Effects (GLS)</h4>
+                        <div class="test-statistic">Assume α_i ⊥ regressors<br>Efficient estimation of all parameters</div>
+                        <div class="method-description">
+                            Treat provincial effects as random draws. Allows estimation of time-invariant effects but requires strong assumption.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(3)" data-index="3">
+                        <h4>First Differences</h4>
+                        <div class="test-statistic">Δy_it = β₁Δx_it + Δε_it<br>Remove α_i through differencing</div>
+                        <div class="method-description">
+                            Transform to first differences to eliminate fixed effects. Alternative to within transformation.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="submit-btn" onclick="evaluateChoice()">Evaluate Panel Method Choice</button>
+                </div>
+
+                <div class="feedback-section" id="feedbackSection">
+                    <div class="feedback-title">📊 Expert Panel Data Analysis</div>
+                    <div class="feedback-content" id="feedbackContent">
+                        <!-- Feedback will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateNewScenario()">🔄 Generate New Panel Data Challenge</button>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive panel data scenarios following Wooldridge Chapter 13
+        const panelDataScenarios = [
+            {
+                title: "🏥 Provincial Healthcare Efficiency Analysis",
+                context: "Do increases in healthcare spending improve health outcomes across Canadian provinces? We have panel data tracking spending and outcomes over time.",
+                policy: "Federal health transfers depend on understanding causal relationship between spending and outcomes. Provincial governments need guidance on optimal spending levels.",
+                structure: "13 provinces/territories observed over 15 years (1995-2009), balanced panel with N=13, T=15, NT=195 total observations.",
+                dataStructure: {
+                    variables: "Health_Outcome (0-100 index), Spending_per_capita ($CAD), GDP_per_capita, Population_65plus (%), Urban_rate (%)",
+                    panel: "Province_ID (1-13), Year (1995-2009)",
+                    sample: "N=13 provinces × T=15 years = 195 observations",
+                    balance: "Complete balanced panel, no missing observations"
+                },
+                heterogeneity: "Provinces have persistent unmeasured characteristics affecting both spending and outcomes: institutional quality, political preferences, geographic factors, cultural attitudes toward health, administrative efficiency. These time-invariant factors may correlate with spending decisions.",
+                methods: {
+                    pooled: { coef: 0.045, se: 0.012, r2: 0.387, note: "Ignores province effects" },
+                    fe: { coef: 0.023, se: 0.019, r2: 0.234, note: "Controls α_i" },
+                    re: { coef: 0.038, se: 0.014, r2: 0.356, note: "Assumes α_i ⊥ X" }
+                },
+                hausman: {
+                    statistic: 18.67,
+                    df: 4,
+                    pvalue: 0.0009,
+                    conclusion: "Strong evidence against random effects assumption"
+                },
+                timeInvariant: "Geographic factors (size, remoteness), cultural characteristics, and institutional features cannot be estimated with fixed effects but may be important for policy analysis.",
+                choices: [
+                    {
+                        name: "Pooled OLS",
+                        statistic: "Ignore panel structure\nTreat as 195 independent observations",
+                        description: "Assume no systematic differences across provinces. Standard cross-sectional analysis pooling all observations.",
+                        appropriate: false,
+                        reasoning: "Ignores obvious provincial heterogeneity. Unobserved characteristics likely correlate with both spending and outcomes, causing bias."
+                    },
+                    {
+                        name: "Fixed Effects (Within Estimator)",
+                        statistic: "Control for unobserved α_i\nUse within-province variation only",
+                        description: "Remove time-invariant provincial characteristics through entity demeaning. Most credible for causal inference.",
+                        appropriate: true,
+                        reasoning: "Hausman test strongly rejects RE assumption. FE controls for unobserved provincial characteristics, providing causal identification."
+                    },
+                    {
+                        name: "Random Effects (GLS)",
+                        statistic: "Assume α_i ⊥ regressors\nEfficient estimation of all parameters",
+                        description: "Treat provincial effects as random draws. Allows estimation of time-invariant effects but requires strong assumption.",
+                        appropriate: false,
+                        reasoning: "Hausman test rejects RE assumption (p = 0.0009). Provincial characteristics likely correlate with spending decisions."
+                    },
+                    {
+                        name: "First Differences",
+                        statistic: "Δy_it = β₁Δx_it + Δε_it\nRemove α_i through differencing",
+                        description: "Transform to first differences to eliminate fixed effects. Alternative to within transformation.",
+                        appropriate: false,
+                        reasoning: "Less efficient than FE with T=15. FE uses more information and provides same unbiased estimates with better precision."
+                    }
+                ],
+                correctChoice: 1,
+                interpretation: "Fixed effects estimation reveals spending coefficient of 0.023 with standard error 0.019. Each $100 per-capita spending increase associated with 2.3-point health outcome improvement after controlling for provincial characteristics. Smaller than pooled OLS due to confounding bias.",
+                policyImplication: "Causal healthcare spending effects are positive but modest (half of naive estimate). Provinces should focus on efficiency improvements alongside spending increases. Federal transfers should account for varying baseline provincial health system performance."
+            },
+            {
+                title: "💼 Minimum Wage Employment Effects Across Provinces",
+                context: "What are the employment effects of minimum wage increases across Canadian provinces? Provincial variation in minimum wage policies over time provides natural experiment.",
+                policy: "Provincial governments considering minimum wage increases need evidence on employment consequences. Federal government interested in interprovincial competitiveness effects.",
+                structure: "10 provinces observed over 20 years (2000-2019), unbalanced panel due to data availability, N=10, T≤20, NT=187 total observations.",
+                dataStructure: {
+                    variables: "Employment_Rate (%), Min_Wage_Real ($2019), GDP_growth (%), Population_1524 (%), Union_coverage (%)",
+                    panel: "Province_ID (1-10), Year (2000-2019)",
+                    sample: "N=10 provinces × T≤20 years = 187 observations",
+                    balance: "Unbalanced panel, missing data for some province-years"
+                },
+                heterogeneity: "Provinces differ systematically in labor market institutions, industrial composition, economic development level, political preferences for labor regulation. These factors affect both minimum wage setting and employment outcomes.",
+                methods: {
+                    pooled: { coef: -0.034, se: 0.018, r2: 0.156, note: "Ignores province effects" },
+                    fe: { coef: -0.012, se: 0.023, r2: 0.089, note: "Controls α_i" },
+                    re: { coef: -0.025, se: 0.019, r2: 0.134, note: "Assumes α_i ⊥ X" }
+                },
+                hausman: {
+                    statistic: 12.34,
+                    df: 3,
+                    pvalue: 0.006,
+                    conclusion: "Evidence against random effects assumption"
+                },
+                timeInvariant: "Industrial structure, institutional quality, and geographic factors cannot be identified with fixed effects but may explain cross-provincial employment differences.",
+                choices: [
+                    {
+                        name: "Pooled OLS",
+                        statistic: "Pool all observations\nIgnore provincial differences",
+                        description: "Standard regression treating all province-years as independent observations.",
+                        appropriate: false,
+                        reasoning: "Ignores systematic differences in provincial labor markets and minimum wage setting processes."
+                    },
+                    {
+                        name: "Fixed Effects",
+                        statistic: "Within-province variation\nControl for time-invariant α_i",
+                        description: "Use variation in minimum wages within provinces over time to identify employment effects.",
+                        appropriate: true,
+                        reasoning: "Hausman test rejects RE. Controls for unobserved provincial characteristics affecting both wage policy and employment."
+                    },
+                    {
+                        name: "Random Effects",
+                        statistic: "Assume α_i uncorrelated with X\nEfficient GLS estimation",
+                        description: "Treat provincial effects as random, allowing identification of all coefficients.",
+                        appropriate: false,
+                        reasoning: "Hausman test rejection (p = 0.006) suggests correlation between provincial effects and minimum wage policies."
+                    },
+                    {
+                        name: "Clustered Standard Errors Only",
+                        statistic: "Pooled OLS with clustering\nCorrect SE but not bias",
+                        description: "Use pooled OLS but cluster standard errors by province to account for correlation.",
+                        appropriate: false,
+                        reasoning: "Corrects standard errors but doesn't address bias from unobserved provincial heterogeneity."
+                    }
+                ],
+                correctChoice: 1,
+                interpretation: "Fixed effects shows minimum wage coefficient of -0.012 (SE = 0.023). Each $1 real minimum wage increase associated with 1.2 percentage point employment reduction, but statistically insignificant. Much smaller than pooled OLS estimate due to confounding.",
+                policyImplication: "Employment effects of minimum wage increases are smaller than cross-provincial comparisons suggest. Within-province variation shows modest, statistically insignificant effects. Provinces can likely implement moderate increases without substantial employment consequences."
+            },
+            {
+                title: "🏭 Manufacturing Productivity and Trade Exposure",
+                context: "How does international trade exposure affect manufacturing productivity across Canadian firms? Longitudinal firm-level data allows analysis of trade shocks and productivity evolution.",
+                policy: "Trade policy makers need understanding of productivity effects from trade liberalization. Firms need guidance on international market participation strategies.",
+                structure: "2,340 manufacturing firms observed over 8 years (2008-2015), unbalanced panel with firm entry/exit, average T=6.2 years per firm.",
+                dataStructure: {
+                    variables: "Log_Productivity, Trade_Exposure_Index (0-1), Log_Capital_Stock, R&D_Intensity (%), Export_Status (0/1)",
+                    panel: "Firm_ID (1-2340), Year (2008-2015)",
+                    sample: "N=2,340 firms × T≤8 years = 14,520 observations",
+                    balance: "Unbalanced due to firm entry, exit, and merger activity"
+                },
+                heterogeneity: "Firms have persistent unobserved characteristics: management quality, organizational capital, technology adoption capability, market positioning strategies. These factors correlate with both trade exposure and productivity growth.",
+                methods: {
+                    pooled: { coef: 0.156, se: 0.023, r2: 0.445, note: "Ignores firm effects" },
+                    fe: { coef: 0.067, se: 0.034, r2: 0.189, note: "Controls α_i" },
+                    re: { coef: 0.112, se: 0.027, r2: 0.378, note: "Assumes α_i ⊥ X" }
+                },
+                hausman: {
+                    statistic: 23.45,
+                    df: 4,
+                    pvalue: 0.0001,
+                    conclusion: "Strong rejection of random effects assumption"
+                },
+                timeInvariant: "Industry affiliation, founding characteristics, initial technology, and location factors are absorbed by fixed effects but may be policy-relevant for understanding heterogeneous trade effects.",
+                choices: [
+                    {
+                        name: "Pooled OLS",
+                        statistic: "Cross-sectional approach\nIgnore firm heterogeneity",
+                        description: "Standard regression ignoring firm-specific unobserved characteristics.",
+                        appropriate: false,
+                        reasoning: "Firms self-select into trade based on unobserved characteristics that also affect productivity."
+                    },
+                    {
+                        name: "Fixed Effects",
+                        statistic: "Within-firm variation\nControl unobserved α_i",
+                        description: "Identify trade effects from changes in firm trade exposure over time.",
+                        appropriate: true,
+                        reasoning: "Hausman test strongly rejects RE. Controls for firm-specific factors affecting both trade participation and productivity."
+                    },
+                    {
+                        name: "Random Effects",
+                        statistic: "Efficient GLS estimation\nAssume α_i ⊥ X_it",
+                        description: "Treat firm effects as random, estimating between and within variation efficiently.",
+                        appropriate: false,
+                        reasoning: "Strong Hausman test rejection (p < 0.001) indicates firm effects correlate with trade exposure."
+                    },
+                    {
+                        name: "First Differences",
+                        statistic: "Δy_it = β₁Δx_it + Δε_it\nYear-to-year changes",
+                        description: "Use annual changes to eliminate firm fixed effects and identify short-run effects.",
+                        appropriate: false,
+                        reasoning: "With T=6.2 average, FE more efficient. First differences may amplify measurement error in trade exposure."
+                    }
+                ],
+                correctChoice: 1,
+                interpretation: "Fixed effects reveals trade exposure coefficient of 0.067 (SE = 0.034). 10 percentage point increase in trade exposure raises productivity by 6.7% after controlling for firm heterogeneity. Smaller than cross-sectional estimate due to selection bias.",
+                policyImplication: "Trade exposure has positive but modest within-firm productivity effects. Trade liberalization policies beneficial but firms need complementary investments in capabilities. Support programs should focus on helping firms adapt to trade opportunities."
+            },
+            {
+                title: "🎓 Education Investment and Regional Development",
+                context: "Do increases in education spending drive regional economic development across Canadian economic regions? Panel data on 76 economic regions over 12 years provides variation in education policies.",
+                policy: "Regional development agencies need evidence on education investment effectiveness. Provincial education ministries require justification for spending allocations across regions.",
+                structure: "76 economic regions observed over 12 years (2005-2016), balanced panel allowing comprehensive regional comparison, N=76, T=12, NT=912.",
+                dataStructure: {
+                    variables: "GDP_per_capita_growth (%), Education_spend_pc ($), Population_density, University_presence (0/1), Resource_dependence (%)",
+                    panel: "Region_ID (1-76), Year (2005-2016)",
+                    sample: "N=76 regions × T=12 years = 912 observations",
+                    balance: "Balanced panel with complete data coverage"
+                },
+                heterogeneity: "Regions have persistent characteristics affecting both education investment and growth: geographic advantages, natural resource endowments, institutional capacity, historical development patterns, proximity to markets.",
+                methods: {
+                    pooled: { coef: 0.078, se: 0.015, r2: 0.267, note: "Ignores region effects" },
+                    fe: { coef: 0.034, se: 0.021, r2: 0.123, note: "Controls α_i" },
+                    re: { coef: 0.058, se: 0.017, r2: 0.211, note: "Assumes α_i ⊥ X" }
+                },
+                hausman: {
+                    statistic: 8.92,
+                    df: 3,
+                    pvalue: 0.030,
+                    conclusion: "Moderate evidence against random effects assumption"
+                },
+                timeInvariant: "Geographic location, natural resource endowments, and historical development patterns are important for policy but cannot be estimated with fixed effects.",
+                choices: [
+                    {
+                        name: "Pooled OLS",
+                        statistic: "Cross-regional analysis\nIgnore regional heterogeneity",
+                        description: "Treat all region-years as independent observations ignoring persistent regional differences.",
+                        appropriate: false,
+                        reasoning: "Regional characteristics clearly matter for both education investment decisions and growth outcomes."
+                    },
+                    {
+                        name: "Fixed Effects",
+                        statistic: "Within-region variation\nControl for α_i",
+                        description: "Use variation in education spending within regions over time to identify growth effects.",
+                        appropriate: true,
+                        reasoning: "Hausman test rejects RE (p = 0.030). Controls for unobserved regional characteristics affecting education policy."
+                    },
+                    {
+                        name: "Random Effects",
+                        statistic: "GLS with random α_i\nAssume exogeneity",
+                        description: "Assume regional effects uncorrelated with education spending, allowing efficient estimation.",
+                        appropriate: false,
+                        reasoning: "Hausman test rejection suggests education investment correlates with unobserved regional characteristics."
+                    },
+                    {
+                        name: "Between Estimator",
+                        statistic: "Cross-regional means\nIgnore time dimension",
+                        description: "Use average education spending and growth across regions, ignoring time variation.",
+                        appropriate: false,
+                        reasoning: "Wastes time-series information and doesn't control for confounding regional characteristics."
+                    }
+                ],
+                correctChoice: 1,
+                interpretation: "Fixed effects shows education spending coefficient of 0.034 (SE = 0.021). Each $100 per-capita education increase associated with 3.4 percentage point higher GDP growth, marginally significant. Smaller effect than cross-regional comparisons due to confounding.",
+                policyImplication: "Education investment has positive regional development effects, but smaller than suggested by cross-regional patterns. Regional development requires sustained education investment alongside other complementary policies. Target resources to regions with capacity for effective utilization."
+            },
+            {
+                title: "🚗 Transportation Infrastructure and Economic Activity",
+                context: "What are the economic effects of transportation infrastructure investment across Canadian metropolitan areas? Panel data on 33 metro areas over 16 years captures infrastructure project timing.",
+                policy: "Infrastructure Canada needs evidence for funding allocation decisions. Municipal governments require justification for major transportation projects and federal cost-sharing applications.",
+                structure: "33 metropolitan areas observed over 16 years (2001-2016), balanced panel capturing major infrastructure cycles, N=33, T=16, NT=528.",
+                dataStructure: {
+                    variables: "GDP_growth (%), Infrastructure_invest_pc ($), Population_growth (%), Employment_rate (%), Manufacturing_share (%)",
+                    panel: "Metro_ID (1-33), Year (2001-2016)",
+                    sample: "N=33 metro areas × T=16 years = 528 observations",
+                    balance: "Balanced panel with comprehensive coverage"
+                },
+                heterogeneity: "Metro areas have persistent advantages affecting both infrastructure investment and growth: geographic location, natural harbors/transportation nodes, industrial base, political influence, fiscal capacity, proximity to US markets.",
+                methods: {
+                    pooled: { coef: 0.089, se: 0.019, r2: 0.341, note: "Ignores metro effects" },
+                    fe: { coef: 0.041, se: 0.026, r2: 0.167, note: "Controls α_i" },
+                    re: { coef: 0.067, se: 0.021, r2: 0.284, note: "Assumes α_i ⊥ X" }
+                },
+                hausman: {
+                    statistic: 6.78,
+                    df: 4,
+                    pvalue: 0.148,
+                    conclusion: "Weak evidence against random effects assumption"
+                },
+                timeInvariant: "Geographic advantages, port access, proximity to US border, and historical development patterns affect growth but cannot be estimated with fixed effects.",
+                choices: [
+                    {
+                        name: "Pooled OLS",
+                        statistic: "Ignore metro heterogeneity\nCross-sectional approach",
+                        description: "Standard regression treating all metro-year observations as independent.",
+                        appropriate: false,
+                        reasoning: "Metro areas clearly differ in characteristics affecting both infrastructure capacity and economic growth."
+                    },
+                    {
+                        name: "Fixed Effects",
+                        statistic: "Within-metro variation\nControl for α_i",
+                        description: "Identify infrastructure effects from within-metro variation in investment timing.",
+                        appropriate: false,
+                        reasoning: "Hausman test fails to reject RE (p = 0.148). FE throws away useful variation in geography and baseline characteristics."
+                    },
+                    {
+                        name: "Random Effects",
+                        statistic: "Efficient GLS estimation\nAssume α_i ⊥ X_it",
+                        description: "Assume metro effects uncorrelated with infrastructure investment, enabling efficient estimation.",
+                        appropriate: true,
+                        reasoning: "Hausman test fails to reject (p = 0.148). Infrastructure investment may be sufficiently exogenous for RE assumption."
+                    },
+                    {
+                        name: "Pooled OLS with Controls",
+                        statistic: "Add geographic controls\nProxy for heterogeneity",
+                        description: "Include observable metro characteristics to control for heterogeneity while pooling.",
+                        appropriate: false,
+                        reasoning: "Cannot control for all relevant unobserved characteristics. Panel methods better utilize data structure."
+                    }
+                ],
+                correctChoice: 2,
+                interpretation: "Random effects shows infrastructure coefficient of 0.067 (SE = 0.021). Each $100 per-capita infrastructure investment associated with 6.7 percentage point higher GDP growth. RE preferred due to Hausman test and policy interest in geographic effects.",
+                policyImplication: "Transportation infrastructure has significant positive economic effects across metro areas. Federal investment programs justified by growth impacts. Geographic characteristics matter for effectiveness - target investments to areas with complementary advantages."
+            }
+        ];
+
+        let currentScenario = null;
+        let selectedChoice = null;
+
+        function generateNewScenario() {
+            // Ensure we get a different scenario than the current one
+            let newScenario;
+            do {
+                newScenario = panelDataScenarios[Math.floor(Math.random() * panelDataScenarios.length)];
+            } while (currentScenario && newScenario.title === currentScenario.title && panelDataScenarios.length > 1);
+            
+            currentScenario = newScenario;
+            selectedChoice = null;
+            
+            // Add visual transition
+            const scenarioSection = document.querySelector('.scenario-section');
+            scenarioSection.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                // Update scenario display
+                document.getElementById('scenarioTitle').textContent = currentScenario.title;
+                document.getElementById('panelContext').innerHTML = `
+                    <p><strong>Research Question:</strong> ${currentScenario.context}</p>
+                    <p><strong>Policy Relevance:</strong> ${currentScenario.policy}</p>
+                    <p><strong>Panel Structure:</strong> ${currentScenario.structure}</p>
+                `;
+                
+                document.getElementById('dataStructure').innerHTML = `
+                    <strong>Panel Data Structure:</strong><br>
+                    Variables: ${currentScenario.dataStructure.variables}<br>
+                    Panel: ${currentScenario.dataStructure.panel}<br>
+                    Sample: ${currentScenario.dataStructure.sample}<br>
+                    Balance: ${currentScenario.dataStructure.balance}
+                `;
+
+                document.getElementById('unobservedHeterogeneity').innerHTML = `
+                    <h5>⚠️ Unobserved Heterogeneity Concerns</h5>
+                    <p>${currentScenario.heterogeneity}</p>
+                `;
+
+                // Update method comparison
+                const methodComparison = document.getElementById('methodComparison');
+                methodComparison.innerHTML = `
+                    <div class="method-preview">
+                        <h5>Pooled OLS Results</h5>
+                        <div class="results">Coef: ${currentScenario.methods.pooled.coef} (SE: ${currentScenario.methods.pooled.se})<br>R²: ${currentScenario.methods.pooled.r2} | ${currentScenario.methods.pooled.note}</div>
+                    </div>
+                    
+                    <div class="method-preview">
+                        <h5>Fixed Effects Results</h5>
+                        <div class="results">Coef: ${currentScenario.methods.fe.coef} (SE: ${currentScenario.methods.fe.se})<br>R²-within: ${currentScenario.methods.fe.r2} | ${currentScenario.methods.fe.note}</div>
+                    </div>
+                    
+                    <div class="method-preview">
+                        <h5>Random Effects Results</h5>
+                        <div class="results">Coef: ${currentScenario.methods.re.coef} (SE: ${currentScenario.methods.re.se})<br>R²-overall: ${currentScenario.methods.re.r2} | ${currentScenario.methods.re.note}</div>
+                    </div>
+                `;
+
+                // Update Hausman test
+                document.querySelector('.hausman-test').innerHTML = `
+                    <h5>🔍 Hausman Test Results</h5>
+                    <p>H₀: Random effects assumption valid (α_i independent of regressors)<br>
+                    χ²(${currentScenario.hausman.df}) = ${currentScenario.hausman.statistic}, p-value = ${currentScenario.hausman.pvalue}<br>
+                    ${currentScenario.hausman.conclusion}</p>
+                `;
+
+                // Update time-invariant note
+                document.querySelector('.time-variation-note p').textContent = currentScenario.timeInvariant;
+
+                // Create decision cards
+                const decisionCardsContainer = document.getElementById('decisionCards');
+                decisionCardsContainer.innerHTML = '';
+                
+                currentScenario.choices.forEach((choice, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'decision-card';
+                    card.onclick = () => selectChoice(index);
+                    card.innerHTML = `
+                        <h4>${choice.name}</h4>
+                        <div class="test-statistic">${choice.statistic}</div>
+                        <div class="method-description">
+                            ${choice.description}
+                        </div>
+                    `;
+                    card.dataset.index = index;
+                    decisionCardsContainer.appendChild(card);
+                });
+
+                // Reset feedback
+                document.getElementById('feedbackSection').classList.remove('show');
+                
+                // Restore opacity
+                scenarioSection.style.opacity = '1';
+            }, 300);
+        }
+
+        function selectChoice(index) {
+            // Remove previous selection
+            document.querySelectorAll('.decision-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+            selectedChoice = index;
+        }
+
+        function evaluateChoice() {
+            if (selectedChoice === null) {
+                alert('Please select a panel data method first.');
+                return;
+            }
+
+            const isCorrect = selectedChoice === currentScenario.correctChoice;
+            const selectedMethod = currentScenario.choices[selectedChoice];
+            const correctMethod = currentScenario.choices[currentScenario.correctChoice];
+
+            let feedbackContent = `
+                <div class="comparison-results">
+                    <h5>📊 Panel Method Comparison</h5>
+                    <table class="results-table">
+                        <tr>
+                            <th>Method</th>
+                            <th>Coefficient</th>
+                            <th>Standard Error</th>
+                            <th>Key Feature</th>
+                        </tr>
+                        <tr>
+                            <td>Pooled OLS</td>
+                            <td>${currentScenario.methods.pooled.coef}</td>
+                            <td>${currentScenario.methods.pooled.se}</td>
+                            <td>Ignores heterogeneity</td>
+                        </tr>
+                        <tr class="${selectedChoice === 1 ? 'preferred-method' : ''}">
+                            <td>Fixed Effects</td>
+                            <td>${currentScenario.methods.fe.coef}</td>
+                            <td>${currentScenario.methods.fe.se}</td>
+                            <td>Controls unobserved α_i</td>
+                        </tr>
+                        <tr class="${selectedChoice === 2 ? 'preferred-method' : ''}">
+                            <td>Random Effects</td>
+                            <td>${currentScenario.methods.re.coef}</td>
+                            <td>${currentScenario.methods.re.se}</td>
+                            <td>Assumes α_i ⊥ X_it</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <h4>🎯 Your Choice: ${selectedMethod.name}</h4>
+                <p><strong>Reasoning:</strong> ${selectedMethod.reasoning}</p>
+                <p><strong>Assessment:</strong> ${isCorrect ? 
+                    '✅ <strong>Excellent panel method choice!</strong> This approach is most appropriate given the data structure and assumptions.' : 
+                    '❌ <strong>Consider the test results and assumptions.</strong> While this method has applications, there\'s a more suitable approach.'}</p>
+
+                ${!isCorrect ? `
+                    <h4>💡 Optimal Panel Method: ${correctMethod.name}</h4>
+                    <p><strong>Why this is preferred:</strong> ${correctMethod.reasoning}</p>
+                ` : ''}
+
+                <div class="economic-interpretation">
+                    <h5>📈 Economic Interpretation</h5>
+                    <p>${currentScenario.interpretation}</p>
+                </div>
+
+                <div class="economic-interpretation">
+                    <h5>🏛️ Policy Implications</h5>
+                    <p>${currentScenario.policyImplication}</p>
+                </div>
+
+                <h4>🎓 Panel Data Decision Framework:</h4>
+                <p>• <strong>Hausman Test:</strong> Key decision tool for FE vs RE choice</p>
+                <p>• <strong>Economic Logic:</strong> Consider whether unobserved factors correlate with regressors</p>
+                <p>• <strong>Time-Invariant Variables:</strong> FE cannot estimate, RE can identify</p>
+                <p>• <strong>Efficiency Trade-offs:</strong> RE more efficient when valid, FE more robust</p>
+                <p>• <strong>Clustered Standard Errors:</strong> Always cluster by entity in panel data</p>
+                <p>• <strong>Policy Context:</strong> Consider whether between or within variation more policy-relevant</p>
+            `;
+
+            document.getElementById('feedbackContent').innerHTML = feedbackContent;
+            document.getElementById('feedbackSection').classList.add('show');
+        }
+
+        // Initialize with random scenario
+        function initializeRandomScenario() {
+            generateNewScenario();
+        }
+        
+        setTimeout(initializeRandomScenario, 100);
+    </script>
+</body>
+</html>
