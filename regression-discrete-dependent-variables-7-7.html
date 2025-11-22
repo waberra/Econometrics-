@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Discrete but Quantitative Dependent Variables (Wooldridge 7.7)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .disc-card    { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .mean-card    { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .lpm-card     { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .pitfall-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Discrete but Quantitative Dependent Variables (Wooldridge 7.7)</h1>
+        <p>Practice interpreting OLS when the dependent variable is a count or discrete outcome with quantitative meaning</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Discrete Outcomes Treated as Quantitative</h3>
+        <div class="measures-grid">
+            <div class="measure-card disc-card">
+                <h4>Discrete but Quantitative Y</h4>
+                <div class="formula">
+                    Y = number of events: 0, 1, 2, 3, ...
+                </div>
+                <div class="description">
+                    Sometimes Y is discrete (like a count) but still has a clear quantitative interpretation, so OLS on Y can be useful.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Number of doctor visits, arrests, delinquent payments, days absent.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Visits = 1.2 + 0.6·Chronic − 0.02·Income.
+                </div>
+            </div>
+
+            <div class="measure-card mean-card">
+                <h4>Interpretation via Conditional Mean</h4>
+                <div class="formula">
+                    E[Y | X] = β₀ + β₁X₁ + … + βₖXₖ
+                </div>
+                <div class="description">
+                    Even when Y is discrete, OLS is estimating a conditional mean. Coefficients are changes in the expected number of events.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> “Each extra year of education reduces expected arrests by 0.10 per year.”
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β₁ = −0.10 ⇒ 0.10 fewer arrests per year, on average.
+                </div>
+            </div>
+
+            <div class="measure-card lpm-card">
+                <h4>Not a Probability (Unlike LPM)</h4>
+                <div class="formula">
+                    Y ∈ {0, 1} ⇒ LPM; Y ∈ {0,1,2,...} ⇒ count
+                </div>
+                <div class="description">
+                    For binary Y, coefficients are changes in probability. For count Y, coefficients are changes in the expected count, not probabilities.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Keep straight: “0.3 more visits” vs “0.3 higher probability”.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β = 0.3 on a count outcome ⇒ 0.3 more events, not 30 percentage points.
+                </div>
+            </div>
+
+            <div class="measure-card pitfall-card">
+                <h4>Predictions Need Not Be Integers</h4>
+                <div class="formula">
+                    Ŷ = 1.7 arrests, 2.4 visits, …
+                </div>
+                <div class="description">
+                    It is fine if predicted Y is not an integer. It is an expected value, not a literal forecast of a whole number.
+                </div>
+                <div class="use-cases">
+                    <strong>Watch out for:</strong> Confusing “expected 1.7 arrests” with predicting someone will be arrested 1.7 times.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> An average of 1.7 visits across many similar people is meaningful even though no one has 1.7 visits.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Discrete Dependent Variables</h3>
+            <p>Each scenario gives you a regression where Y is a count or discrete outcome. Compute predictions and interpret coefficients correctly.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the regression equation shown in the scenario. Focus on interpreting coefficients as changes in the expected count of Y.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Baseline prediction</strong><br>Compute predicted Y for a specific case.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Compare two cases</strong><br>Compute predicted Y for another case.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Change in expected count</strong><br>Compute the effect of a regressor as a difference in expected Y.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Write a sentence interpreting a key coefficient.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Discrete dependent variable (7.7) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios where Y is discrete but quantitative (counts, etc.)
+    var scenarios = [
+        {
+            id: "doctorVisits",
+            type: "countVisits",
+            title: "Number of Doctor Visits per Year",
+            description: "You model the number of doctor visits in a year as a function of chronic illness and income.",
+            context: "Compute predicted visits and interpret coefficients as changes in the expected number of visits.",
+            equation: "Visits = 1.2 + 0.8·Chronic − 0.03·Income",
+            intercept: 1.2,
+            coefChronic: 0.8,
+            coefIncome: -0.03,
+            xNames: ["Chronic", "Income"],
+            xLabels: {
+                Chronic: "Chronic = 1 if person has a chronic condition, 0 otherwise",
+                Income: "Annual income (in $1,000s)"
+            },
+            ref1: { Chronic: 0, Income: 30 },
+            ref2: { Chronic: 1, Income: 30 },
+            expertInterpretation:
+                "The coefficient 0.8 on Chronic means that, holding income fixed, people with a chronic condition have on average 0.8 more doctor visits per year than otherwise similar people without a chronic condition. The coefficient −0.03 on Income means that each additional $1,000 of income is associated with 0.03 fewer visits per year, on average."
+        },
+        {
+            id: "arrests",
+            type: "countArrests",
+            title: "Number of Arrests in a Year",
+            description: "You regress the number of arrests in a year on education, prior arrests, and a gang membership dummy.",
+            context: "Use the regression to interpret coefficients as changes in the expected number of arrests.",
+            equation: "Arrests = 0.6 − 0.10·Educ + 0.35·Gang + 0.15·Prior",
+            intercept: 0.6,
+            coefEduc: -0.10,
+            coefGang: 0.35,
+            coefPrior: 0.15,
+            xNames: ["Educ", "Gang", "Prior"],
+            xLabels: {
+                Educ: "Years of completed education",
+                Gang: "Gang = 1 if gang member, 0 otherwise",
+                Prior: "Number of prior arrests"
+            },
+            ref1: { Educ: 10, Gang: 0, Prior: 0 },
+            ref2: { Educ: 10, Gang: 1, Prior: 0 },
+            expertInterpretation:
+                "The coefficient 0.35 on Gang means that, holding education and prior arrests fixed, gang members have on average 0.35 more arrests per year than comparable non–gang members. The coefficient −0.10 on Educ means that each extra year of education lowers the expected number of arrests by 0.10 per year, on average."
+        },
+        {
+            id: "delinq",
+            type: "countDelinq",
+            title: "Number of Delinquent Credit Payments",
+            description: "You model the number of times a borrower is 60+ days delinquent in a year.",
+            context: "Compute predicted delinquency counts and interpret effects of income and subprime status.",
+            equation: "Delinq = 0.4 − 0.02·Income + 0.9·Subprime",
+            intercept: 0.4,
+            coefIncome: -0.02,
+            coefSubprime: 0.9,
+            xNames: ["Income", "Subprime"],
+            xLabels: {
+                Income: "Annual income (in $1,000s)",
+                Subprime: "Subprime = 1 if subprime borrower, 0 otherwise"
+            },
+            ref1: { Income: 40, Subprime: 0 },
+            ref2: { Income: 40, Subprime: 1 },
+            expertInterpretation:
+                "The coefficient 0.9 on Subprime means that, at a given income, subprime borrowers have on average 0.9 more serious delinquencies per year than prime borrowers. The coefficient −0.02 on Income means that an extra $1,000 of income reduces the expected number of delinquencies by 0.02 per year."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Estimated Regression with Discrete Dependent Variable</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.equation;
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Regressor</th><th>Coefficient</th><th>Interpretation (expected count)</th></tr></thead><tbody>';
+
+        if (scenario.id === "doctorVisits") {
+            html += '<tr><td>Intercept</td><td>' + scenario.intercept.toFixed(2) + '</td><td>';
+            html += 'Expected visits when Chronic = 0 and Income = 0 (not literal, but reference point).';
+            html += '</td></tr>';
+            html += '<tr><td>Chronic</td><td>' + scenario.coefChronic.toFixed(2) + '</td><td>';
+            html += 'Difference in the expected number of visits between chronic and non-chronic patients, holding income fixed.';
+            html += '</td></tr>';
+            html += '<tr><td>Income</td><td>' + scenario.coefIncome.toFixed(2) + '</td><td>';
+            html += 'Change in expected visits when income increases by $1,000, holding Chronic fixed.';
+            html += '</td></tr>';
+            html += '</tbody></table>';
+            html += '<p style="margin-top:10px;font-size:0.9em;"><strong>Reference cases:</strong> Non-chronic vs chronic person, both with Income = ' +
+                    scenario.ref1.Income + ' ($1,000s).</p>';
+        } else if (scenario.id === "arrests") {
+            html += '<tr><td>Intercept</td><td>' + scenario.intercept.toFixed(2) + '</td><td>';
+            html += 'Expected arrests when Educ = 0, Gang = 0, Prior = 0.';
+            html += '</td></tr>';
+            html += '<tr><td>Educ</td><td>' + scenario.coefEduc.toFixed(2) + '</td><td>';
+            html += 'Change in expected arrests per extra year of education, holding Gang and Prior fixed.';
+            html += '</td></tr>';
+            html += '<tr><td>Gang</td><td>' + scenario.coefGang.toFixed(2) + '</td><td>';
+            html += 'Difference in expected arrests between gang members and others, holding Educ and Prior fixed.';
+            html += '</td></tr>';
+            html += '<tr><td>Prior</td><td>' + scenario.coefPrior.toFixed(2) + '</td><td>';
+            html += 'Change in expected arrests per additional prior arrest.';
+            html += '</td></tr>';
+            html += '</tbody></table>';
+            html += '<p style="margin-top:10px;font-size:0.9em;"><strong>Reference cases:</strong> Young men with Educ = ' +
+                    scenario.ref1.Educ + ', Prior = ' + scenario.ref1.Prior +
+                    ', with and without gang membership.</p>';
+        } else if (scenario.id === "delinq") {
+            html += '<tr><td>Intercept</td><td>' + scenario.intercept.toFixed(2) + '</td><td>';
+            html += 'Expected number of delinquencies when Income = 0 and Subprime = 0.';
+            html += '</td></tr>';
+            html += '<tr><td>Income</td><td>' + scenario.coefIncome.toFixed(2) + '</td><td>';
+            html += 'Change in expected delinquencies per extra $1,000 of income, holding Subprime fixed.';
+            html += '</td></tr>';
+            html += '<tr><td>Subprime</td><td>' + scenario.coefSubprime.toFixed(2) + '</td><td>';
+            html += 'Difference in expected delinquencies between subprime and prime borrowers at the same income.';
+            html += '</td></tr>';
+            html += '</tbody></table>';
+            html += '<p style="margin-top:10px;font-size:0.9em;"><strong>Reference cases:</strong> Borrowers with Income = ' +
+                    scenario.ref1.Income + ' ($1,000s), with and without subprime status.</p>';
+        }
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (s.id === "doctorVisits") {
+            var base = s.intercept + s.coefChronic * s.ref1.Chronic + s.coefIncome * s.ref1.Income;
+            var chronic = s.intercept + s.coefChronic * s.ref2.Chronic + s.coefIncome * s.ref2.Income;
+            var diff = chronic - base;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "visitsBaseline",
+                    type: "numeric",
+                    title: "🏁 Predicted Visits (No Chronic Condition)",
+                    prompt: "For a person with Chronic = " + s.ref1.Chronic +
+                            " and Income = " + s.ref1.Income +
+                            " ($1,000s), what is the predicted number of doctor visits?",
+                    correctValue: base,
+                    unitHint: "(visits per year)"
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "visitsChronic",
+                    type: "numeric",
+                    title: "📊 Predicted Visits (Chronic Condition)",
+                    prompt: "For a similar person with Chronic = " + s.ref2.Chronic +
+                            " and the same income, what is the predicted number of visits?",
+                    correctValue: chronic,
+                    unitHint: "(visits per year)"
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "visitsEffectChronic",
+                    type: "numeric",
+                    title: "📉 Effect of Chronic Condition on Expected Visits",
+                    prompt: "According to the regression, how many more visits per year, on average, do chronic patients have than non-chronic patients with the same income?",
+                    correctValue: s.coefChronic,
+                    unitHint: "(visits per year)"
+                });
+            }
+
+        } else if (s.id === "arrests") {
+            var baseA = s.intercept
+                        + s.coefEduc * s.ref1.Educ
+                        + s.coefGang * s.ref1.Gang
+                        + s.coefPrior * s.ref1.Prior;
+            var gangA = s.intercept
+                        + s.coefEduc * s.ref2.Educ
+                        + s.coefGang * s.ref2.Gang
+                        + s.coefPrior * s.ref2.Prior;
+            var diffA = gangA - baseA;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "arrestsBaseline",
+                    type: "numeric",
+                    title: "🏁 Expected Arrests (Non-Gang Member)",
+                    prompt: "For a young man with Educ = " + s.ref1.Educ +
+                            ", Gang = " + s.ref1.Gang +
+                            ", and Prior = " + s.ref1.Prior +
+                            ", what is the predicted number of arrests?",
+                    correctValue: baseA,
+                    unitHint: "(arrests per year)"
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "arrestsGang",
+                    type: "numeric",
+                    title: "📊 Expected Arrests (Gang Member)",
+                    prompt: "For a similar man with Gang = " + s.ref2.Gang +
+                            " (same education and prior arrests), what is the predicted number of arrests?",
+                    correctValue: gangA,
+                    unitHint: "(arrests per year)"
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "arrestsEffectGang",
+                    type: "numeric",
+                    title: "📉 Effect of Gang Membership on Expected Arrests",
+                    prompt: "According to the regression, what is the difference in expected arrests between gang members and comparable non–gang members?",
+                    correctValue: s.coefGang,
+                    unitHint: "(arrests per year)"
+                });
+            }
+
+        } else if (s.id === "delinq") {
+            var baseD = s.intercept
+                        + s.coefIncome * s.ref1.Income
+                        + s.coefSubprime * s.ref1.Subprime;
+            var subD = s.intercept
+                       + s.coefIncome * s.ref2.Income
+                       + s.coefSubprime * s.ref2.Subprime;
+            var diffD = subD - baseD;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "delinqBaseline",
+                    type: "numeric",
+                    title: "🏁 Expected Delinquencies (Prime Borrower)",
+                    prompt: "For a borrower with Income = " + s.ref1.Income +
+                            " ($1,000s) and Subprime = " + s.ref1.Subprime +
+                            ", what is the predicted number of serious delinquencies?",
+                    correctValue: baseD,
+                    unitHint: "(delinquencies per year)"
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "delinqSubprime",
+                    type: "numeric",
+                    title: "📊 Expected Delinquencies (Subprime Borrower)",
+                    prompt: "For a borrower with the same income but Subprime = " + s.ref2.Subprime +
