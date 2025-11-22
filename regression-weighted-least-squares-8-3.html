@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weighted Least Squares (WLS) - Wooldridge 8.3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .idea-card    { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .weight-card  { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .group-card   { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card{ background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Weighted Least Squares (WLS) - Wooldridge 8.3</h1>
+        <p>Practice choosing weights and transforming regressions when the form of heteroskedasticity is known</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: WLS with Known Form of Heteroskedasticity</h3>
+        <div class="measures-grid">
+            <div class="measure-card idea-card">
+                <h4>Why WLS?</h4>
+                <div class="formula">
+                    Var(u<sub>i</sub> | X<sub>i</sub>) = σ²·h(Z<sub>i</sub>)
+                </div>
+                <div class="description">
+                    If the error variance is not constant but its form is known up to a scale, OLS is still unbiased but no longer efficient. WLS reweights observations to recover efficiency.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Heteroskedasticity driven by income, firm size, or group size where h(Z) is known or well motivated.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Var(u|income) ∝ income² ⇒ richer households have more dispersed errors.
+                </div>
+            </div>
+
+            <div class="measure-card weight-card">
+                <h4>Choice of Weights</h4>
+                <div class="formula">
+                    w<sub>i</sub> ∝ 1 / h(Z<sub>i</sub>)<br>
+                    y*<sub>i</sub> = √w<sub>i</sub>·y<sub>i</sub>, &nbsp; x*<sub>ij</sub> = √w<sub>i</sub>·x<sub>ij</sub>
+                </div>
+                <div class="description">
+                    WLS minimizes ∑ w<sub>i</sub>u<sub>i</sub>². If Var(u<sub>i</sub>) = σ²h(Z<sub>i</sub>), choose weights w<sub>i</sub> = 1/h(Z<sub>i</sub>). Then the transformed errors have constant variance.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Var(u|size) ∝ size ⇒ weight = 1/size. Var(u|inc) ∝ inc² ⇒ weight = 1/inc².
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If h(Z) = inc², then √w<sub>i</sub> = 1/inc<sub>i</sub>.
+                </div>
+            </div>
+
+            <div class="measure-card group-card">
+                <h4>Group Averages & Different Group Sizes</h4>
+                <div class="formula">
+                    Var(u<sub>i</sub>) = σ² / n<sub>i</sub> ⇒ w<sub>i</sub> ∝ n<sub>i</sub>
+                </div>
+                <div class="description">
+                    When each observation is a group mean based on n<sub>i</sub> units, larger groups have smaller error variance. WLS gives larger weight to larger groups.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> School-level averages, firm-level averages, regional aggregates.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> A district with 400 students gets 4 times the weight of a district with 100 students.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    WLS vs OLS + Robust SEs
+                </div>
+                <div class="description">
+                    WLS is most useful when you have a strong model for how Var(u|Z) changes. If the form is uncertain, OLS with robust standard errors is safer.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Clear theoretical or sampling-based reasons for the weights (e.g. group sizes).
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> Use WLS when the variance function is known up to scale; otherwise, stick with OLS and robust SEs.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Choosing Weights & Transformations</h3>
+            <p>Each scenario specifies a form of heteroskedasticity Var(u<sub>i</sub>|Z<sub>i</sub>) = σ²·h(Z<sub>i</sub>). Compute the appropriate weights, transformed variables, and interpret the role of WLS.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the given heteroskedasticity function h(Z<sub>i</sub>) to derive the weights w<sub>i</sub>, compute transformed variables, and compare the relative importance of observations under WLS.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Compute weights</strong><br>Find w<sub>i</sub> and √w<sub>i</sub> for specific observations.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Transformed regression</strong><br>Compute y* and x* for given observations.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Relative weights</strong><br>Compare how heavily WLS weights two units.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain why these weights make sense in the scenario.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Weighted Least Squares (8.3) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: specify h(Z_i), weights, example observations
+    var scenarios = [
+        {
+            id: "incomeSquared",
+            type: "knownVarianceIncome2",
+            title: "Heteroskedasticity with Variance ∝ Income²",
+            description: "You regress annual consumption on income. Economic theory suggests that the variance of the error term is proportional to income squared.",
+            context: "Derive the WLS weights when Var(u_i | income_i) = σ²·income_i² and transform the regression.",
+            model: "cons_i = β₀ + β₁·income_i + u_i   (income in $10,000s)",
+            hForm: "h(income_i) = income_i²",
+            // example observations
+            obs1_income: 1.0,  // $10,000
+            obs2_income: 3.0,  // $30,000
+            y1: 15.0,
+            x1: 1.0,
+            y2: 40.0,
+            x2: 3.0,
+            expertInterpretation:
+                "If Var(u_i|income_i) ∝ income_i², higher-income households have more dispersed errors. WLS chooses weights w_i ∝ 1/income_i², so high-income observations receive less weight. After dividing both sides by income_i, the transformed regression has homoskedastic errors (up to a common σ²)."
+        },
+        {
+            id: "groupMeans",
+            type: "groupSize",
+            title: "Group Means with Different Group Sizes",
+            description: "You regress average test scores at the school level on school characteristics. Each observation is an average over n_i students.",
+            context: "Use the known formula Var(u_i) = σ² / n_i for group means to construct efficient WLS weights.",
+            model: "score_i = β₀ + β₁·stratio_i + β₂·expend_i + u_i",
+            hForm: "Var(u_i) = σ² / n_i  ⇒ h(n_i) = 1/n_i",
+            // group sizes
+            n1: 50,
+            n2: 200,
+            y1: 70,
+            y2: 75,
+            x1_stratio: 18,
+            x2_stratio: 16,
+            expertInterpretation:
+                "For group means, Var(u_i) = σ²/n_i, so larger schools have smaller error variance. WLS weights are proportional to n_i, giving more weight to averages based on more students. A school with n = 200 gets four times the weight of a school with n = 50."
+        },
+        {
+            id: "varianceProportionalToX",
+            type: "varPropX",
+            title: "Variance Proportional to a Regressor (x)",
+            description: "You regress firm sales growth on firm size x_i. Theory suggests Var(u_i|x_i) = σ²·x_i: larger firms have more volatile shocks, linearly in size.",
+            context: "Translate this variance assumption into WLS weights and transformed variables.",
+            model: "growth_i = β₀ + β₁·x_i + u_i   (x_i = firm size index)",
+            hForm: "h(x_i) = x_i",
+            x1: 1,
+            x2: 4,
+            y1: 5.0,
+            y2: 6.0,
+            expertInterpretation:
+                "If Var(u_i|x_i) ∝ x_i, the variance rises linearly with firm size. WLS chooses weights w_i ∝ 1/x_i, so large firms receive less weight than small firms. Dividing by √x_i yields a transformed regression with homoskedastic errors, which is more efficient than OLS if the form is correct."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Model and Assumed Heteroskedasticity</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Main model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.model;
+        html += '</p>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;"><strong>Variance assumption:</strong> ' +
+                scenario.hForm + '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Observation</th><th>Z or key regressor</th><th>Example outcome</th></tr></thead><tbody>';
+
+        if (scenario.type === "knownVarianceIncome2") {
+            html += '<tr><td>Household 1</td><td>income₁ = ' + scenario.obs1_income.toFixed(1) + ' (=$10,000)</td><td>cons₁ = ' + scenario.y1.toFixed(1) + '</td></tr>';
+            html += '<tr><td>Household 2</td><td>income₂ = ' + scenario.obs2_income.toFixed(1) + ' (=$30,000)</td><td>cons₂ = ' + scenario.y2.toFixed(1) + '</td></tr>';
+        } else if (scenario.type === "groupSize") {
+            html += '<tr><td>School 1</td><td>n₁ = ' + scenario.n1 + ' students</td><td>score₁ = ' + scenario.y1.toFixed(1) + '</td></tr>';
+            html += '<tr><td>School 2</td><td>n₂ = ' + scenario.n2 + ' students</td><td>score₂ = ' + scenario.y2.toFixed(1) + '</td></tr>';
+        } else if (scenario.type === "varPropX") {
+            html += '<tr><td>Firm 1</td><td>x₁ = ' + scenario.x1 + ' (size index)</td><td>growth₁ = ' + scenario.y1.toFixed(1) + '</td></tr>';
+            html += '<tr><td>Firm 2</td><td>x₂ = ' + scenario.x2 + ' (size index)</td><td>growth₂ = ' + scenario.y2.toFixed(1) + '</td></tr>';
+        }
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Reminder:</strong> If Var(u_i) = σ²·h(Z_i), then WLS uses weights w_i = 1 / h(Z_i) (up to a common constant) and runs OLS on y*_i = √w_i·y_i, x*_ij = √w_i·x_ij.';
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (s.type === "knownVarianceIncome2") {
+            // Var(u|income) = σ²·income² ⇒ w_i ∝ 1/income²; √w_i ∝ 1/income
+            var w1 = 1 / (s.obs1_income * s.obs1_income);
+            var w2 = 1 / (s.obs2_income * s.obs2_income);
+            var sw1 = 1 / s.obs1_income;
+            var sw2 = 1 / s.obs2_income;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "wIncome1",
+                    type: "numeric",
+                    title: "🏁 Weight for Household 1",
+                    prompt: "Var(u_i|income_i) = σ²·income_i². Ignoring the common σ², what is w₁ = 1/income₁² when income₁ = " + s.obs1_income.toFixed(1) + "?",
+                    correctValue: w1,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "wIncome2",
+                    type: "numeric",
+                    title: "🏁 Weight for Household 2",
+                    prompt: "What is w₂ = 1/income₂² when income₂ = " + s.obs2_income.toFixed(1) + "?",
+                    correctValue: w2,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                var y1_star = sw1 * s.y1;
+                var x1_star = sw1 * s.x1;
+                currentQuestions.push({
+                    conceptId: "yStarIncome1",
+                    type: "numeric",
+                    title: "📊 Transformed y* for Household 1",
+                    prompt: "For Household 1, y*₁ = √w₁·cons₁. Using √w₁ = 1/income₁ and cons₁ = " + s.y1.toFixed(1) + ", compute y*₁.",
+                    correctValue: y1_star,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "xStarIncome1",
+                    type: "numeric",
+                    title: "📊 Transformed x* for Household 1",
+                    prompt: "For Household 1, x*₁ = √w₁·income₁. Using √w₁ = 1/income₁, what is x*₁?",
+                    correctValue: x1_star,
+                    unitHint: ""
+                });
+            }
+
+            if (chkDifference) {
+                var weightRatio = w1 / w2;
+                currentQuestions.push({
+                    conceptId: "weightRatioIncome",
+                    type: "numeric",
+                    title: "📉 Relative Weight: Household 1 vs 2",
+                    prompt: "What is the ratio w₁ / w₂? (How many times more weight does Household 1 receive compared to Household 2 under WLS?)",
+                    correctValue: weightRatio,
+                    unitHint: ""
+                });
+            }
+
+        } else if (s.type === "groupSize") {
+            // Var(u_i) = σ² / n_i ⇒ w_i ∝ n_i
+            var w1g = s.n1;
+            var w2g = s.n2;
+            var ratio = w2g / w1g;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "wGroup1",
+                    type: "numeric",
+                    title: "🏁 Weight for School 1",
+                    prompt: "For group means with Var(u_i) = σ²/n_i, the WLS weight is w_i ∝ n_i. What is w₁ (ignoring constants) when n₁ = " + s.n1 + "?",
+                    correctValue: w1g,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "wGroup2",
+                    type: "numeric",
+                    title: "🏁 Weight for School 2",
+                    prompt: "What is w₂ when n₂ = " + s.n2 + "?",
+                    correctValue: w2g,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                var sw1g = Math.sqrt(w1g);
+                var y1_star_g = sw1g * s.y1;
+                currentQuestions.push({
+                    conceptId: "yStarGroup1",
+                    type: "numeric",
+                    title: "📊 Transformed y* for School 1",
+                    prompt: "Let √w₁ = √n₁. With n₁ = " + s.n1 + " and score₁ = " + s.y1.toFixed(1) + ", compute y*₁ = √w₁·score₁.",
+                    correctValue: y1_star_g,
+                    unitHint: ""
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "weightRatioGroup",
+                    type: "numeric",
+                    title: "📉 Relative Weight: School 2 vs 1",
+                    prompt: "What is the ratio w₂ / w₁? (How many times more weight does the larger school receive in WLS?)",
+                    correctValue: ratio,
+                    unitHint: ""
+                });
+            }
+
+        } else if (s.type === "varPropX") {
+            // Var(u_i|x_i) = σ²·x_i ⇒ w_i ∝ 1/x_i
+            var w1x = 1 / s.x1;
+            var w2x = 1 / s.x2;
+            var sw1x = Math.sqrt(w1x);
+            var sw2x = Math.sqrt(w2x);
+            var ratiox = w1x / w2x;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "wX1",
+                    type: "numeric",
+                    title: "🏁 Weight for Firm 1",
+                    prompt: "Var(u_i|x_i) = σ²·x_i ⇒ w_i ∝ 1/x_i. What is w₁ (up to a constant) when x₁ = " + s.x1 + "?",
+                    correctValue: w1x,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "wX2",
+                    type: "numeric",
+                    title: "🏁 Weight for Firm 2",
+                    prompt: "What is w₂ when x₂ = " + s.x2 + "?",
+                    correctValue: w2x,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                var y1_star_x = sw1x * s.y1;
+                var x1_star_x = sw1x * s.x1;
+                currentQuestions.push({
+                    conceptId: "yStarX1",
+                    type: "numeric",
+                    title: "📊 Transformed y* for Firm 1",
+                    prompt: "Using √w₁ = 1/√x₁ and growth₁ = " + s.y1.toFixed(1) + ", compute y*₁ = √w₁·growth₁.",
+                    correctValue: y1_star_x,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "xStarX1",
+                    type: "numeric",
+                    title: "📊 Transformed x* for Firm 1",
+                    prompt: "Compute x*₁ = √w₁·x₁ using √w₁ = 1/√x₁.",
+                    correctValue: x1_star_x,
+                    unitHint: ""
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "weightRatioX",
+                    type: "numeric",
+                    title: "📉 Relative Weight: Firm 1 vs 2",
+                    prompt: "What is the ratio w₁ / w₂? (How many times more weight does Firm 1 receive than Firm 2 in WLS?)",
+                    correctValue: ratiox,
+                    unitHint: ""
+                });
+            }
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "Explain in words why these weights make sense in this scenario and what WLS is trying to achieve. Then compare with the expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Remember: with Var(u_i) = σ²·h(Z_i), WLS uses weights 1/h(Z_i) and OLS on the transformed regression y*, x* yields efficient estimates if the form is correct.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.01, Math.abs(correctVal) * 0.03); // ±3% or at least 0.01
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (s.type === "knownVarianceIncome2") {
+            var w1 = 1 / (s.obs1_income * s.obs1_income);
+            var w2 = 1 / (s.obs2_income * s.obs2_income);
+            var sw1 = 1 / s.obs1_income;
+            var y1_star = sw1 * s.y1;
+            var x1_star = sw1 * s.x1;
+            var ratio = w1 / w2;
+
+            if (q.conceptId === "wIncome1") {
+                html += "We have Var(u_i|income_i) = σ²·income_i², so h(income_i) = income_i².<br>";
+                html += "The WLS weight is w_i = 1/h(income_i) = 1/income_i² (ignoring σ²).<br>";
+                html += "For income₁ = " + s.obs1_income.toFixed(1) + ", w₁ = 1 / (" +
+                        s.obs1_income.toFixed(1) + ")² = " + w1.toFixed(3) + ".";
+            } else if (q.conceptId === "wIncome2") {
+                html += "Similarly, for income₂ = " + s.obs2_income.toFixed(1) + ": w₂ = 1 / income₂² = " +
+                        w2.toFixed(3) + ".<br>Higher income ⇒ smaller weight.";
+            } else if (q.conceptId === "yStarIncome1") {
+                html += "We transform by y*₁ = √w₁·cons₁. With w₁ = 1/income₁², √w₁ = 1/income₁.<br>";
+                html += "So y*₁ = cons₁ / income₁ = " + s.y1.toFixed(1) + " / " +
+                        s.obs1_income.toFixed(1) + " ≈ " + y1_star.toFixed(3) + ".";
+            } else if (q.conceptId === "xStarIncome1") {
+                html += "x*₁ = √w₁·income₁ = (1/income₁)·income₁ = 1.<br>";
+                html += "In fact, after dividing both sides by income_i, the slope on income_i in the transformed regression is just β₁.";
+            } else if (q.conceptId === "weightRatioIncome") {
+                html += "The relative weight is w₁/w₂ = (1/income₁²)/(1/income₂²) = (income₂/income₁)².<br>";
+                html += "Here, income₂/income₁ = " + (s.obs2_income / s.obs1_income).toFixed(1) +
+                        ", so w₁/w₂ ≈ " + ratio.toFixed(3) + ". Household 1 receives much more weight because its variance is smaller.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "In this scenario, WLS downweights high-income households whose errors are more variable.";
+            }
+
+        } else if (s.type === "groupSize") {
+            var w1g = s.n1;
+            var w2g = s.n2;
+            var ratio = w2g / w1g;
+            var y1_star_g = Math.sqrt(w1g) * s.y1;
+
+            if (q.conceptId === "wGroup1") {
+                html += "For group means, Var(u_i) = σ²/n_i, so h(n_i) = 1/n_i.<br>";
+                html += "Weights are w_i = 1/h(n_i) = n_i (up to a constant).<br>";
+                html += "Thus, w₁ = n₁ = " + s.n1 + ".";
+            } else if (q.conceptId === "wGroup2") {
+                html += "Similarly, w₂ = n₂ = " + s.n2 + ". Larger schools get larger weights because their group averages are more precise.";
+            } else if (q.conceptId === "yStarGroup1") {
+                html += "The transformed outcome is y*₁ = √w₁·score₁ = √n₁·score₁.<br>";
+                html += "With n₁ = " + s.n1 + " and score₁ = " + s.y1.toFixed(1) +
+                        ", we have y*₁ ≈ " + y1_star_g.toFixed(3) + ".";
+            } else if (q.conceptId === "weightRatioGroup") {
+                html += "The relative weight w₂/w₁ = n₂/n₁ = " + s.n2 + "/" + s.n1 +
+                        " = " + ratio.toFixed(3) + ".<br>";
+                html += "So School 2’s average gets " + ratio.toFixed(1) +
+                        " times the weight of School 1’s average.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "Here WLS is just weighting observations by group size, reflecting their different precisions.";
+            }
+
+        } else if (s.type === "varPropX") {
+            var w1x = 1 / s.x1;
+            var w2x = 1 / s.x2;
+            var ratiox = w1x / w2x;
+            var sw1x = Math.sqrt(w1x);
+            var y1_star_x = sw1x * s.y1;
+            var x1_star_x = sw1x * s.x1;
+
+            if (q.conceptId === "wX1") {
+                html += "Here Var(u_i|x_i) = σ²·x_i ⇒ h(x_i) = x_i.<br>";
+                html += "Weights are w_i = 1/x_i. For x₁ = " + s.x1 +
+                        ", w₁ = 1/" + s.x1 + " = " + w1x.toFixed(3) + ".";
+            } else if (q.conceptId === "wX2") {
+                html += "For x₂ = " + s.x2 + ", w₂ = 1/x₂ = " + w2x.toFixed(3) + ".";
+            } else if (q.conceptId === "yStarX1") {
+                html += "We use √w₁ = 1/√x₁. Then y*₁ = √w₁·growth₁ = growth₁/√x₁.<br>";
+                html += "Numerically, this gives ≈ " + y1_star_x.toFixed(3) + ".";
+            } else if (q.conceptId === "xStarX1") {
+                html += "x*₁ = √w₁·x₁ = x₁/√x₁ = √x₁ = " + x1_star_x.toFixed(3) + ".";
+            } else if (q.conceptId === "weightRatioX") {
+                html += "Relative weight w₁/w₂ = (1/x₁)/(1/x₂) = x₂/x₁.<br>";
+                html += "Here, w₁/w₂ = " + s.x2 + "/" + s.x1 +
+                        " = " + ratiox.toFixed(3) + ". Firm 1 receives more weight than Firm 2 because it is smaller and has less error variance.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "In this scenario, WLS downweights large firms whose shocks have higher variance.";
+            }
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("WLS practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
