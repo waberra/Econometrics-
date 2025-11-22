@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Econometric Structural Change Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #991b1b;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #14b8a6, #10b981);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .concepts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .concept-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .concept-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .concept-card p {
+            color: #f0f9ff;
+            font-size: 0.95em;
+        }
+
+        .decision-making {
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .decision-making h3 {
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+
+        .scenario-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid #3b82f6;
+            transition: opacity 0.3s ease;
+        }
+
+        .scenario-title {
+            font-size: 1.5em;
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .scenario-details {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .data-preview {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+            border: 1px solid #475569;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .decision-card {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .decision-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .decision-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .decision-card h4 {
+            color: #1e40af;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .decision-card p {
+            color: #4b5563;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .test-details {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .feedback-section {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .feedback-section.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-title {
+            color: #16a34a;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .feedback-content {
+            color: #15803d;
+            line-height: 1.6;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .interpretation-section {
+            background: #fefce8;
+            border: 2px solid #eab308;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .interpretation-title {
+            color: #ca8a04;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .stat-display {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border: 1px solid #475569;
+        }
+
+        .policy-implications {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .policy-implications h5 {
+            color: #047857;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .policy-implications p {
+            color: #065f46;
+            line-height: 1.5;
+        }
+
+        .timeline {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .timeline h5 {
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        .timeline p {
+            color: #475569;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>🔄 Structural Change Analysis</h1>
+            <p>Detecting Economic Relationship Breaks & Policy Impact Assessment</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🧠 Essential Structural Break Concepts</h3>
+            <div class="concepts-grid">
+                <div class="concept-card">
+                    <h4>🎯 Chow Test (Known Break)</h4>
+                    <p>Test for structural change at a specific, theoretically motivated date. Compare RSS from unrestricted and restricted models. Critical for policy evaluation when you know the intervention date.</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🔍 Quandt-Andrews (Unknown Break)</h4>
+                    <p>Search for structural breaks when timing is uncertain. Tests all possible break points and selects maximum test statistic. Essential for detecting market regime changes.</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>📊 CUSUM Stability Tests</h4>
+                    <p>Monitor cumulative sum of recursive residuals for parameter stability. CUSUM detects level shifts; CUSUM-SQ detects variance changes. Visual diagnostic tool for real-time monitoring.</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🎲 Hansen Stability Test</h4>
+                    <p>Joint test for parameter constancy using Lagrange multiplier approach. Tests multiple parameters simultaneously with proper size correction for multiple testing.</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>⚡ Bai-Perron Multiple Breaks</h4>
+                    <p>Detect multiple structural breaks simultaneously. Uses dynamic programming to find optimal break dates. Critical for analyzing complex policy sequences.</p>
+                </div>
+                
+                <div class="concept-card">
+                    <h4>🏛️ Policy Implementation</h4>
+                    <p>Economic theory guides break timing: monetary regime changes, trade agreements, financial crises, technological adoption. Context determines appropriate test selection.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-making">
+            <h3>💼 Professional Structural Break Analysis</h3>
+
+            <div class="scenario-section">
+                <div class="scenario-title" id="scenarioTitle">🏦 Bank of Canada Inflation Targeting Regime (1991)</div>
+                
+                <div class="scenario-details" id="scenarioDetails">
+                    <p><strong>Economic Research Question:</strong> Analyzing whether Bank of Canada's adoption of inflation targeting in 1991 fundamentally changed the Phillips Curve relationship between unemployment and inflation in Canada.</p>
+                </div>
+
+                <div class="data-preview" id="dataPreview">
+                    <strong>Dataset Information:</strong><br>
+                    • Sample: Monthly data: 1980M1-2010M12 (372 observations)<br>
+                    • Dependent Variable: Inflation Rate (%)<br>
+                    • Independent Variables: Unemployment Rate (%), Previous Inflation, Output Gap (%)<br>
+                    • Suspected Break Date: 1991M1 (inflation targeting adoption)
+                </div>
+
+                <div class="timeline" id="timelineInfo">
+                    <h5>⏰ Critical Timeline Events</h5>
+                    <p>1980-1990: Discretionary monetary policy | 1991: Inflation targeting begins (1-3% target) | 1991-2010: Formal targeting regime</p>
+                </div>
+
+                <div class="interpretation-section">
+                    <div class="interpretation-title">🎯 Your Structural Break Testing Strategy</div>
+                    <p><strong>Question:</strong> Given the economic context and available data, which structural break test is most appropriate for detecting policy impact?</p>
+                </div>
+
+                <div class="decision-cards" id="decisionCards">
+                    <div class="decision-card" onclick="selectChoice(0)" data-index="0">
+                        <h4>Chow Test (Known Break at 1991M1)</h4>
+                        <p>Test for parameter stability around known policy implementation date</p>
+                        <div class="test-details">
+                            <strong>Application:</strong> We have strong theoretical justification for break at 1991M1 when inflation targeting was formally adopted.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(1)" data-index="1">
+                        <h4>Quandt-Andrews Test (Unknown Break)</h4>
+                        <p>Search for optimal break point without prior knowledge</p>
+                        <div class="test-details">
+                            <strong>Application:</strong> Inefficient when we know the policy change date. The Chow test is more powerful for known breaks.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(2)" data-index="2">
+                        <h4>CUSUM Test for Parameter Stability</h4>
+                        <p>Monitor gradual parameter evolution over time</p>
+                        <div class="test-details">
+                            <strong>Application:</strong> Useful complement to Chow test to visualize the timing and nature of structural change.
+                        </div>
+                    </div>
+                    
+                    <div class="decision-card" onclick="selectChoice(3)" data-index="3">
+                        <h4>Bai-Perron Multiple Break Test</h4>
+                        <p>Allow for multiple unknown structural breaks</p>
+                        <div class="test-details">
+                            <strong>Application:</strong> Overkill for single policy change. May detect spurious breaks due to multiple testing.
+                        </div>
+                    </div>
+                </div>
+
+                <button class="submit-btn" id="submitBtn" onclick="evaluateDecision()">Evaluate My Testing Strategy</button>
+
+                <div class="feedback-section" id="feedbackSection">
+                    <div class="feedback-title">📊 Expert Analysis & Economic Interpretation</div>
+                    <div class="feedback-content" id="feedbackContent">
+                        <!-- Feedback will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateNewScenario()">🔄 Generate New Policy Analysis</button>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive structural break scenarios with Canadian economic focus
+        const structuralBreakScenarios = [
+            {
+                title: "🏦 Bank of Canada Inflation Targeting Regime (1991)",
+                context: "Analyzing whether Bank of Canada's adoption of inflation targeting in 1991 fundamentally changed the Phillips Curve relationship between unemployment and inflation in Canada.",
+                data: {
+                    sample: "Monthly data: 1980M1-2010M12 (372 observations)",
+                    dependent: "Inflation Rate (%)",
+                    independent: "Unemployment Rate (%), Previous Inflation, Output Gap (%)",
+                    breakDate: "1991M1 (inflation targeting adoption)"
+                },
+                timeline: "1980-1990: Discretionary monetary policy | 1991: Inflation targeting begins (1-3% target) | 1991-2010: Formal targeting regime",
+                tests: [
+                    {
+                        name: "Chow Test (Known Break at 1991M1)",
+                        description: "Test for parameter stability around known policy implementation date",
+                        appropriate: true,
+                        reasoning: "We have strong theoretical justification for break at 1991M1 when inflation targeting was formally adopted."
+                    },
+                    {
+                        name: "Quandt-Andrews Test (Unknown Break)",
+                        description: "Search for optimal break point without prior knowledge",
+                        appropriate: false,
+                        reasoning: "Inefficient when we know the policy change date. The Chow test is more powerful for known breaks."
+                    },
+                    {
+                        name: "CUSUM Test for Parameter Stability",
+                        description: "Monitor gradual parameter evolution over time",
+                        appropriate: true,
+                        reasoning: "Useful complement to Chow test to visualize the timing and nature of structural change."
+                    },
+                    {
+                        name: "Bai-Perron Multiple Break Test",
+                        description: "Allow for multiple unknown structural breaks",
+                        appropriate: false,
+                        reasoning: "Overkill for single policy change. May detect spurious breaks due to multiple testing."
+                    }
+                ],
+                correctChoice: 0,
+                interpretation: "The Bank of Canada's inflation targeting represented a fundamental regime change that should affect both the intercept (average inflation) and slope (unemployment sensitivity) of the Phillips Curve. A Chow test with break at 1991M1 directly tests this hypothesis.",
+                policyImplication: "If structural break is confirmed, it validates the effectiveness of inflation targeting in changing inflation dynamics and provides evidence for the Lucas Critique - that policy regime changes alter economic relationships.",
+                testStats: "Chow F-statistic: 12.45 (p < 0.001) | Pre-1991 unemployment coeff: -0.52 | Post-1991 unemployment coeff: -0.28 | Interpretation: Reduced inflation sensitivity to unemployment after targeting adoption"
+            },
+            {
+                title: "🌍 NAFTA Implementation Impact on Canada-US Trade (1994)",
+                context: "Evaluating whether NAFTA's implementation in 1994 caused a structural break in the relationship between Canadian exports to the US and exchange rate movements.",
+                data: {
+                    sample: "Quarterly data: 1985Q1-2010Q4 (104 observations)",
+                    dependent: "Log(Canadian Exports to US, $CAD billions)",
+                    independent: "Log(Real Exchange Rate CAD/USD), Log(US GDP), Log(Canadian Manufacturing Capacity)",
+                    breakDate: "1994Q1 (NAFTA implementation)"
+                },
+                timeline: "1985-1993: Canada-US FTA preparation period | 1994: NAFTA implementation | 1994-2008: NAFTA regime (pre-financial crisis)",
+                tests: [
+                    {
+                        name: "Chow Test (Known Break at 1994Q1)",
+                        description: "Test for trade relationship change at NAFTA implementation",
+                        appropriate: true,
+                        reasoning: "NAFTA implementation provides clear theoretical break point for trade relationship changes."
+                    },
+                    {
+                        name: "Hansen Stability Test",
+                        description: "Joint test of all parameters for structural stability",
+                        appropriate: true,
+                        reasoning: "NAFTA could affect multiple parameters (exchange rate sensitivity, US demand elasticity). Joint test is appropriate."
+                    },
+                    {
+                        name: "CUSUM-SQ Test",
+                        description: "Test for variance stability in export equation",
+                        appropriate: false,
+                        reasoning: "Primarily concerned with parameter changes, not variance changes. CUSUM-SQ tests different hypothesis."
+                    },
+                    {
+                        name: "Recursive Coefficient Analysis",
+                        description: "Plot evolution of exchange rate elasticity over time",
+                        appropriate: true,
+                        reasoning: "Excellent for visualizing how NAFTA gradually changed trade relationships over time."
+                    }
+                ],
+                correctChoice: 0,
+                interpretation: "NAFTA should reduce exchange rate sensitivity of Canadian exports (more integrated markets) while potentially increasing US GDP elasticity (deeper market access). Chow test directly examines this hypothesis.",
+                policyImplication: "Confirmed structural break supports trade creation effects of NAFTA and validates deeper economic integration between Canada and US. Reduced exchange rate sensitivity indicates increased trade stability.",
+                testStats: "Chow F-statistic: 8.76 (p < 0.01) | Pre-1994 exchange rate elasticity: -1.23 | Post-1994 exchange rate elasticity: -0.67 | Interpretation: NAFTA reduced export sensitivity to exchange rate fluctuations"
+            },
+            {
+                title: "💥 Global Financial Crisis Impact on Canadian Housing (2008)",
+                context: "Investigating whether the 2008 global financial crisis created a structural break in the relationship between Canadian house prices and interest rates, despite Canada's relatively stable banking system.",
+                data: {
+                    sample: "Monthly data: 2000M1-2015M12 (192 observations)",
+                    dependent: "Log(Canadian House Price Index)",
+                    independent: "Bank of Canada Overnight Rate (%), Log(Household Disposable Income), Mortgage Approval Rate (%)",
+                    breakDate: "2008M9 (Lehman Brothers collapse)"
+                },
+                timeline: "2000-2007: Pre-crisis housing boom | 2008M9: Global financial crisis begins | 2008-2012: Crisis and recovery period",
+                tests: [
+                    {
+                        name: "Quandt-Andrews Test (2007-2009 search)",
+                        description: "Search for optimal break date during crisis period",
+                        appropriate: true,
+                        reasoning: "Crisis transmission timing unclear - could be 2007 (subprime), 2008M9 (Lehman), or 2009 (recession peak)."
+                    },
+                    {
+                        name: "Chow Test (Known Break at 2008M9)",
+                        description: "Test for break at Lehman Brothers collapse date",
+                        appropriate: false,
+                        reasoning: "Crisis transmission to Canada was gradual. Known break date assumption may be inappropriate."
+                    },
+                    {
+                        name: "CUSUM Test with Confidence Bands",
+                        description: "Monitor stability throughout crisis period",
+                        appropriate: true,
+                        reasoning: "Excellent for detecting when Canadian housing relationships first became unstable during crisis."
+                    },
+                    {
+                        name: "Rolling Window Regression",
+                        description: "Estimate interest rate sensitivity in overlapping windows",
+                        appropriate: false,
+                        reasoning: "Descriptive tool, not formal test. Cannot provide statistical inference about structural breaks."
+                    }
+                ],
+                correctChoice: 0,
+                interpretation: "The crisis may have changed interest rate sensitivity of housing prices as credit conditions and risk perceptions shifted. Timing uncertainty makes Quandt-Andrews optimal for break detection.",
+                policyImplication: "Detected structural break would indicate crisis transmission to Canadian housing despite banking stability, informing macroprudential policy and stress testing frameworks.",
+                testStats: "Quandt-Andrews max F: 15.23 at 2008M11 (p < 0.05) | Pre-break interest rate coeff: -2.89 | Post-break interest rate coeff: -1.45 | Interpretation: Reduced interest rate sensitivity during crisis period"
+            },
+            {
+                title: "⚡ Oil Price Shock Impact on Alberta Economy (2014)",
+                context: "Analyzing whether the 2014-2015 oil price collapse caused a structural break in the relationship between oil prices and Alberta employment, given the province's heavy dependence on energy sector.",
+                data: {
+                    sample: "Monthly data: 2008M1-2019M12 (144 observations)",
+                    dependent: "Log(Alberta Employment Index)",
+                    independent: "Log(WTI Oil Price, $USD), Log(Alberta Capital Investment), US Dollar/CAD Exchange Rate",
+                    breakDate: "2014M6 (oil price peak before collapse)"
+                },
+                timeline: "2008-2014: Oil boom period ($80-100+ WTI) | 2014M6: Oil price peak ~$105 | 2014-2016: Price collapse to $30-40",
+                tests: [
+                    {
+                        name: "Bai-Perron Sequential Break Test",
+                        description: "Allow for multiple breaks during oil boom-bust cycle",
+                        appropriate: true,
+                        reasoning: "Oil markets experienced multiple regime changes: financial crisis recovery, shale revolution, OPEC decisions."
+                    },
+                    {
+                        name: "Threshold Autoregressive (TAR) Model",
+                        description: "Test for regime-switching based on oil price levels",
+                        appropriate: false,
+                        reasoning: "Different methodology (threshold vs. structural break). Focuses on level-dependent regimes rather than time-based breaks."
+                    },
+                    {
+                        name: "CUSUM-SQ Test for Variance Stability",
+                        description: "Test whether oil price volatility changed relationship stability",
+                        appropriate: true,
+                        reasoning: "Oil market volatility increased substantially. Variance breaks could affect employment relationship."
+                    },
+                    {
+                        name: "Chow Test (Known Break at 2014M6)",
+                        description: "Test for break at oil price peak",
+                        appropriate: false,
+                        reasoning: "Employment effects likely lagged oil price changes. Break timing uncertain due to economic adjustment delays."
+                    }
+                ],
+                correctChoice: 0,
+                interpretation: "Alberta's economy may have experienced multiple structural changes as oil markets evolved. Sequential testing allows detection of boom-peak-bust structural evolution.",
+                policyImplication: "Multiple breaks would indicate Alberta's increasing vulnerability to oil price volatility, supporting economic diversification policies and stabilization fund management.",
+                testStats: "Bai-Perron: 2 breaks detected at 2011M8 and 2015M3 | Oil elasticity 2008-2011: 0.35 | 2011-2015: 0.62 | Post-2015: 0.28 | Interpretation: Heightened sensitivity during boom, reduced in bust"
+            },
+            {
+                title: "🏥 COVID-19 Impact on Canadian Labor Market (2020)",
+                context: "Examining whether COVID-19 pandemic and associated lockdown measures created a structural break in the relationship between GDP growth and unemployment (Okun's Law) in Canada.",
+                data: {
+                    sample: "Quarterly data: 2010Q1-2023Q4 (56 observations)",
+                    dependent: "Change in Unemployment Rate (percentage points)",
+                    independent: "Real GDP Growth Rate (%), Government Transfer Payments (% of GDP), Public Health Stringency Index",
+                    breakDate: "2020Q1 (pandemic onset and lockdowns)"
+                },
+                timeline: "2010-2019: Post-financial crisis recovery | 2020Q1: COVID-19 pandemic and lockdowns begin | 2020-2023: Pandemic response and recovery",
+                tests: [
+                    {
+                        name: "Chow Test (Known Break at 2020Q1)",
+                        description: "Test Okun's Law stability around pandemic onset",
+                        appropriate: true,
+                        reasoning: "Clear theoretical break point when pandemic lockdowns fundamentally altered economy-employment relationships."
+                    },
+                    {
+                        name: "Andrews-Ploberger Test",
+                        description: "Average of all possible break date test statistics",
+                        appropriate: false,
+                        reasoning: "Less powerful than Chow when break timing is known. Pandemic timing is clearly identifiable."
+                    },
+                    {
+                        name: "Nyblom Parameter Constancy Test",
+                        description: "Test for random walk in regression parameters",
+                        appropriate: false,
+                        reasoning: "Tests gradual parameter drift, not sudden structural break. Pandemic caused abrupt, not gradual changes."
+                    },
+                    {
+                        name: "Interaction Dummy Test (2020+ period)",
+                        description: "Allow for different GDP-unemployment relationship post-2020",
+                        appropriate: true,
+                        reasoning: "Alternative approach: include COVID period dummy interacted with GDP growth. Tests same hypothesis as Chow."
+                    }
+                ],
+                correctChoice: 0,
+                interpretation: "COVID-19 lockdowns may have broken traditional Okun's Law relationship through sectoral concentration of job losses and massive government intervention programs (CERB, wage subsidies).",
+                policyImplication: "Structural break confirms pandemic's unprecedented economic impact, validating extraordinary policy responses and informing future crisis preparedness frameworks.",
+                testStats: "Chow F-statistic: 18.45 (p < 0.001) | Pre-2020 GDP coeff: -0.48 | Post-2020 GDP coeff: -0.89 | Interpretation: Much stronger GDP-unemployment relationship during pandemic period"
+            },
+            {
+                title: "📡 Digital Transformation in Canadian Manufacturing (2015)",
+                context: "Investigating whether widespread adoption of Industry 4.0 technologies around 2015 caused a structural break in the production function relationship between capital, labor, and output in Canadian manufacturing.",
+                data: {
+                    sample: "Annual data: 2005-2022 (108 firm-year observations)",
+                    dependent: "Log(Manufacturing Output per Firm)",
+                    independent: "Log(Capital Stock), Log(Labor Hours), Digital Technology Adoption Index, R&D Investment (%)",
+                    breakDate: "2015 (Industry 4.0 inflection point)"
+                },
+                timeline: "2005-2014: Traditional manufacturing systems | 2015: Industry 4.0 acceleration (IoT, AI, automation) | 2015-2022: Digital transformation period",
+                tests: [
+                    {
+                        name: "Hansen LC Test (Parameter Instability)",
+                        description: "Test joint stability of all production function parameters",
+                        appropriate: true,
+                        reasoning: "Technology adoption could affect both capital and labor productivity simultaneously. Joint test captures full impact."
+                    },
+                    {
+                        name: "Sup-F Test for Single Break",
+                        description: "Find single optimal break date for production function",
+                        appropriate: false,
+                        reasoning: "Technology adoption was gradual across firms and industries. Single break assumption inappropriate."
+                    },
+                    {
+                        name: "Panel Structural Break Test",
+                        description: "Allow for heterogeneous break timing across firms",
+                        appropriate: true,
+                        reasoning: "Different firms adopted technologies at different rates. Panel methods account for heterogeneous timing."
+                    },
+                    {
+                        name: "Smooth Transition Regression",
+                        description: "Model gradual transition between technology regimes",
+                        appropriate: false,
+                        reasoning: "Different methodology focusing on smooth rather than discrete breaks. Less appropriate for structural change testing."
+                    }
+                ],
+                correctChoice: 0,
+                interpretation: "Digital transformation should simultaneously affect both capital efficiency (through smart systems) and labor productivity (through automation). Hansen LC test captures these joint effects.",
+                policyImplication: "Confirmed structural breaks support innovation policy effectiveness and justify continued investment in digital infrastructure and worker retraining programs.",
+                testStats: "Hansen LC: 25.67 (p < 0.01) | Pre-2015 capital elasticity: 0.35 | Post-2015: 0.52 | Pre-2015 labor elasticity: 0.58 | Post-2015: 0.41 | Interpretation: Capital-biased technological change"
+            }
+        ];
+
+        let currentScenario = null;
+        let selectedChoice = null;
+
+        function generateNewScenario() {
+            // Ensure we get a different scenario than the current one
+            let newScenario;
+            do {
+                newScenario = structuralBreakScenarios[Math.floor(Math.random() * structuralBreakScenarios.length)];
+            } while (currentScenario && newScenario.title === currentScenario.title && structuralBreakScenarios.length > 1);
+            
+            currentScenario = newScenario;
+            selectedChoice = null;
+            
+            // Add visual transition
+            const scenarioSection = document.querySelector('.scenario-section');
+            scenarioSection.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                // Update scenario display
+                document.getElementById('scenarioTitle').textContent = currentScenario.title;
+                document.getElementById('scenarioDetails').innerHTML = `
+                    <p><strong>Economic Research Question:</strong> ${currentScenario.context}</p>
+                `;
+                
+                document.getElementById('dataPreview').innerHTML = `
+                    <strong>Dataset Information:</strong><br>
+                    • Sample: ${currentScenario.data.sample}<br>
+                    • Dependent Variable: ${currentScenario.data.dependent}<br>
+                    • Independent Variables: ${currentScenario.data.independent}<br>
+                    • Suspected Break Date: ${currentScenario.data.breakDate}
+                `;
+
+                document.getElementById('timelineInfo').innerHTML = `
+                    <h5>⏰ Critical Timeline Events</h5>
+                    <p>${currentScenario.timeline}</p>
+                `;
+
+                // Create decision cards
+                const decisionCardsContainer = document.getElementById('decisionCards');
+                decisionCardsContainer.innerHTML = '';
+                
+                currentScenario.tests.forEach((test, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'decision-card';
+                    card.onclick = () => selectChoice(index);
+                    card.innerHTML = `
+                        <h4>${test.name}</h4>
+                        <p>${test.description}</p>
+                        <div class="test-details">
+                            <strong>Application:</strong> ${test.reasoning}
+                        </div>
+                    `;
+                    card.dataset.index = index;
+                    decisionCardsContainer.appendChild(card);
+                });
+
+                // Reset feedback
+                document.getElementById('feedbackSection').classList.remove('show');
+                
+                // Restore opacity
+                scenarioSection.style.opacity = '1';
+            }, 300);
+        }
+
+        function selectChoice(index) {
+            // Remove previous selection
+            document.querySelectorAll('.decision-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+            selectedChoice = index;
+        }
+
+        function evaluateDecision() {
+            if (selectedChoice === null) {
+                alert('Please select a structural break testing approach first.');
+                return;
+            }
+
+            const isCorrect = selectedChoice === currentScenario.correctChoice;
+            const selectedTest = currentScenario.tests[selectedChoice];
+            const correctTest = currentScenario.tests[currentScenario.correctChoice];
+
+            let feedbackContent = `
+                <div class="stat-display">
+                    ${currentScenario.testStats}
+                </div>
+                
+                <h4>🎯 Your Choice: ${selectedTest.name}</h4>
+                <p><strong>Reasoning:</strong> ${selectedTest.reasoning}</p>
+                <p><strong>Assessment:</strong> ${isCorrect ? 
+                    '✅ <strong>Excellent choice!</strong> This is the most appropriate test for this economic context.' : 
+                    '❌ <strong>Consider the alternative.</strong> While this approach has merit, there\'s a more suitable option.'}</p>
+
+                ${!isCorrect ? `
+                    <h4>💡 Optimal Approach: ${correctTest.name}</h4>
+                    <p><strong>Why this is preferred:</strong> ${correctTest.reasoning}</p>
+                ` : ''}
+
+                <div class="policy-implications">
+                    <h5>🏛️ Economic Interpretation</h5>
+                    <p>${currentScenario.interpretation}</p>
+                </div>
+
+                <div class="policy-implications">
+                    <h5>📊 Policy Implications</h5>
+                    <p>${currentScenario.policyImplication}</p>
+                </div>
+
+                <h4>🎓 Professional Development Notes:</h4>
+                <p>• <strong>Test Selection:</strong> Match testing methodology to economic theory and data characteristics</p>
+                <p>• <strong>Break Timing:</strong> Known breaks (policy dates) vs unknown breaks (market regime changes)</p>
+                <p>• <strong>Multiple Testing:</strong> Adjust significance levels when testing multiple potential breaks</p>
+                <p>• <strong>Economic Significance:</strong> Statistical breaks must have plausible economic interpretation</p>
+                <p>• <strong>Robustness:</strong> Confirm results with complementary stability tests (CUSUM, recursive analysis)</p>
+            `;
+
+            document.getElementById('feedbackContent').innerHTML = feedbackContent;
+            document.getElementById('feedbackSection').classList.add('show');
+        }
+
+        // Initialize with first scenario
+        currentScenario = structuralBreakScenarios[0]; // Set initial scenario
+        
+        // Function to generate new scenario
+        function initializeRandomScenario() {
+            generateNewScenario();
+        }
+        
+        // Auto-generate new scenario when page loads after a short delay
+        setTimeout(initializeRandomScenario, 100);
+    </script>
+</body>
+</html>
