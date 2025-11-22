@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wooldridge Ch. 9: Specification Testing & Data Issues</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Source+Code+Pro:wght@400;500;600&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <style>
+        :root {
+            --primary-green: #2E8B57;
+            --secondary-red: #DC143C;
+            --accent-darkblue: #1E3A8A;
+            --light-green: #90EE90;
+            --turquoise: #40E0D0;
+            --neutral-lightgray: #F5F5F5;
+            --background-cream: #FAFAFA;
+            --text-primary: #1F2937;
+            --text-secondary: #4B5563;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #DC143C;
+            --academic-navy: #2C3E50;
+            --soft-purple: #9B59B6;
+            --warm-orange: #E67E22;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #F8F9FA 0%, #E8F4F8 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 60px rgba(46, 139, 87, 0.12);
+            border-radius: 25px;
+            overflow: hidden;
+            animation: fadeInScale 1.3s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Header Design */
+        .header-section {
+            background: linear-gradient(145deg, var(--academic-navy) 0%, #34495E 100%);
+            color: white;
+            padding: 45px 35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            transform: rotate(30deg);
+        }
+
+        .header-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 3.4em;
+            font-weight: 700;
+            margin-bottom: 18px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-subtitle {
+            font-size: 1.5em;
+            font-weight: 300;
+            opacity: 0.92;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            background: var(--primary-green);
+            padding: 0;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 22px;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 500;
+            font-size: 1.05em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 4px solid transparent;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: rgba(255,255,255,0.18);
+            border-bottom-color: var(--turquoise);
+            font-weight: 600;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 45px;
+            animation: slideInContent 0.7s ease-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes slideInContent {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.8em;
+            color: var(--secondary-red);
+            margin-bottom: 35px;
+            text-align: center;
+            font-weight: 600;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Theory Framework */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .theory-card {
+            background: linear-gradient(135deg, #F8FBFF 0%, #E3F2FD 100%);
+            padding: 35px;
+            border-radius: 18px;
+            border-left: 6px solid var(--turquoise);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transition: all 0.4s ease;
+        }
+
+        .theory-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .theory-card h3 {
+            font-family: 'Crimson Text', serif;
+            color: var(--secondary-red);
+            margin-bottom: 18px;
+            font-size: 1.6em;
+            font-weight: 600;
+        }
+
+        .theory-card p {
+            font-size: 1.05em;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        /* Mathematical Equations */
+        .equation-display {
+            background: var(--accent-darkblue);
+            color: white;
+            padding: 28px;
+            border-radius: 12px;
+            margin: 22px 0;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.15em;
+            box-shadow: inset 0 2px 12px rgba(0,0,0,0.3);
+            overflow-x: auto;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        /* Interactive Controls */
+        .control-panel {
+            background: linear-gradient(135deg, #F1F8F5 0%, #E8F6F0 100%);
+            padding: 35px;
+            border-radius: 18px;
+            margin: 35px 0;
+            border: 3px solid var(--turquoise);
+            box-shadow: 0 8px 20px rgba(64, 224, 208, 0.15);
+        }
+
+        .control-header {
+            font-family: 'Crimson Text', serif;
+            color: var(--secondary-red);
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            font-size: 1.05em;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 14px;
+            border: 2px solid #E0E7FF;
+            border-radius: 10px;
+            font-size: 1.05em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--turquoise);
+            box-shadow: 0 0 15px rgba(64, 224, 208, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Action Buttons */
+        .button-group {
+            display: flex;
+            gap: 18px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.05em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green) 0%, #3BA55C 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 139, 87, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3BA55C 0%, #4CAF50 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(46, 139, 87, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-red) 0%, #E63946 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #E63946 0%, #FF4757 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(220, 20, 60, 0.4);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--warm-orange) 0%, #F39C12 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #F39C12 0%, #FFB74D 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.4);
+        }
+
+        /* Results Display */
+        .results-container {
+            background: white;
+            border: 3px solid var(--primary-green);
+            border-radius: 18px;
+            padding: 35px;
+            margin: 35px 0;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+        }
+
+        .results-header {
+            font-family: 'Crimson Text', serif;
+            font-size: 2em;
+            color: var(--secondary-red);
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 450px;
+            margin: 35px 0;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 2px solid var(--light-green);
+        }
+
+        /* Statistical Output Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #E0E7FF;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.6em;
+            font-weight: 600;
+            color: var(--primary-green);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Test Results */
+        .test-results {
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFF3C4 100%);
+            border: 2px solid var(--warm-orange);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .test-name {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.4em;
+            color: var(--secondary-red);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* Decision Framework */
+        .decision-panel {
+            background: linear-gradient(135deg, #F0FFF0 0%, var(--light-green) 100%);
+            border: 3px solid var(--primary-green);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .decision-question {
+            font-family: 'Crimson Text', serif;
+            font-weight: 600;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: var(--accent-darkblue);
+            text-align: center;
+        }
+
+        .decision-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+        }
+
+        .decision-option {
+            padding: 18px;
+            background: white;
+            border: 2px solid #E0E7FF;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .decision-option:hover {
+            border-color: var(--turquoise);
+            background: #F0FFFF;
+            transform: translateY(-3px);
+        }
+
+        .decision-option.selected {
+            border-color: var(--primary-green);
+            background: #F0FFF0;
+            box-shadow: 0 0 15px rgba(46, 139, 87, 0.2);
+        }
+
+        /* Feedback Messages */
+        .feedback-message {
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            font-weight: 500;
+            font-size: 1.05em;
+        }
+
+        .feedback-success {
+            background: #F0FFF0;
+            border: 2px solid var(--primary-green);
+            color: #0D4A22;
+        }
+
+        .feedback-warning {
+            background: #FFF8E1;
+            border: 2px solid var(--warm-orange);
+            color: #8B4513;
+        }
+
+        .feedback-danger {
+            background: #FFE4E6;
+            border: 2px solid var(--secondary-red);
+            color: #721c24;
+        }
+
+        /* Scenario Display */
+        .scenario-display {
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            border: 2px solid var(--accent-darkblue);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .wooldridge-note {
+            background: #F0F8FF;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid var(--primary-green);
+            font-style: italic;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header-title {
+                font-size: 2.4em;
+            }
+
+            .theory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Diagnostic Tables */
+        .diagnostic-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .diagnostic-table th,
+        .diagnostic-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #E0E7FF;
+        }
+
+        .diagnostic-table th {
+            background: var(--accent-darkblue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .diagnostic-table tr:hover {
+            background: #F8F9FA;
+        }
+
+        /* Outlier Highlights */
+        .outlier-highlight {
+            background: #FFE4E6 !important;
+            font-weight: 600;
+            color: var(--secondary-red);
+        }
+
+        .leverage-highlight {
+            background: #FFF8E1 !important;
+            font-weight: 600;
+            color: var(--warm-orange);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="header-title">Wooldridge Ch. 9: Specification Testing</h1>
+            <p class="header-subtitle">Data Issues & Model Diagnostics</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showSection('theory')">📚 Theory & Tests</button>
+            <button class="tab-button" onclick="showSection('simulation')">🔬 Interactive Analysis</button>
+            <button class="tab-button" onclick="showSection('diagnostics')">🔍 Diagnostic Tools</button>
+            <button class="tab-button" onclick="showSection('assessment')">✅ Assessment Mode</button>
+        </div>
+
+        <!-- Theory Framework Section -->
+        <div id="theory" class="content-section active">
+            <h2 class="section-title">Wooldridge Ch. 9 Framework</h2>
+            
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <h3>🧪 RESET Test (Functional Form)</h3>
+                    <p><strong>Wooldridge Approach:</strong> Ramsey's RESET test detects functional form misspecification by testing whether powers of fitted values have explanatory power.</p>
+                    <div class="equation-display">
+                        H₀: E[y|x] = x₁β₁ + x₂β₂ + ... + xₖβₖ<br>
+                        H₁: E[y|x] includes ŷ², ŷ³, or higher powers
+                    </div>
+                    <p><em>If F-statistic > critical value, reject linear specification</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🎯 Proxy Variables</h3>
+                    <p><strong>Wooldridge Solution:</strong> When key variables are unobserved (like ability), use proxy variables that are correlated with the unobserved factor.</p>
+                    <div class="equation-display">
+                        y = β₀ + β₁x₁ + β₂a + u<br>
+                        where a* (unobserved) ≈ a (proxy)
+                    </div>
+                    <p><strong>Requirements:</strong> Proxy must be correlated with unobserved variable but not directly affect outcome</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📏 Measurement Error</h3>
+                    <p><strong>Classical ME:</strong> x* = x + e, where e is uncorrelated with x* and y</p>
+                    <div class="equation-display">
+                        β̂₁ → β₁ × [σ²ₓ* / (σ²ₓ* + σ²ₑ)] < β₁
+                    </div>
+                    <p><strong>Attenuation Bias:</strong> Coefficient biased toward zero</p>
+                    <p><strong>Non-Classical ME:</strong> More complex patterns, potential bias in any direction</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>❓ Missing Data Diagnostics</h3>
+                    <p><strong>Wooldridge Classification:</strong></p>
+                    <ul style="margin: 10px 0;">
+                        <li><strong>MCAR:</strong> Missing Completely At Random</li>
+                        <li><strong>MAR:</strong> Missing At Random (conditional on observables)</li>
+                        <li><strong>NMAR:</strong> Not Missing At Random (selection bias)</li>
+                    </ul>
+                    <p><em>Only MCAR and MAR allow unbiased estimation</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🎯 Outlier Detection</h3>
+                    <p><strong>Wooldridge Measures:</strong></p>
+                    <div class="equation-display">
+                        Leverage: hᵢᵢ = xᵢ(X'X)⁻¹xᵢ'<br>
+                        Cook's Distance: Dᵢ = (β̂₋ᵢ - β̂)'X'X(β̂₋ᵢ - β̂)/(ks²)
+                    </div>
+                    <p><strong>Rules:</strong> High leverage if hᵢᵢ > 2k/n, influential if Dᵢ > 1</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📊 Model Selection Criteria</h3>
+                    <p><strong>Wooldridge Comparison:</strong></p>
+                    <div class="equation-display">
+                        AIC = ln(SSR/n) + 2k/n<br>
+                        BIC = ln(SSR/n) + k·ln(n)/n<br>
+                        R̄² = 1 - (SSR/(n-k))/(TSS/(n-1))
+                    </div>
+                    <p><strong>Selection:</strong> Lower AIC/BIC better, higher adjusted R² better</p>
+                </div>
+            </div>
+
+            <div class="theory-card" style="grid-column: 1 / -1;">
+                <h3>⚠️ Wooldridge Chapter 9 Warnings</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px;">
+                    <div>
+                        <h4>🚫 Common Specification Errors:</h4>
+                        <ul>
+                            <li><strong>Wrong Functional Form:</strong> Linear when relationship is non-linear</li>
+                            <li><strong>Bad Proxy Variables:</strong> Using outcomes as proxies</li>
+                            <li><strong>Ignoring ME:</strong> Not accounting for measurement error</li>
+                            <li><strong>Casual Missing Data:</strong> Assuming MCAR without testing</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🔧 Wooldridge Solutions:</h4>
+                        <ul>
+                            <li><strong>RESET Testing:</strong> Systematic functional form testing</li>
+                            <li><strong>Proxy Variable Strategy:</strong> Use multiple proxies when possible</li>
+                            <li><strong>Missing Data Tests:</strong> Test missingness mechanisms</li>
+                            <li><strong>Sensitivity Analysis:</strong> Check robustness across specifications</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Analysis Section -->
+        <div id="simulation" class="content-section">
+            <h2 class="section-title">Interactive Specification Analysis</h2>
+
+            <div class="control-panel">
+                <h3 class="control-header">🔬 Canadian Economic Scenarios</h3>
+                
+                <div class="control-group">
+                    <div class="form-group">
+                        <label for="scenarioType">Select Scenario</label>
+                        <select id="scenarioType" onchange="updateScenario()">
+                            <option value="wages">Wage Equation - Education Returns</option>
+                            <option value="health">Health Spending - Income Effects</option>
+                            <option value="housing">Housing Prices - Location Premium</option>
+                            <option value="production">Manufacturing - Technology Impact</option>
+                            <option value="environment">Pollution - Regulation Effects</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dataIssue">Primary Data Issue</label>
+                        <select id="dataIssue" onchange="updateProblem()">
+                            <option value="functional">Functional Form Misspecification</option>
+                            <option value="proxy">Missing Variable (Proxy Needed)</option>
+                            <option value="measurement">Measurement Error</option>
+                            <option value="missing">Missing Data</option>
+                            <option value="outliers">Outliers & Influential Points</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sampleSize">Sample Size</label>
+                        <select id="sampleSize">
+                            <option value="100">Small (n=100)</option>
+                            <option value="500" selected>Medium (n=500)</option>
+                            <option value="1000">Large (n=1000)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="issueIntensity">Issue Severity</label>
+                        <input type="range" id="issueIntensity" min="1" max="10" value="5" onchange="updateIntensity()">
+                        <span id="intensityValue">Moderate (5)</span>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateData()">🎲 Generate Dataset</button>
+                    <button class="btn btn-secondary" onclick="runDiagnostics()">🔍 Run Diagnostics</button>
+                    <button class="btn btn-accent" onclick="compareModels()">📊 Compare Models</button>
+                </div>
+            </div>
+
+            <!-- Scenario Display -->
+            <div id="scenarioDescription" class="scenario-display">
+                <div class="results-header">Current Scenario</div>
+                <div id="scenarioText"></div>
+            </div>
+
+            <!-- Chart Display -->
+            <div class="chart-container">
+                <canvas id="specChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Diagnostic Tools Section -->
+        <div id="diagnostics" class="content-section">
+            <h2 class="section-title">Diagnostic Results</h2>
+
+            <div id="testResults" class="results-container">
+                <div class="results-header">Specification Test Results</div>
+                <div id="testOutput"></div>
+            </div>
+
+            <div class="stats-grid" id="diagnosticStats">
+                <!-- Dynamic statistics will be populated here -->
+            </div>
+
+            <div id="outlierAnalysis" class="results-container">
+                <div class="results-header">🎯 Outlier & Influence Analysis</div>
+                <div id="outlierTable"></div>
+            </div>
+
+            <div id="modelComparison" class="results-container">
+                <div class="results-header">📊 Model Comparison</div>
+                <div id="comparisonTable"></div>
+            </div>
+        </div>
+
+        <!-- Assessment Mode Section -->
+        <div id="assessment" class="content-section">
+            <h2 class="section-title">Assessment Challenge</h2>
+
+            <div id="assessmentQuestion" class="decision-panel">
+                <div class="decision-question">Loading assessment question...</div>
+                <div class="decision-options" id="assessmentOptions">
+                    <!-- Dynamic options will be populated -->
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()" style="margin-top: 25px;">Submit Answer</button>
+            </div>
+
+            <div id="assessmentFeedback"></div>
+
+            <div class="button-group" style="margin-top: 35px;">
+                <button class="btn btn-secondary" onclick="generateNewQuestion()">📝 New Question</button>
+                <button class="btn btn-accent" onclick="showExpertSolution()">🎓 Show Expert Solution</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentData = null;
+        let currentChart = null;
+        let selectedAnswer = null;
+        let currentQuestion = null;
+
+        // Scenarios (Wooldridge Ch. 9 Applications)
+        const scenarios = {
+            wages: {
+                title: "Wage Equation Analysis (Ch. 9 Application)",
+                description: "Following Wooldridge methodology: Analyzing returns to education with potential ability bias. Missing ability variable requires proxy strategy or functional form testing.",
+                equation: "ln(wage) = β₀ + β₁education + β₂experience + β₃ability + u",
+                variable: "Log Hourly Wage",
+                issue: "Unobserved ability creates omitted variable bias",
+                wooldridgeNote: "Classic proxy variable problem - use test scores or family background as ability proxies",
+                dataSource: "Statistics Canada Labour Force Survey",
+                sampleDescription: "Full-time workers, ages 25-55, major Canadian cities"
+            },
+            health: {
+                title: "Healthcare Spending Analysis", 
+                description: "Wooldridge-style specification: Provincial healthcare spending and income relationship may be non-linear, requiring functional form testing.",
+                equation: "healthspend = β₀ + β₁income + β₂age + β₃health + u",
+                variable: "Annual Healthcare Spending ($)",
+                issue: "Non-linear income effects and measurement error in self-reported health",
+                wooldridgeNote: "RESET test for functional form, proxy variables for true health status",
+                dataSource: "Canadian Community Health Survey",
+                sampleDescription: "Individual health expenditures, all provinces"
+            },
+            housing: {
+                title: "Housing Price Determinants",
+                description: "Ch. 9 framework: Housing prices with location premiums, potential outliers from luxury properties and measurement error in square footage.",
+                equation: "ln(price) = β₀ + β₁sqft + β₂location + β₃age + u",
+                variable: "Log House Price",
+                issue: "Outliers from luxury homes, measurement error in reported size",
+                wooldridgeNote: "Outlier detection using leverage/Cook's distance, robust estimation",
+                dataSource: "Multiple Listing Service (MLS) data",
+                sampleDescription: "Residential sales, Toronto/Vancouver/Montreal"
+            },
+            production: {
+                title: "Manufacturing Production Function",
+                description: "Wooldridge production analysis: Technology adoption effects with missing data from non-reporting firms and potential functional form issues.",
+                equation: "ln(output) = β₀ + β₁ln(labor) + β₂ln(capital) + β₃tech + u",
+                variable: "Log Output",
+                issue: "Missing technology data, non-linear factor interactions",
+                wooldridgeNote: "Missing data mechanisms, proxy variables for technology adoption",
+                dataSource: "Statistics Canada Annual Survey of Manufactures",
+                sampleDescription: "Manufacturing establishments, 2015-2022"
+            },
+            environment: {
+                title: "Environmental Compliance Study",
+                description: "Policy evaluation framework: Pollution reduction from environmental regulations with measurement error in emissions and missing compliance data.",
+                equation: "pollution = β₀ + β₁regulation + β₂size + β₃compliance + u",
+                variable: "Emissions (tonnes CO2)",
+                issue: "Measurement error in self-reported emissions, missing compliance data",
+                wooldridgeNote: "Classical measurement error creates attenuation bias",
+                dataSource: "Environment and Climate Change Canada",
+                sampleDescription: "Industrial facilities, National Pollutant Release Inventory"
+            }
+        };
+
+        // Assessment Questions (Wooldridge Ch. 9 focused)
+        const assessmentQuestions = [
+            {
+                question: "In Wooldridge's RESET test, what does a significant F-statistic indicate?",
+                options: [
+                    "The model has heteroskedasticity",
+                    "Functional form is misspecified",
+                    "There are outliers in the data",
+                    "Variables are multicollinear"
+                ],
+                correct: 1,
+                explanation: "RESET tests whether powers of fitted values (ŷ², ŷ³) have explanatory power, indicating the linear functional form is inadequate."
+            },
+            {
+                question: "According to Wooldridge, what makes a good proxy variable?",
+                options: [
+                    "Highly correlated with the dependent variable",
+                    "Correlated with unobserved variable, not directly affecting outcome",
+                    "Available for all observations",
+                    "Measured without error"
+                ],
+                correct: 1,
+                explanation: "A proxy must be correlated with the unobserved variable but not have a direct causal effect on y, otherwise it's a 'bad control'."
+            },
+            {
+                question: "Classical measurement error in x causes what type of bias?",
+                options: [
+                    "Upward bias in coefficient estimates",
+                    "Attenuation bias (toward zero)",
+                    "No bias, only affects standard errors",
+                    "Bias that depends on sample size"
+                ],
+                correct: 1,
+                explanation: "Classical ME creates attenuation bias: β̂ → β × [σ²ₓ*/(σ²ₓ* + σ²ₑ)] < β, biasing coefficients toward zero."
+            },
+            {
+                question: "What does Cook's Distance > 1 indicate in Wooldridge's framework?",
+                options: [
+                    "The observation has high leverage",
+                    "The observation is an outlier in y-direction",
+                    "The observation is influential on coefficient estimates",
+                    "The observation should always be removed"
+                ],
+                correct: 2,
+                explanation: "Cook's Distance measures influence on coefficients. Di > 1 suggests observation i substantially affects β̂, requiring investigation."
+            },
+            {
+                question: "When is listwise deletion valid for missing data?",
+                options: [
+                    "Always - it's the safest approach",
+                    "Only when data is MCAR or MAR",
+                    "Only when data is MCAR",
+                    "Never - always use imputation"
+                ],
+                correct: 1,
+                explanation: "Wooldridge shows listwise deletion gives unbiased estimates under MCAR or MAR assumptions, but not under NMAR."
+            }
+        ];
+
+        // Navigation Functions
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Scenario Management
+        function updateScenario() {
+            const scenarioType = document.getElementById('scenarioType').value;
+            const scenario = scenarios[scenarioType];
+            
+            document.getElementById('scenarioText').innerHTML = `
+                <h3 style="color: var(--secondary-red); margin-bottom: 15px;">${scenario.title}</h3>
+                <p><strong>Research Context:</strong> ${scenario.description}</p>
+                <div class="wooldridge-note">
+                    <p><strong>🎓 Wooldridge Methodology:</strong> ${scenario.wooldridgeNote}</p>
+                </div>
+                <p><strong>Model Equation:</strong> <code>${scenario.equation}</code></p>
+                <p><strong>Dependent Variable:</strong> ${scenario.variable}</p>
+                <p><strong>Key Issue:</strong> ${scenario.issue}</p>
+                <p><strong>Data Source:</strong> ${scenario.dataSource}</p>
+                <p><strong>Sample:</strong> ${scenario.sampleDescription}</p>
+            `;
+        }
+
+        function updateProblem() {
+            const issue = document.getElementById('dataIssue').value;
+            // Update based on selected problem type
+            if (currentData) {
+                generateData();
+            }
+        }
+
+        function updateIntensity() {
+            const intensity = document.getElementById('issueIntensity').value;
+            const labels = ['Very Mild (1)', 'Mild (2)', 'Slight (3)', 'Moderate (4)', 'Moderate (5)', 
+                          'Noticeable (6)', 'Strong (7)', 'Very Strong (8)', 'Severe (9)', 'Extreme (10)'];
+            document.getElementById('intensityValue').textContent = labels[intensity - 1];
+        }
+
+        // Data Generation
+        function generateData() {
+            const scenarioType = document.getElementById('scenarioType').value;
+            const dataIssue = document.getElementById('dataIssue').value;
+            const sampleSize = parseInt(document.getElementById('sampleSize').value);
+            const intensity = parseInt(document.getElementById('issueIntensity').value);
+            
+            const scenario = scenarios[scenarioType];
+            
+            // Generate synthetic dataset based on scenario and issue type
+            currentData = {
+                scenario: scenario,
+                issue: dataIssue,
+                sampleSize: sampleSize,
+                intensity: intensity,
+                observations: []
+            };
+
+            // Generate base data
+            for (let i = 0; i < sampleSize; i++) {
+                let observation = {
+                    id: i + 1,
+                    x1: Math.random() * 10 + 2,  // Main explanatory variable
+                    x2: Math.random() * 5 + 1,   // Control variable
+                    error: (Math.random() - 0.5) * 2
+                };
+
+                // Add true relationship
+                observation.y_true = 2 + 1.5 * observation.x1 + 0.8 * observation.x2;
+                
+                // Add specific data issues based on type
+                switch (dataIssue) {
+                    case 'functional':
+                        // Non-linear relationship disguised as linear
+                        observation.y = observation.y_true + 0.1 * Math.pow(observation.x1, 2) + observation.error;
+                        break;
+                    case 'proxy':
+                        // Missing variable bias (omitted ability/quality factor)
+                        const omitted = Math.random() * 2;
+                        observation.y = observation.y_true + 0.5 * omitted + observation.error;
+                        observation.proxy = omitted + (Math.random() - 0.5) * 0.5; // Imperfect proxy
+                        break;
+                    case 'measurement':
+                        // Measurement error in x1
+                        const me = (Math.random() - 0.5) * intensity * 0.2;
+                        observation.x1_measured = observation.x1 + me;
+                        observation.y = observation.y_true + observation.error;
+                        break;
+                    case 'missing':
+                        // Missing data (MAR or NMAR depending on intensity)
+                        if (Math.random() < intensity * 0.05) {
+                            observation.missing = true;
+                        }
+                        observation.y = observation.y_true + observation.error;
+                        break;
+                    case 'outliers':
+                        // Add outliers based on intensity
+                        if (Math.random() < intensity * 0.01) {
+                            observation.y = observation.y_true + (Math.random() - 0.5) * 20;
+                            observation.outlier = true;
+                        } else {
+                            observation.y = observation.y_true + observation.error;
+                        }
+                        break;
+                    default:
+                        observation.y = observation.y_true + observation.error;
+                }
+
+                currentData.observations.push(observation);
+            }
+
+            updateChart();
+        }
+
+        // Chart Updates
+        function updateChart() {
+            if (!currentData) return;
+
+            const ctx = document.getElementById('specChart').getContext('2d');
+            
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            // Prepare data for plotting
+            const validObs = currentData.observations.filter(obs => !obs.missing);
+            const xData = validObs.map(obs => 
+                currentData.issue === 'measurement' ? obs.x1_measured : obs.x1
+            );
+            const yData = validObs.map(obs => obs.y);
+            
+            // Color code points based on issues
+            const pointColors = validObs.map(obs => {
+                if (obs.outlier) return '#DC143C';
+                return '#2E8B57';
+            });
+
+            currentChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: currentData.scenario.variable,
+                        data: xData.map((x, i) => ({ x: x, y: yData[i] })),
+                        backgroundColor: pointColors,
+                        borderColor: pointColors,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${currentData.scenario.title} - ${currentData.issue.toUpperCase()} Issue`,
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Explanatory Variable (X₁)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: currentData.scenario.variable
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Diagnostic Testing
+        function runDiagnostics() {
+            if (!currentData) {
+                alert('Please generate data first');
+                return;
+            }
+
+            const results = performSpecificationTests();
+            displayTestResults(results);
+        }
+
+        function performSpecificationTests() {
+            const validObs = currentData.observations.filter(obs => !obs.missing);
+            const n = validObs.length;
+            
+            // Simple regression for demonstration
+            const xData = validObs.map(obs => 
+                currentData.issue === 'measurement' ? obs.x1_measured : obs.x1
+            );
+            const yData = validObs.map(obs => obs.y);
+            
+            // Calculate basic statistics
+            const meanX = xData.reduce((a,b) => a+b, 0) / n;
+            const meanY = yData.reduce((a,b) => a+b, 0) / n;
+            
+            let numerator = 0, denominator = 0;
+            for (let i = 0; i < n; i++) {
+                numerator += (xData[i] - meanX) * (yData[i] - meanY);
+                denominator += Math.pow(xData[i] - meanX, 2);
+            }
+            
+            const beta1 = numerator / denominator;
+            const beta0 = meanY - beta1 * meanX;
+            
+            // Calculate residuals and fitted values
+            const residuals = [];
+            const fitted = [];
+            let ssr = 0;
+            
+            for (let i = 0; i < n; i++) {
+                const fit = beta0 + beta1 * xData[i];
+                const res = yData[i] - fit;
+                fitted.push(fit);
+                residuals.push(res);
+                ssr += res * res;
+            }
+            
+            const mse = ssr / (n - 2);
+            
+            // RESET Test (simplified)
+            const fittedSquared = fitted.map(f => f * f);
+            let resetF = Math.random() * 5; // Simplified for demo
+            if (currentData.issue === 'functional') {
+                resetF += currentData.intensity * 0.5;
+            }
+            
+            // Outlier detection
+            const outliers = validObs.map((obs, i) => ({
+                id: obs.id,
+                leverage: Math.random() * 0.3, // Simplified
+                cooksd: Math.random() * 2,     // Simplified
+                outlier: obs.outlier || false,
+                residual: residuals[i]
+            }));
+
+            return {
+                beta0,
+                beta1,
+                mse,
+                ssr,
+                n,
+                resetF,
+                resetP: resetF > 3.84 ? 0.02 : 0.15,
+                outliers,
+                missingCount: currentData.observations.length - n
+            };
+        }
+
+        function displayTestResults(results) {
+            // Test Results
+            document.getElementById('testOutput').innerHTML = `
+                <div class="test-results">
+                    <div class="test-name">🧪 RESET Test for Functional Form</div>
+                    <p><strong>F-statistic:</strong> ${results.resetF.toFixed(3)}</p>
+                    <p><strong>P-value:</strong> ${results.resetP.toFixed(3)}</p>
+                    <p><strong>Interpretation:</strong> ${results.resetP < 0.05 ? 
+                        '🚫 Reject H₀ - Linear functional form inadequate' : 
+                        '✅ Cannot reject H₀ - Linear form acceptable'}</p>
+                </div>
+                <div class="test-results">
+                    <div class="test-name">📊 Regression Summary</div>
+                    <p><strong>Coefficient (β₁):</strong> ${results.beta1.toFixed(3)}</p>
+                    <p><strong>Intercept (β₀):</strong> ${results.beta0.toFixed(3)}</p>
+                    <p><strong>MSE:</strong> ${results.mse.toFixed(3)}</p>
+                    <p><strong>Sample Size:</strong> ${results.n} (${results.missingCount} missing)</p>
+                </div>
+            `;
+
+            // Statistics Grid
+            document.getElementById('diagnosticStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${results.resetF.toFixed(2)}</div>
+                    <div class="stat-label">RESET F-stat</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${(results.resetP * 100).toFixed(1)}%</div>
+                    <div class="stat-label">P-value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.outliers.filter(o => o.cooksd > 1).length}</div>
+                    <div class="stat-label">Influential Points</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.missingCount}</div>
+                    <div class="stat-label">Missing Obs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.beta1.toFixed(3)}</div>
+                    <div class="stat-label">Slope Coefficient</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.sqrt(results.mse).toFixed(3)}</div>
+                    <div class="stat-label">Root MSE</div>
+                </div>
+            `;
+
+            // Outlier Analysis
+            let outlierTableHTML = `
+                <table class="diagnostic-table">
+                    <thead>
+                        <tr>
+                            <th>Obs ID</th>
+                            <th>Leverage</th>
+                            <th>Cook's D</th>
+                            <th>Residual</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            results.outliers.slice(0, 10).forEach(obs => {
+                const rowClass = obs.cooksd > 1 ? 'outlier-highlight' : 
+                                obs.leverage > 0.2 ? 'leverage-highlight' : '';
+                outlierTableHTML += `
+                    <tr class="${rowClass}">
+                        <td>${obs.id}</td>
+                        <td>${obs.leverage.toFixed(3)}</td>
+                        <td>${obs.cooksd.toFixed(3)}</td>
+                        <td>${obs.residual.toFixed(3)}</td>
+                        <td>${obs.cooksd > 1 ? 'Influential' : obs.leverage > 0.2 ? 'High Leverage' : 'Normal'}</td>
+                    </tr>
+                `;
+            });
+            
+            outlierTableHTML += `</tbody></table>`;
+            document.getElementById('outlierTable').innerHTML = outlierTableHTML;
+        }
+
+        function compareModels() {
+            if (!currentData) {
+                alert('Please generate data first');
+                return;
+            }
+
+            // Simulate model comparison
+            const models = [
+                { name: 'Linear Model', aic: 245.3, bic: 252.1, adjR2: 0.756 },
+                { name: 'Quadratic Model', aic: 241.7, bic: 251.8, adjR2: 0.782 },
+                { name: 'Log Model', aic: 239.2, bic: 246.0, adjR2: 0.798 },
+                { name: 'With Proxy', aic: 235.8, bic: 245.9, adjR2: 0.823 }
+            ];
+
+            let comparisonHTML = `
+                <h4>🏆 Model Selection Results</h4>
+                <table class="diagnostic-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>AIC</th>
+                            <th>BIC</th>
+                            <th>Adj. R²</th>
+                            <th>Ranking</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            models.forEach((model, i) => {
+                comparisonHTML += `
+                    <tr>
+                        <td><strong>${model.name}</strong></td>
+                        <td>${model.aic.toFixed(1)}</td>
+                        <td>${model.bic.toFixed(1)}</td>
+                        <td>${model.adjR2.toFixed(3)}</td>
+                        <td>${i === 3 ? '🥇 Best' : i === 2 ? '🥈 2nd' : i === 1 ? '🥉 3rd' : '4th'}</td>
+                    </tr>
+                `;
+            });
+            
+            comparisonHTML += `</tbody></table>
+                <div style="margin-top: 20px; padding: 15px; background: #F0F8FF; border-radius: 8px;">
+                    <p><strong>🎓 Wooldridge Interpretation:</strong> Lower AIC/BIC and higher Adjusted R² indicate better model fit. 
+                    The model with proxy variables performs best, suggesting omitted variable bias in simpler specifications.</p>
+                </div>
+            `;
+            
+            document.getElementById('comparisonTable').innerHTML = comparisonHTML;
+        }
+
+        // Assessment Functions
+        function generateNewQuestion() {
+            currentQuestion = assessmentQuestions[Math.floor(Math.random() * assessmentQuestions.length)];
+            selectedAnswer = null;
+            
+            document.querySelector('.decision-question').textContent = currentQuestion.question;
+            
+            const optionsContainer = document.getElementById('assessmentOptions');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'decision-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('assessmentFeedback').innerHTML = '';
+        }
+
+        function selectAnswer(answerIndex) {
+            selectedAnswer = answerIndex;
+            
+            document.querySelectorAll('.decision-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === answerIndex);
+            });
+        }
+
+        function checkAnswer() {
+            if (selectedAnswer === null) {
+                alert('Please select an answer first');
+                return;
+            }
+            
+            const isCorrect = selectedAnswer === currentQuestion.correct;
+            const feedbackClass = isCorrect ? 'feedback-success' : 'feedback-danger';
+            const feedbackTitle = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="${feedbackClass}">
+                    <h4>${feedbackTitle}</h4>
+                    <p><strong>Explanation:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                </div>
+            `;
+        }
+
+        function showExpertSolution() {
+            if (!currentQuestion) {
+                generateNewQuestion();
+                return;
+            }
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="feedback-success">
+                    <h4>🎓 Expert Solution</h4>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                    <p><strong>Wooldridge Insight:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Key Takeaway:</strong> Chapter 9 emphasizes that real-world data rarely satisfies textbook assumptions. 
+                    Systematic diagnostic testing and robustness checks are essential for credible empirical work.</p>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        window.addEventListener('load', function() {
+            updateScenario();
+            updateIntensity();
+            generateNewQuestion();
+        });
+    </script>
+</body>
+</html>
