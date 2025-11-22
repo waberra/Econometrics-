@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Policy Analysis & Program Evaluation (Wooldridge 7.6)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .treat-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .policy-card  { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .lpm-card     { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .pitfall-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Policy Analysis & Program Evaluation (Wooldridge 7.6)</h1>
+        <p>Practice treatment vs control comparisons and policy effects using dummy variables & the linear probability model</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas for Program Evaluation with Regression</h3>
+        <div class="measures-grid">
+            <div class="measure-card treat-card">
+                <h4>Treated vs Control in Regression</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·Treat + other controls + u
+                </div>
+                <div class="description">
+                    Treat is a 0/1 dummy for being exposed to a policy or program. β₁ measures the ceteris paribus difference in mean outcomes between treated and control groups.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Job training grants, tuition subsidies, cash transfers, school reforms.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β₁ = 15 ⇒ treated firms get 15 more hours of training on average than similar untreated firms.
+                </div>
+            </div>
+
+            <div class="measure-card policy-card">
+                <h4>Policy Intensity Variables</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·Policy + other controls + u
+                </div>
+                <div class="description">
+                    Policy can be continuous: tax rate, months incarcerated, benefit amount. β₁ is the change in the outcome per unit change in the policy variable.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Sentencing length, benefit levels, tax rates, minimum wage.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β₁ = −0.022 ⇒ each extra month in prison lowers arrest probability by 0.022.
+                </div>
+            </div>
+
+            <div class="measure-card lpm-card">
+                <h4>Linear Probability Model (LPM)</h4>
+                <div class="formula">
+                    P(Y = 1 | X) = β₀ + β₁X₁ + … + βₖXₖ
+                </div>
+                <div class="description">
+                    When Y is binary, OLS gives a linear probability model. Coefficients are changes in probability (in units like 0.05 = 5 percentage points).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Employment, enrollment, arrest, program take-up.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β₁ = 0.20 for a subsidy dummy ⇒ +20 percentage points in the probability of enrollment.
+                </div>
+            </div>
+
+            <div class="measure-card pitfall-card">
+                <h4>Common Pitfalls</h4>
+                <div class="formula">
+                    Selection bias &amp; LPM limitations
+                </div>
+                <div class="description">
+                    Regressions estimate ceteris paribus differences, not necessarily causal effects, unless selection into treatment is “as good as random” conditional on X.
+                </div>
+                <div class="use-cases">
+                    <strong>Watch out for:</strong> Nonrandom program participation, omitted variables, probabilities &lt; 0 or &gt; 1 in LPM.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> Always ask: “Who gets treated and why?” and interpret coefficients as conditional differences in probability or mean outcomes.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Policy Evaluation with Regression</h3>
+            <p>Each scenario gives you a regression used for policy evaluation or program analysis. Compute predicted outcomes and interpret treatment/policy effects.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the regression equation shown in the scenario. Focus on interpreting β as treatment or policy effects and computing predicted probabilities or mean outcomes.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Baseline (control) prediction</strong><br>Compute predicted Y (or probability) under the baseline or no-treatment case.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Policy/treatment prediction</strong><br>Compute predicted Y (or probability) under the policy or treatment.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Policy effect</strong><br>Compute the change in Y (or probability) due to the policy or treatment.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Interpret the key policy coefficient(s) in words.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Policy analysis & program evaluation (7.6) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios for program evaluation & policy analysis
+    var scenarios = [
+        {
+            id: "jobTraining",
+            type: "contOutcomeBinaryTreat",
+            title: "Job Training Grants and Training Hours",
+            description: "A government program offers job training grants to some firms. You estimate the effect of the grant on total hours of worker training in the firm.",
+            context: "Interpret the grant dummy and compute predicted training hours for treated vs control firms.",
+            equation: "TrainingHours = 40 + 15·Grant + 0.8·FirmSize − 3·UnempRate",
+            intercept: 40,
+            coefTreat: 15,
+            coefSize: 0.8,
+            coefUnemp: -3,
+            treatName: "Grant",
+            treatLabel: "Firms with a job training grant (Grant = 1)",
+            baselineLabel: "Firms without a job training grant (Grant = 0)",
+            refFirmSize: 200,
+            refUnemp: 6,
+            expertInterpretation:
+                "Holding firm size and the unemployment rate fixed, firms that receive a job training grant have, on average, 15 more hours of worker training than otherwise similar firms that do not receive a grant."
+        },
+        {
+            id: "arrestPolicy",
+            type: "lpmPolicyContinuous",
+            title: "Incarceration Policy and Probability of Arrest",
+            description: "You estimate a linear probability model (LPM) for whether a young man is arrested during a year. One key policy variable is months spent in prison during the year.",
+            context: "Compute predicted probabilities of arrest before and after a tougher incarceration policy, and interpret the incarceration effect.",
+            equation: "arr86 = 0.44 − 0.16·pcnv + 0.006·avgsen − 0.002·tottime
