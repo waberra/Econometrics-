@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dummy × Continuous Interactions in Regression (Wooldridge 7.4)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .dummy-card     { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .slope-card     { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .interact-card  { background: linear-gradient(135deg, #9c27b0, #e040fb); border-color:#6a1b9a; color:white; }
+        .diff-card      { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Dummy × Continuous Interactions in Regression</h1>
+        <p>Practice Wooldridge 7.4: how slopes differ across groups when you interact a dummy with a continuous variable</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas About Dummy × Continuous Interactions</h3>
+        <div class="measures-grid">
+            <div class="measure-card dummy-card">
+                <h4>Basic Model</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·D + β₂·X + β₃·(D·X) + u
+                </div>
+                <div class="description">
+                    D is a dummy (0/1), X is a continuous regressor. The intercept and slope in X can differ across D=0 and D=1.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Different returns to education by gender, different treatment effects by baseline level.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Treat = 1 if in a training program, X = years of experience.
+                </div>
+            </div>
+
+            <div class="measure-card slope-card">
+                <h4>Slopes by Group</h4>
+                <div class="formula">
+                    Slope when D=0: β₂<br>
+                    Slope when D=1: β₂ + β₃
+                </div>
+                <div class="description">
+                    β₂ is the effect of X for the baseline group (D=0). The interaction β₃ tells you how the slope changes when D goes from 0 to 1.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Is the return to education higher or lower for women than for men?
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If β₂=0.08 and β₃=−0.02, the return to education is 0.08 for men and 0.06 for women.
+                </div>
+            </div>
+
+            <div class="measure-card interact-card">
+                <h4>Group-specific Lines</h4>
+                <div class="formula">
+                    E[Y|D=0,X] = β₀ + β₂·X<br>
+                    E[Y|D=1,X] = (β₀ + β₁) + (β₂ + β₃)·X
+                </div>
+                <div class="description">
+                    With an interaction, each group has its own regression line: different intercept and different slope in X.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Drawing separate fitted lines for each group in a scatterplot.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> One line for men, one line for women, each with its own intercept and slope.
+                </div>
+            </div>
+
+            <div class="measure-card diff-card">
+                <h4>Effect Difference</h4>
+                <div class="formula">
+                    Effect of X when D=1 − effect when D=0 = β₃
+                </div>
+                <div class="description">
+                    β₃ is the difference in marginal effect of X between the two groups. It is a “difference in slopes”.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Testing whether returns to schooling differ by gender (H₀: β₃ = 0).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If β₃ > 0, the slope in X is steeper for D=1 than for D=0.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Dummy × Continuous Interactions</h3>
+            <p>Each scenario gives you a regression with a dummy, a continuous variable, and their interaction. Compute group-specific intercepts, slopes, and predicted values.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the regression equation shown in the scenario. Focus on intercepts and slopes for each group (D=0 vs D=1).
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Baseline line</strong><br>Intercept and slope when the dummy = 0.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Other group line</strong><br>Intercept and slope when the dummy = 1.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Slope difference / predicted values</strong><br>Difference in slopes and predictions at specific X values.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Write a sentence interpreting the interaction coefficient.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Dummy × continuous interaction practice loaded (Wooldridge 7.4).");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: each has one dummy D, one continuous X, and their interaction
+    var scenarios = [
+        {
+            id: "logwageEducFemale",
+            title: "Log Wage vs Education and Gender",
+            description: "You estimate a log wage equation with years of education and a female dummy, plus their interaction.",
+            context: "Compute the intercept and slope in education for men and women, and interpret the difference.",
+            equation: "log(wage) = 1.5 − 0.20·Female + 0.08·Educ − 0.02·(Female×Educ)",
+            intercept: 1.5,
+            dummy: {
+                name: "Female",
+                labelD0: "Men (Female = 0)",
+                labelD1: "Women (Female = 1)",
+                coefficient: -0.20
+            },
+            continuous: {
+                name: "Educ",
+                label: "Years of education",
+                slope: 0.08
+            },
+            interaction: {
+                name: "Female×Educ",
+                slope: -0.02,
+                description: "Difference in the return to education (slope in Educ) for women relative to men."
+            },
+            baselineLabel: "Men (Female = 0)",
+            xValues: [12, 16], // years of education to plug in
+            expertInterpretation:
+                "For men, the intercept is 1.5 and the return to education is 0.08 in log points per year. For women, the intercept is 1.5 − 0.20 = 1.30 and the return to education is 0.08 − 0.02 = 0.06. The interaction term −0.02 means that the return to education is 0.02 lower for women than for men."
+        },
+        {
+            id: "testScoreSmallClassSize",
+            title: "Test Scores vs Class Size and Small Class Dummy",
+            description: "You regress test scores on class size (number of students) and a dummy for small classes, plus their interaction.",
+            context: "Compute the effect of increasing class size in regular vs small classes, and see whether the class size effect differs.",
+            equation: "Score = 80 − 5·Small + (−0.50)·ClassSize + 0.20·(Small×ClassSize)",
+            intercept: 80.0,
+            dummy: {
+                name: "Small",
+                labelD0: "Regular classes (Small = 0)",
+                labelD1: "Small classes (Small = 1)",
+                coefficient: -5.0
+            },
+            continuous: {
+                name: "ClassSize",
+                label: "Class size (number of students)",
+                slope: -0.50
+            },
+            interaction: {
+                name: "Small×ClassSize",
+                slope: 0.20,
+                description: "Difference in the class size effect in small classes relative to regular classes."
+            },
+            baselineLabel: "Regular classes (Small = 0)",
+            xValues: [20, 30],
+            expertInterpretation:
+                "In regular classes, the intercept is 80 and the class size effect is −0.50 points per extra student. In small classes, the intercept is 80 − 5 = 75 and the class size effect is −0.50 + 0.20 = −0.30. The interaction term +0.20 means that test scores fall less steeply with class size in small classes than in regular classes."
+        },
+        {
+            id: "outputTrainingHours",
+            title: "Worker Output vs Training and Hours of Training",
+            description: "A firm regresses worker output on hours of training and a treated dummy (1 if the worker participated in the new training program) plus their interaction.",
+            context: "Compute the marginal effect of one more hour of training in the control group and in the treated group, and interpret the interaction.",
+            equation: "Output = 50 + 3·Treated + 1.0·Hours + 0.5·(Treated×Hours)",
+            intercept: 50.0,
+            dummy: {
+                name: "Treated",
+                labelD0: "Control workers (Treated = 0)",
+                labelD1: "Treated workers (Treated = 1)",
+                coefficient: 3.0
+            },
+            continuous: {
+                name: "Hours",
+                label: "Hours of training",
+                slope: 1.0
+            },
+            interaction: {
+                name: "Treated×Hours",
+                slope: 0.5,
+                description: "Extra effect of one more hour of training for treated workers, relative to control."
+            },
+            baselineLabel: "Control workers (Treated = 0)",
+            xValues: [5, 10],
+            expertInterpretation:
+                "For control workers, the intercept is 50 and each extra hour of training adds 1 unit of output. For treated workers, the intercept is 50 + 3 = 53 and each extra hour of training adds 1 + 0.5 = 1.5 units. The interaction term +0.5 means that the marginal return to training is 0.5 units larger for treated workers."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Estimated Regression with Dummy × Continuous Interaction</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.equation;
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Term</th><th>Coefficient</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td>Intercept</td><td>' + scenario.intercept.toFixed(2) + '</td><td>' +
+                'Baseline intercept (when dummy = 0 and X = 0), group: ' + scenario.baselineLabel + '</td></tr>';
+
+        html += '<tr><td>' + scenario.dummy.name + '</td><td>' +
+                scenario.dummy.coefficient.toFixed(2) + '</td><td>' +
+                'Difference in intercept when ' + scenario.dummy.name + ' = 1 vs 0 (at X = 0)</td></tr>';
+
+        html += '<tr><td>' + scenario.continuous.name + '</td><td>' +
+                scenario.continuous.slope.toFixed(2) + '</td><td>' +
+                'Slope in ' + scenario.continuous.label + ' for the baseline group (dummy = 0)</td></tr>';
+
+        html += '<tr><td>' + scenario.interaction.name + '</td><td>' +
+                scenario.interaction.slope.toFixed(2) + '</td><td>' +
+                scenario.interaction.description + '</td></tr>';
+
+        html += '</tbody></table>';
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var b0 = currentScenario.intercept;
+        var bD = currentScenario.dummy.coefficient;
+        var bX = currentScenario.continuous.slope;
+        var bDX = currentScenario.interaction.slope;
+        var x1 = currentScenario.xValues[0];
+        var x2 = currentScenario.xValues[1];
+
+        if (chkBaseline) {
+            // Intercept and slope for D=0
+            currentQuestions.push({
+                conceptId: "baselineIntercept",
+                type: "numeric",
+                title: "🏁 Baseline Intercept (Dummy = 0)",
+                prompt: "What is the intercept of the regression line for the baseline group (" +
+                        currentScenario.baselineLabel + ")?",
+                correctValue: b0,
+                unitHint: "(in the units of Y or log(Y))"
+            });
+            currentQuestions.push({
+                conceptId: "baselineSlope",
+                type: "numeric",
+                title: "📈 Baseline Slope in " + currentScenario.continuous.name,
+                prompt: "What is the slope with respect to " + currentScenario.continuous.label +
+                        " for the baseline group (dummy = 0)?",
+                correctValue: bX,
+                unitHint: "(change in Y per unit increase in " + currentScenario.continuous.name + ")"
+            });
+        }
+
+        if (chkOtherMeans) {
+            // Intercept and slope for D=1
+            var interceptD1 = b0 + bD;
+            var slopeD1 = bX + bDX;
+            currentQuestions.push({
+                conceptId: "dummy1Intercept",
+                type: "numeric",
+                title: "🏁 Intercept When Dummy = 1",
+                prompt: "What is the intercept of the regression line when " + currentScenario.dummy.name + " = 1?",
+                correctValue: interceptD1,
+                unitHint: "(in the units of Y or log(Y))"
+            });
+            currentQuestions.push({
+                conceptId: "dummy1Slope",
+                type: "numeric",
+                title: "📈 Slope in " + currentScenario.continuous.name + " When Dummy = 1",
+                prompt: "What is the slope with respect to " + currentScenario.continuous.label +
+                        " when " + currentScenario.dummy.name + " = 1?",
+                correctValue: slopeD1,
+                unitHint: "(change in Y per unit increase in " + currentScenario.continuous.name + ")"
+            });
+        }
+
+        if (chkDifference) {
+            // Difference in slopes (β₃)
+            currentQuestions.push({
+                conceptId: "slopeDifference",
+                type: "numeric",
+                title: "📉 Difference in Slopes Between Groups",
+                prompt: "What is the difference in the slope with respect to " + currentScenario.continuous.name +
+                        " between the dummy = 1 group and the baseline (dummy = 0) group? (Slope when dummy=1 minus slope when dummy=0.)",
+                correctValue: bDX,
+                unitHint: "(same units as the slope)"
+            });
+
+            // Predicted values at specific X values for D=0 and D=1
+            var yD0x1 = b0 + bX * x1;
+            var yD1x1 = b0 + bD + (bX + bDX) * x1;
+
+            currentQuestions.push({
+                conceptId: "predBaselineX1",
+                type: "numeric",
+                title: "🔍 Predicted Y for Baseline at X = " + x1,
+                prompt: "What is the predicted value of Y for the baseline group (" + currentScenario.baselineLabel +
+                        ") when " + currentScenario.continuous.name + " = " + x1 + "?",
+                correctValue: yD0x1,
+                unitHint: "(same units as Y)"
+            });
+
+            currentQuestions.push({
+                conceptId: "predDummy1X1",
+                type: "numeric",
+                title: "🔍 Predicted Y for Dummy = 1 at X = " + x1,
+                prompt: "What is the predicted value of Y when " + currentScenario.dummy.name + " = 1 and " +
+                        currentScenario.continuous.name + " = " + x1 + "?",
+                correctValue: yD1x1,
+                unitHint: "(same units as Y)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "Interpret the interaction coefficient in words in the context of this scenario. We’ll show expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Use the explanations to reinforce how intercepts and slopes differ across groups when you include a dummy × continuous interaction.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var html = "<strong>How to think about this:</strong><br>";
+        var b0 = currentScenario.intercept;
+        var bD = currentScenario.dummy.coefficient;
+        var bX = currentScenario.continuous.slope;
+        var bDX = currentScenario.interaction.slope;
+        var x1 = currentScenario.xValues[0];
+
+        if (q.conceptId === "baselineIntercept") {
+            html += "When the dummy = 0 and the continuous variable X = 0, the model reduces to Y = β₀ + u.<br>";
+            html += "So β₀ is the intercept (baseline level) for the group with dummy = 0.<br>";
+            html += "Here, β₀ = " + b0.toFixed(2) + ".";
+        } else if (q.conceptId === "baselineSlope") {
+            html += "For the baseline group (dummy = 0), the model is:<br>";
+            html += "Y = β₀ + β₂·X + u, because D = 0 and D·X = 0.<br>";
+            html += "So the slope in X for the baseline group is β₂.<br>";
+            html += "Here, β₂ = " + bX.toFixed(2) + ".";
+        } else if (q.conceptId === "dummy1Intercept") {
+            var interceptD1 = b0 + bD;
+            html += "For the group with dummy = 1, plug D = 1 and X = 0:<br>";
+            html += "Y = β₀ + β₁·1 + β₂·0 + β₃·(1·0) + u = β₀ + β₁ + u.<br>";
+            html += "So the intercept is β₀ + β₁ = " + b0.toFixed(2) + " + " + bD.toFixed(2) +
+                    " = " + interceptD1.toFixed(2) + ".";
+        } else if (q.conceptId === "dummy1Slope") {
+            var slopeD1 = bX + bDX;
+            html += "For the group with dummy = 1, the model is:<br>";
+            html += "Y = (β₀ + β₁) + (β₂ + β₃)·X + u.<br>";
+            html += "So the slope in X when dummy = 1 is β₂ + β₃.<br>";
+            html += "Here, β₂ + β₃ = " + bX.toFixed(2) + " + " + bDX.toFixed(2) +
+                    " = " + slopeD1.toFixed(2) + ".";
+        } else if (q.conceptId === "slopeDifference") {
+            html += "The difference in slopes between dummy = 1 and dummy = 0 is:<br>";
+            html += "(β₂ + β₃) − β₂ = β₃.<br>";
+            html += "So the interaction coefficient β₃ itself is the slope difference.<br>";
+            html += "Here, β₃ = " + bDX.toFixed(2) + ".";
+        } else if (q.conceptId === "predBaselineX1") {
+            var yD0x1 = b0 + bX * x1;
+            html += "For the baseline group (dummy = 0) and X = " + x1 + ", the prediction is:<br>";
+            html += "E[Y | D=0, X=" + x1 + "] = β₀ + β₂·X = " +
+                    b0.toFixed(2) + " + " + bX.toFixed(2) + "·(" + x1 + ") = " +
+                    yD0x1.toFixed(2) + ".";
+        } else if (q.conceptId === "predDummy1X1") {
+            var yD1x1 = b0 + bD + (bX + bDX) * x1;
+            html += "For the dummy = 1 group and X = " + x1 + ", the prediction is:<br>";
+            html += "E[Y | D=1, X=" + x1 + "] = (β₀ + β₁) + (β₂ + β₃)·X.<br>";
+            html += "Plugging in: " + b0.toFixed(2) + " + " + bD.toFixed(2) +
+                    " + (" + bX.toFixed(2) + " + " + bDX.toFixed(2) + ")·(" + x1 + ") = " +
+                    yD1x1.toFixed(2) + ".";
+        } else if (q.conceptId === "interpret") {
+            html += "A good interpretation might sound like:<br>";
+            html += "<em>" + currentScenario.expertInterpretation + "</em>";
+        } else {
+            html += "Remember: the intercept and slope are functions of the dummy. When you include D·X, you allow both the intercept (β₀ vs β₀+β₁) and the slope (β₂ vs β₂+β₃) to differ between groups.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Dummy × continuous interaction practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
