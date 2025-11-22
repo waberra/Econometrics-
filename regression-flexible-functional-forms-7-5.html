@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flexible Functional Forms in Regression (Wooldridge 7.5)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .quad-card     { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .cubic-card    { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .piece-card    { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .polyint-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Flexible Functional Forms in Regression (Wooldridge 7.5)</h1>
+        <p>Practice quadratics, cubics, piecewise (kinked) models, and polynomial interactions</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Polynomials, Kinks, and Polynomial Interactions</h3>
+        <div class="measures-grid">
+            <div class="measure-card quad-card">
+                <h4>Quadratic Model</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·X + β₂·X² + u
+                </div>
+                <div class="description">
+                    Allows curvature (U-shape or inverted U-shape). The effect of X depends on the level of X.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Diminishing returns to education, age-earnings profiles.
+                </div>
+                <div class="examples">
+                    <strong>Marginal effect:</strong> ∂Y/∂X = β₁ + 2β₂X.
+                </div>
+            </div>
+
+            <div class="measure-card cubic-card">
+                <h4>Cubic Model</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·X + β₂·X² + β₃·X³ + u
+                </div>
+                <div class="description">
+                    Adds more flexibility; can capture “S-shaped” patterns or turning points at different X.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When quadratic seems too restrictive but you still want a smooth curve.
+                </div>
+                <div class="examples">
+                    <strong>Marginal effect:</strong> ∂Y/∂X = β₁ + 2β₂X + 3β₃X².
+                </div>
+            </div>
+
+            <div class="measure-card piece-card">
+                <h4>Piecewise Linear (Kink)</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·X + β₂·OverK + u,<br>
+                    OverK = max(0, X − K)
+                </div>
+                <div class="description">
+                    Slope is β₁ when X ≤ K and β₁ + β₂ when X > K. Lets the slope change at X = K.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Different impact of class size above a threshold, taxes above a bracket.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> K = 20 students, steeper negative slope in class size beyond 20.
+                </div>
+            </div>
+
+            <div class="measure-card polyint-card">
+                <h4>Polynomial Interaction with Dummy</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·D + β₂·X + β₃·X² + β₄·(D·X) + β₅·(D·X²) + u
+                </div>
+                <div class="description">
+                    Both intercept and curvature in X can differ across groups (D=0 vs D=1).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Different age-earnings profiles by gender, different returns to schooling by group.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Men vs women have different quadratic wage–education profiles.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Flexible Functional Forms</h3>
+            <p>Each scenario gives you a regression with a specific flexible functional form. Compute marginal effects, turning points, and predictions.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the regression equation shown in the scenario. Focus on marginal effects, turning points, and predicted values at specific X levels.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Basic coefficients</strong><br>Read off β₀, β₁, β₂, ... and key implied quantities.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Marginal effects</strong><br>Compute ∂Y/∂X (or group-specific ∂Y/∂X).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Turning points / kinks / differences</strong><br>Compute turning points, slope changes, or predictions.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Interpret the functional form in words.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Flexible functional forms (7.5) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Four scenarios: quadratic, cubic, piecewise, polynomial interaction
+    var scenarios = [
+        {
+            id: "quadEduc",
+            modelType: "quadratic",
+            title: "Quadratic Relationship: Log Wage vs Education",
+            description: "You estimate a quadratic log wage equation in years of education.",
+            context: "Compute marginal effects at given education levels and the education level where log wage peaks.",
+            equation: "log(wage) = 0.8 + 0.15·Educ − 0.004·Educ²",
+            intercept: 0.8,
+            beta1: 0.15,
+            beta2: -0.004,
+            xName: "Educ",
+            xLabel: "Years of education",
+            xValues: [8, 12, 16],
+            expertInterpretation:
+                "The model allows for diminishing returns to education in log wages. The marginal effect of an extra year of education is 0.15 − 2·0.004·Educ. Returns are higher at low education and lower at high education; with β₂ < 0 we get an inverted-U shape."
+        },
+        {
+            id: "cubicAge",
+            modelType: "cubic",
+            title: "Cubic Relationship: Earnings vs Age",
+            description: "You regress annual earnings on a cubic polynomial in age.",
+            context: "Compute marginal effects of age at specific ages and understand how the shape can change.",
+            equation: "Earnings = −5000 + 800·Age − 10·Age² + 0.05·Age³",
+            intercept: -5000,
+            beta1: 800,
+            beta2: -10,
+            beta3: 0.05,
+            xName: "Age",
+            xLabel: "Age in years",
+            xValues: [25, 40, 55],
+            expertInterpretation:
+                "The marginal effect of age is 800 − 20·Age + 0.15·Age². The cubic term allows the age–earnings profile to bend more flexibly than a simple quadratic; earnings can grow, flatten, and possibly grow again depending on the age range."
+        },
+        {
+            id: "pieceClassSize",
+            modelType: "piecewise",
+            title: "Piecewise Linear: Test Scores vs Class Size with Kink",
+            description: "You regress test scores on class size with a kink at 20 students using an 'Over20' variable.",
+            context: "Compute slopes below and above the kink and predicted scores at specific class sizes.",
+            equation: "Score = 85 − 0.30·ClassSize − 0.70·Over20,  where Over20 = max(0, ClassSize − 20)",
+            intercept: 85,
+            betaSize: -0.30,
+            betaOver: -0.70,
+            knot: 20,
+            xName: "ClassSize",
+            xLabel: "Class size (number of students)",
+            xValues: [18, 22, 30],
+            expertInterpretation:
+                "For class sizes up to 20, the slope is −0.30 points per extra student. For class sizes above 20, the effective slope is −0.30 − 0.70 = −1.00, so scores fall more steeply once classes become large. Over20 captures the extra decline beyond 20 students."
+        },
+        {
+            id: "polyIntEducFemale",
+            modelType: "polyInteraction",
+            title: "Polynomial Interaction: Log Wage vs Education and Gender",
+            description: "You estimate a quadratic log wage equation in education with a female dummy and interactions in both Educ and Educ².",
+            context: "Compute marginal returns to education for men and women and compare their education profiles.",
+            equation: "log(wage) = 1.2 − 0.10·Female + 0.12·Educ − 0.005·Educ² + 0.01·(Female×Educ) − 0.002·(Female×Educ²)",
+            intercept: 1.2,
+            betaF: -0.10,     // Female
+            beta1: 0.12,      // Educ
+            beta2: -0.005,    // Educ^2
+            betaF1: 0.01,     // Female×Educ
+            betaF2: -0.002,   // Female×Educ^2
+            xName: "Educ",
+            xLabel: "Years of education",
+            xValues: [10, 16],
+            baselineLabel: "Men (Female = 0)",
+            otherLabel: "Women (Female = 1)",
+            expertInterpretation:
+                "For men, log(wage) = 1.2 + 0.12·Educ − 0.005·Educ², so the marginal return to education is 0.12 − 2·0.005·Educ. For women, log(wage) = (1.2 − 0.10) + (0.12 + 0.01)·Educ + (−0.005 − 0.002)·Educ², so the marginal return is (0.12 + 0.01) − 2·(0.005 + 0.002)·Educ. The interaction terms allow both the intercept and the curvature in education to differ by gender."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Estimated Regression with Flexible Functional Form</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.equation;
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Parameter</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+
+        if (scenario.modelType === "quadratic") {
+            html += '<tr><td>β₀</td><td>' + scenario.intercept.toFixed(3) + '</td><td>Intercept of the quadratic (value at ' + scenario.xName + ' = 0)</td></tr>';
+            html += '<tr><td>β₁</td><td>' + scenario.beta1.toFixed(3) + '</td><td>Linear term in ' + scenario.xName + '</td></tr>';
+            html += '<tr><td>β₂</td><td>' + scenario.beta2.toFixed(3) + '</td><td>Quadratic term in ' + scenario.xName + ' (controls curvature)</td></tr>';
+        } else if (scenario.modelType === "cubic") {
+            html += '<tr><td>β₀</td><td>' + scenario.intercept.toFixed(2) + '</td><td>Intercept of the cubic (value at ' + scenario.xName + ' = 0)</td></tr>';
+            html += '<tr><td>β₁</td><td>' + scenario.beta1.toFixed(2) + '</td><td>Linear term in ' + scenario.xName + '</td></tr>';
+            html += '<tr><td>β₂</td><td>' + scenario.beta2.toFixed(2) + '</td><td>Quadratic term in ' + scenario.xName + '</td></tr>';
+            html += '<tr><td>β₃</td><td>' + scenario.beta3.toFixed(2) + '</td><td>Cubic term in ' + scenario.xName + ' (extra flexibility)</td></tr>';
+        } else if (scenario.modelType === "piecewise") {
+            html += '<tr><td>β₀</td><td>' + scenario.intercept.toFixed(2) + '</td><td>Intercept when ' + scenario.xName + ' and Over' + scenario.knot + ' are zero</td></tr>';
+            html += '<tr><td>β₁ (ClassSize)</td><td>' + scenario.betaSize.toFixed(2) + '</td><td>Slope for ' + scenario.xName + ' when ' + scenario.xName + ' ≤ ' + scenario.knot + '</td></tr>';
+            html += '<tr><td>β₂ (Over' + scenario.knot + ')</td><td>' + scenario.betaOver.toFixed(2) + '</td><td>Additional slope when ' + scenario.xName + ' exceeds ' + scenario.knot + '</td></tr>';
+        } else if (scenario.modelType === "polyInteraction") {
+            html += '<tr><td>β₀</td><td>' + scenario.intercept.toFixed(2) + '</td><td>Intercept for ' + scenario.baselineLabel + ' at ' + scenario.xName + ' = 0</td></tr>';
+            html += '<tr><td>β₁ (Female)</td><td>' + scenario.betaF.toFixed(3) + '</td><td>Difference in intercept for ' + scenario.otherLabel + ' vs ' + scenario.baselineLabel + ' at ' + scenario.xName + ' = 0</td></tr>';
+            html += '<tr><td>β₂ (' + scenario.xName + ')</td><td>' + scenario.beta1.toFixed(3) + '</td><td>Linear effect of ' + scenario.xName + ' for ' + scenario.baselineLabel + '</td></tr>';
+            html += '<tr><td>β₃ (' + scenario.xName + '²)</td><td>' + scenario.beta2.toFixed(3) + '</td><td>Quadratic term for ' + scenario.baselineLabel + '</td></tr>';
+            html += '<tr><td>β₄ (Female×' + scenario.xName + ')</td><td>' + scenario.betaF1.toFixed(3) + '</td><td>Change in the linear term for ' + scenario.otherLabel + '</td></tr>';
+            html += '<tr><td>β₅ (Female×' + scenario.xName + '²)</td><td>' + scenario.betaF2.toFixed(3) + '</td><td>Change in the quadratic term for ' + scenario.otherLabel + '</td></tr>';
+        }
+
+        html += '</tbody></table>';
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (s.modelType === "quadratic") {
+            var b0 = s.intercept, b1 = s.beta1, b2 = s.beta2;
+            var x1 = s.xValues[0], x2 = s.xValues[1], x3 = s.xValues[2];
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "quadCoeffs",
+                    type: "numeric",
+                    title: "🏁 Quadratic Coefficient β₂",
+                    prompt: "What is the value of β₂ (the coefficient on " + s.xName + "²)?",
+                    correctValue: b2,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                var me_x2 = b1 + 2 * b2 * x2;
+                currentQuestions.push({
+                    conceptId: "quadME",
+                    type: "numeric",
+                    title: "📊 Marginal Effect at " + s.xName + " = " + x2,
+                    prompt: "What is the marginal effect ∂Y/∂" + s.xName +
+                            " at " + s.xName + " = " + x2 + "? (Use β₁ + 2β₂X.)",
+                    correctValue: me_x2,
+                    unitHint: "(change in Y per additional unit of " + s.xName + ")"
+                });
+            }
+
+            if (chkDifference) {
+                if (b2 !== 0) {
+                    var turning = -b1 / (2 * b2);
+                    currentQuestions.push({
+                        conceptId: "quadTurning",
+                        type: "numeric",
+                        title: "📉 Turning Point in " + s.xName,
+                        prompt: "At what value of " + s.xName + " does the quadratic reach its maximum/minimum? (Use −β₁ / (2β₂).)",
+                        correctValue: turning,
+                        unitHint: "(in units of " + s.xName + ")"
+                    });
+                }
+                var y_x1 = b0 + b1 * x1 + b2 * x1 * x1;
+                currentQuestions.push({
+                    conceptId: "quadPredX1",
+                    type: "numeric",
+                    title: "🔍 Predicted Y at " + s.xName + " = " + x1,
+                    prompt: "What is the predicted value of Y when " + s.xName + " = " + x1 + "?",
+                    correctValue: y_x1,
+                    unitHint: "(same units as Y or log(Y))"
+                });
+            }
+
+        } else if (s.modelType === "cubic") {
+            var c0 = s.intercept, c1 = s.beta1, c2 = s.beta2, c3 = s.beta3;
+            var ax1 = s.xValues[0], ax2 = s.xValues[1];
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "cubicBeta3",
+                    type: "numeric",
+                    title: "🏁 Cubic Coefficient β₃",
+                    prompt: "What is the value of β₃ (the coefficient on " + s.xName + "³)?",
+                    correctValue: c3,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                var me_ax1 = c1 + 2 * c2 * ax1 + 3 * c3 * ax1 * ax1;
+                currentQuestions.push({
+                    conceptId: "cubicME",
+                    type: "numeric",
+                    title: "📊 Marginal Effect at " + s.xName + " = " + ax1,
+                    prompt: "What is the marginal effect ∂Y/∂" + s.xName +
+                            " at " + s.xName + " = " + ax1 + "? (Use β₁ + 2β₂X + 3β₃X².)",
+                    correctValue: me_ax1,
+                    unitHint: "(change in Y per additional unit of " + s.xName + ")"
+                });
+            }
+
+            if (chkDifference) {
+                var y_ax2 = c0 + c1 * ax2 + c2 * ax2 * ax2 + c3 * ax2 * ax2 * ax2;
+                currentQuestions.push({
+                    conceptId: "cubicPred",
+                    type: "numeric",
+                    title: "🔍 Predicted Y at " + s.xName + " = " + ax2,
+                    prompt: "What is the predicted value of Y when " + s.xName + " = " + ax2 + "?",
+                    correctValue: y_ax2,
+                    unitHint: "(same units as Y)"
+                });
+            }
+
+        } else if (s.modelType === "piecewise") {
+            var p0 = s.intercept, bSize = s.betaSize, bOver = s.betaOver, K = s.knot;
+            var cx1 = s.xValues[0], cx2 = s.xValues[1];
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "pieceSlopeBelow",
+                    type: "numeric",
+                    title: "🏁 Slope Below Kink",
+                    prompt: "What is the slope of test scores with respect to " + s.xName +
+                            " when " + s.xName + " ≤ " + K + "?",
+                    correctValue: bSize,
+                    unitHint: "(points per extra student)"
+                });
+            }
+
+            if (chkOtherMeans) {
+                var slopeAbove = bSize + bOver;
+                currentQuestions.push({
+                    conceptId: "pieceSlopeAbove",
+                    type: "numeric",
+                    title: "📊 Slope Above Kink",
+                    prompt: "What is the slope of test scores with respect to " + s.xName +
+                            " when " + s.xName + " > " + K + "?",
+                    correctValue: slopeAbove,
+                    unitHint: "(points per extra student)"
+                });
+            }
+
+            if (chkDifference) {
+                var over1 = Math.max(0, cx1 - K);
+                var over2 = Math.max(0, cx2 - K);
+                var y1 = p0 + bSize * cx1 + bOver * over1;
+                var y2 = p0 + bSize * cx2 + bOver * over2;
+
+                currentQuestions.push({
+                    conceptId: "piecePredSmall",
+                    type: "numeric",
+                    title: "🔍 Predicted Score at Class Size = " + cx1,
+                    prompt: "What is the predicted test score when class size is " + cx1 + " students?",
+                    correctValue: y1,
+                    unitHint: "(points)"
+                });
+
+                currentQuestions.push({
+                    conceptId: "piecePredLarge",
+                    type: "numeric",
+                    title: "🔍 Predicted Score at Class Size = " + cx2,
+                    prompt: "What is the predicted test score when class size is " + cx2 + " students?",
+                    correctValue: y2,
+                    unitHint: "(points)"
+                });
+            }
+
+        } else if (s.modelType === "polyInteraction") {
+            var i0 = s.intercept, bF = s.betaF, b1 = s.beta1, b2 = s.beta2, bF1 = s.betaF1, bF2 = s.betaF2;
+            var ex1 = s.xValues[0], ex2 = s.xValues[1];
+
+            if (chkBaseline) {
+                var meMen_x1 = b1 + 2 * b2 * ex1;
+                currentQuestions.push({
+                    conceptId: "polyIntMenME",
+                    type: "numeric",
+                    title: "🏁 Marginal Effect of Educ for Men at Educ = " + ex1,
+                    prompt: "For men (Female = 0), what is the marginal effect of one more year of education at Educ = " + ex1 + "?",
+                    correctValue: meMen_x1,
+                    unitHint: "(change in log(wage) per year of education)"
+                });
+            }
+
+            if (chkOtherMeans) {
+                var meWomen_x1 = (b1 + bF1) + 2 * (b2 + bF2) * ex1;
+                currentQuestions.push({
+                    conceptId: "polyIntWomenME",
+                    type: "numeric",
+                    title: "📊 Marginal Effect of Educ for Women at Educ = " + ex1,
+                    prompt: "For women (Female = 1), what is the marginal effect of one more year of education at Educ = " + ex1 + "?",
+                    correctValue: meWomen_x1,
+                    unitHint: "(change in log(wage) per year of education)"
+                });
+            }
+
+            if (chkDifference) {
+                var meMen_x2 = b1 + 2 * b2 * ex2;
+                var meWomen_x2 = (b1 + bF1) + 2 * (b2 + bF2) * ex2;
+                var diffME = meWomen_x2 - meMen_x2;
+                currentQuestions.push({
+                    conceptId: "polyIntDiffME",
+                    type: "numeric",
+                    title: "📉 Difference in Marginal Effects at Educ = " + ex2,
+                    prompt: "At Educ = " + ex2 + ", what is (marginal effect for women − marginal effect for men)?",
+                    correctValue: diffME,
+                    unitHint: "(difference in log(wage) change per year)"
+                });
+            }
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "Interpret the functional form (quadratic, cubic, piecewise, or polynomial interaction) in words for this scenario. We’ll show expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Use the explanations to connect coefficients (βs) to marginal effects, turning points, and group-specific profiles.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (s.modelType === "quadratic") {
+            var b0 = s.intercept, b1 = s.beta1, b2 = s.beta2;
+            var x2 = s.xValues[1], x1 = s.xValues[0];
+
+            if (q.conceptId === "quadCoeffs") {
+                html += "In a quadratic model Y = β₀ + β₁X + β₂X², β₂ controls the curvature.<br>";
+                html += "If β₂ < 0, the function is inverted-U (concave); if β₂ > 0, it is U-shaped (convex).<br>";
+                html += "Here, β₂ = " + b2.toFixed(3) + ".";
+            } else if (q.conceptId === "quadME") {
+                var me_x2 = b1 + 2 * b2 * x2;
+                html += "The marginal effect of X in a quadratic is ∂Y/∂X = β₁ + 2β₂X.<br>";
+                html += "Plugging in X = " + x2 + ": " + b1.toFixed(3) + " + 2·" + b2.toFixed(3) +
+                        "·(" + x2 + ") = " + me_x2.toFixed(3) + ".";
+            } else if (q.conceptId === "quadTurning") {
+                if (b2 !== 0) {
+                    var turning = -b1 / (2 * b2);
+                    html += "The turning point of a quadratic is at X* = −β₁ / (2β₂).<br>";
+                    html += "With β₁ = " + b1.toFixed(3) + " and β₂ = " + b2.toFixed(3) +
+                            ", X* = " + turning.toFixed(3) + ".";
+                } else {
+                    html += "If β₂ = 0, there is no turning point; the model is linear in X.";
+                }
+            } else if (q.conceptId === "quadPredX1") {
+                var y_x1 = b0 + b1 * x1 + b2 * x1 * x1;
+                html += "To get the prediction at X = " + x1 + ", plug into Y = β₀ + β₁X + β₂X².<br>";
+                html += "Y = " + b0.toFixed(3) + " + " + b1.toFixed(3) + "·(" + x1 + ") + " +
+                        b2.toFixed(3) + "·(" + x1 + "²) = " + y_x1.toFixed(3) + ".";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "Quadratic models let the effect of X depend on the level of X. The marginal effect is linear in X.";
+            }
+
+        } else if (s.modelType === "cubic") {
+            var c0 = s.intercept, c1 = s.beta1, c2 = s.beta2, c3 = s.beta3;
+            var ax1 = s.xValues[0], ax2 = s.xValues[1];
+
+            if (q.conceptId === "cubicBeta3") {
+                html += "In a cubic model Y = β₀ + β₁X + β₂X² + β₃X³, β₃ allows the curve to bend more flexibly than a quadratic.<br>";
+                html += "The sign and magnitude of β₃ influence how quickly the marginal effect changes with X.<br>";
+                html += "Here, β₃ = " + c3.toFixed(2) + ".";
+            } else if (q.conceptId === "cubicME") {
+                var me_ax1 = c1 + 2 * c2 * ax1 + 3 * c3 * ax1 * ax1;
+                html += "The marginal effect is ∂Y/∂X = β₁ + 2β₂X + 3β₃X².<br>";
+                html += "At X = " + ax1 + ": " +
+                        c1.toFixed(2) + " + 2·" + c2.toFixed(2) + "·(" + ax1 + ") + 3·" +
+                        c3.toFixed(2) + "·(" + ax1 + "²) = " + me_ax1.toFixed(2) + ".";
+            } else if (q.conceptId === "cubicPred") {
+                var y_ax2 = c0 + c1 * ax2 + c2 * ax2 * ax2 + c3 * ax2 * ax2 * ax2;
+                html += "For a cubic, plug X into Y = β₀ + β₁X + β₂X² + β₃X³.<br>";
+                html += "At X = " + ax2 + ", Y = " + y_ax2.toFixed(2) + ".";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "Cubic models allow the marginal effect to itself be a quadratic function of X, capturing richer shapes.";
+            }
+
+        } else if (s.modelType === "piecewise") {
+            var p0 = s.intercept, bSize = s.betaSize, bOver = s.betaOver, K = s.knot;
+            var cx1 = s.xValues[0], cx2 = s.xValues[1];
+            var over1 = Math.max(0, cx1 - K);
+            var over2 = Math.max(0, cx2 - K);
+            var y1 = p0 + bSize * cx1 + bOver * over1;
+            var y2 = p0 + bSize * cx2 + bOver * over2;
+
+            if (q.conceptId === "pieceSlopeBelow") {
+                html += "When ClassSize ≤ " + K + ", Over" + K + " = 0, so the model is:<br>";
+                html += "Score = β₀ + β₁·ClassSize.<br>";
+                html += "Thus the slope is β₁ = " + bSize.toFixed(2) + " points per extra student.";
+            } else if (q.conceptId === "pieceSlopeAbove") {
+                var slopeAbove = bSize + bOver;
+                html += "When ClassSize > " + K + ", Over" + K + " = ClassSize − " + K + ".<br>";
+                html += "The derivative wrt ClassSize is β₁ + β₂ (since Over" + K + " increases one-for-one with ClassSize).<br>";
+                html += "So the slope is β₁ + β₂ = " + bSize.toFixed(2) + " + " + bOver.toFixed(2) +
+                        " = " + slopeAbove.toFixed(2) + ".";
+            } else if (q.conceptId === "piecePredSmall") {
+                html += "At ClassSize = " + cx1 + " ≤ " + K + ", Over" + K + " = 0.<br>";
+                html += "Score = " + p0.toFixed(2) + " + " + bSize.toFixed(2) + "·(" + cx1 + ") = " +
+                        y1.toFixed(2) + ".";
+            } else if (q.conceptId === "piecePredLarge") {
+                html += "At ClassSize = " + cx2 + " > " + K + ", Over" + K + " = " + cx2 + " − " + K + " = " + over2 + ".<br>";
+                html += "Score = " + p0.toFixed(2) + " + " + bSize.toFixed(2) + "·(" + cx2 + ") + " +
+                        bOver.toFixed(2) + "·(" + over2 + ") = " + y2.toFixed(2) + ".";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "Piecewise linear models allow the slope to change at a known threshold while keeping the function continuous.";
+            }
+
+        } else if (s.modelType === "polyInteraction") {
+            var i0 = s.intercept, bF = s.betaF, b1 = s.beta1, b2 = s.beta2, bF1 = s.betaF1, bF2 = s.betaF2;
+            var ex1 = s.xValues[0], ex2 = s.xValues[1];
+            var meMen_x1 = b1 + 2 * b2 * ex1;
+            var meWomen_x1 = (b1 + bF1) + 2 * (b2 + bF2) * ex1;
+            var meMen_x2 = b1 + 2 * b2 * ex2;
+            var meWomen_x2 = (b1 + bF1) + 2 * (b2 + bF2) * ex2;
+            var diffME = meWomen_x2 - meMen_x2;
+
+            if (q.conceptId === "polyIntMenME") {
+                html += "For men (Female = 0), the model is:<br>";
+                html += "log(wage) = β₀ + β₂·Educ + β₃·Educ².<br>";
+                html += "So ∂log(wage)/∂Educ = β₂ + 2β₃·Educ.<br>";
+                html += "At Educ = " + ex1 + ": " + b1.toFixed(3) + " + 2·" + b2.toFixed(3) +
+                        "·(" + ex1 + ") = " + meMen_x1.toFixed(3) + ".";
+            } else if (q.conceptId === "polyIntWomenME") {
+                html += "For women (Female = 1), the coefficients on Educ and Educ² become (β₂ + β₄) and (β₃ + β₅).<br>";
+                html += "So ∂log(wage)/∂Educ for women = (β₂ + β₄) + 2(β₃ + β₅)·Educ.<br>";
+                html += "At Educ = " + ex1 + ": this equals " + meWomen_x1.toFixed(3) + ".";
+            } else if (q.conceptId === "polyIntDiffME") {
+                html += "At Educ = " + ex2 + ", compute the marginal effect for men and women and subtract:<br>";
+                html += "ME_men = " + meMen_x2.toFixed(3) + ", ME_women = " + meWomen_x2.toFixed(3) + ".<br>";
+                html += "Difference (women − men) = " + diffME.toFixed(3) + ".";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += "Polynomial interactions allow both the level and the curvature of the relationship with X to differ across groups.";
+            }
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Flexible functional forms practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
