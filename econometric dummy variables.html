@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Econometric Dummy Variables: Categorical Data Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #991b1b;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #14b8a6, #10b981);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .decision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .decision-card {
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .decision-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .decision-card h4 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .decision-card:first-child {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            border: 2px solid #3b82f6;
+            color: white;
+        }
+
+        .decision-card:first-child:hover {
+            background: linear-gradient(135deg, #1e40af, #2563eb);
+            border-color: #60a5fa;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.4);
+        }
+
+        .decision-card:first-child h4 {
+            color: #93c5fd;
+        }
+
+        .description {
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .questions {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        .examples {
+            background: rgba(144, 238, 144, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .scenario-section {
+            background: linear-gradient(135deg, #1a472a, #2d5f3f);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .scenario-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #90ee90;
+        }
+
+        .model-setup {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .category-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .decision-section {
+            background: linear-gradient(135deg, #2e4370, #4a6b8a);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .decision-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #87ceeb;
+            text-align: center;
+        }
+
+        .decision-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .decision-option {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .decision-option:hover {
+            border-color: #87ceeb;
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        .decision-option.selected {
+            border-color: #90ee90;
+            background: rgba(144, 238, 144, 0.2);
+        }
+
+        .decision-option h4 {
+            color: #ffd700;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .specification {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .interpretation {
+            background: rgba(255, 255, 140, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #ffd700;
+            margin: 10px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #8b4513, #a0522d);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #a0522d, #8b4513);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #2d5f3f, #1a472a);
+            font-size: 1.2em;
+            padding: 15px 30px;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #1a472a, #2d5f3f);
+        }
+
+        .results-section {
+            background: linear-gradient(135deg, #654321, #8b4513);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .expert-feedback {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid #ffd700;
+            margin: 15px 0;
+        }
+
+        .correct {
+            border-left-color: #90ee90;
+            background: rgba(144, 238, 144, 0.1);
+        }
+
+        .warning {
+            border-left-color: #ffa500;
+            background: rgba(255, 165, 0, 0.1);
+        }
+
+        .critical {
+            border-left-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .coefficient-example {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+            .decision-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .decision-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-title h1 {
+                font-size: 2em;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0.3; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-changed {
+            background: linear-gradient(135deg, #16a085, #2d5f3f) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header-title">
+            <h1>🏷️ Dummy Variables & Categorical Data</h1>
+            <p>Master Reference Categories, Interactions, and Group Comparisons</p>
+        </header>
+
+        <section class="concepts-section">
+            <h3>🎯 Critical Dummy Variable Decisions for Econometricians</h3>
+            <div class="decision-grid">
+                <div class="decision-card">
+                    <h4>📂 Reference Category Selection</h4>
+                    <div class="description">
+                        <strong>Baseline Group Choice</strong><br>
+                        Which category should you omit to avoid the dummy variable trap?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Largest group? Most neutral? Policy relevant baseline?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Economic interpretation, statistical power, policy context
+                    </div>
+                </div>
+
+                <div class="decision-card">
+                    <h4>🔗 Dummy × Dummy Interactions</h4>
+                    <div class="description">
+                        <strong>Categorical × Categorical Effects</strong><br>
+                        How do you model interactions between two categorical variables?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Gender × Profession? Region × Industry? Different effects across group combinations?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Interaction matrices, reference cell interpretation, policy heterogeneity
+                    </div>
+                </div>
+
+                <div class="decision-card">
+                    <h4>📊 Group Equality Testing</h4>
+                    <div class="description">
+                        <strong>F-tests for Multiple Categories</strong><br>
+                        How do you test if all group effects are jointly zero?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Joint significance? Individual vs group tests? Restriction validity?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Regional effects, industry premiums, policy treatment groups
+                    </div>
+                </div>
+
+                <div class="decision-card">
+                    <h4>🎯 Coefficient Interpretation</h4>
+                    <div class="description">
+                        <strong>Relative to Reference Group</strong><br>
+                        How do you interpret dummy coefficients in policy context?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Percentage vs absolute effects? Economic significance? Policy implications?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Wage premiums, regional differentials, treatment effects
+                    </div>
+                </div>
+
+                <div class="decision-card">
+                    <h4>⚡ Multicollinearity Issues</h4>
+                    <div class="description">
+                        <strong>Dummy Variable Traps</strong><br>
+                        How do you avoid perfect multicollinearity with categorical variables?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Too many categories? Seasonal dummies? Interaction overload?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> K-1 rule, collinearity detection, model parsimony
+                    </div>
+                </div>
+
+                <div class="decision-card">
+                    <h4>🔄 Alternative Specifications</h4>
+                    <div class="description">
+                        <strong>Dummy vs Continuous</strong><br>
+                        When should you use dummies versus continuous variables?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Threshold effects? Non-linear patterns? Policy discontinuities?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Age groups vs age, income brackets vs income, education levels
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <main class="main-content">
+            <section class="scenario-section">
+                <h3 id="scenario-title">🎓 Loading Economic Analysis...</h3>
+                <p id="research-question"><strong>Research Question:</strong> <span id="question-text">Loading...</span></p>
+                
+                <div class="model-setup" id="model-setup">
+                    <strong id="model-equation">Loading model...</strong>
+                    
+                    <div class="category-display" id="category-display">
+                        Loading categorical variables...
+                    </div>
+                </div>
+
+                <p style="font-size: 1.1em; margin-top: 15px;" id="challenge-text">
+                    <strong>🎯 Your Challenge:</strong> <span id="challenge-description">Loading...</span>
+                </p>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn" onclick="generateNewScenario()" id="generate-btn">🎲 Generate New Scenario</button>
+                    <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;" id="scenario-counter">
+                        Current scenario: <span id="current-scenario-num">1</span> of 6 available
+                    </p>
+                </div>
+            </section>
+
+            <section class="decision-section">
+                <h3>🏷️ Choose Your Dummy Variable Strategy</h3>
+                <p><strong>Decision Point:</strong> How should you specify the categorical variables in this model?</p>
+                
+                <div class="decision-options">
+                    <div class="decision-option" data-choice="reference" onclick="selectChoice(this)">
+                        <h4>📂 Reference Category Choice</h4>
+                        <div class="specification" id="ref-choice-spec">
+                            Select optimal baseline category<br>
+                            Omit largest/neutral group<br>
+                            Ensure interpretability
+                        </div>
+                        <div class="interpretation">
+                            <strong>Focus:</strong> Baseline selection for meaningful comparisons
+                        </div>
+                    </div>
+
+                    <div class="decision-option" data-choice="dummy-interactions" onclick="selectChoice(this)">
+                        <h4>🔗 Dummy × Dummy Interactions</h4>
+                        <div class="specification" id="dummy-interaction-spec">
+                            Category₁ × Category₂ interactions<br>
+                            Full interaction matrix<br>
+                            Test differential group effects
+                        </div>
+                        <div class="interpretation">
+                            <strong>Focus:</strong> How effects vary across group combinations
+                        </div>
+                    </div>
+
+                    <div class="decision-option" data-choice="continuous-interactions" onclick="selectChoice(this)">
+                        <h4>📈 Dummy × Continuous Interactions</h4>
+                        <div class="specification" id="continuous-interaction-spec">
+                            Category × Variable interactions<br>
+                            Test differential slopes<br>
+                            Model heterogeneity
+                        </div>
+                        <div class="interpretation">
+                            <strong>Focus:</strong> Different slopes across groups
+                        </div>
+                    </div>
+
+                    <div class="decision-option" data-choice="joint-test" onclick="selectChoice(this)">
+                        <h4>📊 Joint Significance Testing</h4>
+                        <div class="specification" id="joint-test-spec">
+                            F-test: All dummies = 0<br>
+                            Test group relevance<br>
+                            Model simplification
+                        </div>
+                        <div class="interpretation">
+                            <strong>Focus:</strong> Overall categorical variable importance
+                        </div>
+                    </div>
+
+                    <div class="decision-option" data-choice="interpretation" onclick="selectChoice(this)">
+                        <h4>🎯 Coefficient Interpretation</h4>
+                        <div class="specification" id="interp-spec">
+                            Relative to reference group<br>
+                            Economic significance<br>
+                            Policy implications
+                        </div>
+                        <div class="interpretation">
+                            <strong>Focus:</strong> Meaningful economic interpretation
+                        </div>
+                    </div>
+
+                    <div class="decision-option" data-choice="specification-test" onclick="selectChoice(this)">
+                        <h4>🔄 Alternative Specifications</h4>
+                        <div class="specification" id="spec-test-spec">
+                            Dummy vs continuous<br>
+                            Threshold effects<br>
+                            Model comparison
+                        </div>
+                        <div class="interpretation">
+                            <strong>Focus:</strong> Optimal variable representation
+                        </div>
+                    </div>
+
+                    <div class="decision-option" data-choice="multicollinearity" onclick="selectChoice(this)">
+                        <h4>⚡ Multicollinearity Check</h4>
+                        <div class="specification" id="multicol-spec">
+                            Detect dummy traps<br>
+                            VIF analysis<br>
+                            Model identification
+                        </div>
+                        <div class="interpretation">
+                            <strong>Focus:</strong> Avoiding estimation problems
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <button class="btn btn-submit" onclick="analyzeChoices()">Analyze My Dummy Variable Strategy</button>
+                    <button class="btn" onclick="resetSelection()">Reset Selection</button>
+                </div>
+            </section>
+
+            <section class="results-section" id="results">
+                <h3>📊 Expert Econometrician Analysis</h3>
+                <div id="feedback-content"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let selectedChoices = [];
+        let currentScenario = {};
+
+        // Dummy variable scenarios with different categorical challenges
+        const scenarios = [
+            {
+                title: "💼 Gender-Profession Wage Analysis",
+                question: "How do gender wage gaps vary across different professional categories?",
+                model: "ln(Wage) = β₀ + β₁Female + ΣβᵢProfession_i + Σγᵢⱼ(Female × Profession_i) + Controls",
+                categories: {
+                    main: "Gender",
+                    levels: ["Male (Reference)", "Female"],
+                    secondary: "Profession", 
+                    secLevels: ["Business/Finance (Ref)", "Healthcare", "Engineering", "Education", "Legal", "Technology"]
+                },
+                challenge: "Employment equity commissioners need evidence of gender pay gaps across professional fields for targeted intervention strategies.",
+                sampleSize: "18,750 professionals across occupational categories, 2022-2024",
+                keyIssues: ["Dummy × dummy interactions", "Reference cell interpretation", "Profession-specific gender gaps"],
+                interpretation: {
+                    main: "Gender main effect shows wage gap in reference profession (Business/Finance)",
+                    secondary: "Profession main effects show male wage premiums/penalties relative to business",
+                    interaction: "Gender×Profession interactions show how gender gaps vary across professions"
+                },
+                interactionMatrix: true,
+                complexInteractions: true
+            },
+            {
+                title: "🏭 Region-Industry Economic Performance",
+                question: "Do regional economic advantages vary significantly by industry sector?",
+                model: "ln(Productivity) = β₀ + ΣβᵢRegion_i + ΣβⱼIndustry_j + Σγᵢⱼ(Region_i × Industry_j) + Controls",
+                categories: {
+                    main: "Region",
+                    levels: ["Central Canada (Ref)", "Western Canada", "Atlantic Canada", "Quebec"],
+                    secondary: "Industry",
+                    secLevels: ["Manufacturing (Ref)", "Natural Resources", "Technology", "Services", "Agriculture"]
+                },
+                challenge: "Federal economic development agencies need evidence for targeted regional-industrial policy interventions and investment incentives.",
+                sampleSize: "3,840 firms across 4 regions × 5 industries, 2020-2024",
+                keyIssues: ["Complex interaction matrix", "Regional comparative advantage", "Industry-specific regional effects"],
+                interpretation: {
+                    main: "Regional main effects show productivity differences in reference industry (Manufacturing)",
+                    secondary: "Industry main effects show sectoral productivity in reference region (Central Canada)",
+                    interaction: "Region×Industry interactions reveal comparative advantages"
+                },
+                interactionMatrix: true,
+                complexInteractions: true
+            },
+            {
+                title: "🎓 Education Level-Gender Interaction Analysis", 
+                question: "Do returns to education vary by gender across different education levels?",
+                model: "ln(Wage) = β₀ + β₁Female + ΣβᵢEducation_Level_i + Σγᵢ(Female × Education_Level_i) + Experience + ε",
+                categories: {
+                    main: "Gender",
+                    levels: ["Male (Reference)", "Female"],
+                    secondary: "Education Level",
+                    secLevels: ["High School (Ref)", "College Certificate", "Bachelor's", "Master's", "Professional/PhD"]
+                },
+                challenge: "Statistics Canada needs evidence of gender-education interactions for labor market analysis and education policy effectiveness assessment.",
+                sampleSize: "22,100 workers across education levels and gender categories",
+                keyIssues: ["Education-gender interactions", "Glass ceiling effects", "Human capital theory testing"],
+                interpretation: {
+                    main: "Gender main effect shows wage gap among high school graduates",
+                    secondary: "Education main effects show male education premiums relative to high school",
+                    interaction: "Female×Education interactions test if women benefit equally from education"
+                },
+                interactionMatrix: true,
+                complexInteractions: true
+            },
+            {
+                title: "🎓 Education Returns by Field",
+                question: "Do returns to education vary significantly across academic disciplines?",
+                model: "ln(Wage) = β₀ + β₁Years_Ed + ΣβᵢField_i + Σγᵢ(Field_i × Years_Ed) + β₄Experience + ε",
+                categories: {
+                    main: "Field of Study",
+                    levels: ["Business (Reference)", "Engineering", "Liberal Arts", "Sciences", "Health", "Education"],
+                    secondary: null,
+                    secLevels: null
+                },
+                challenge: "University administrators need evidence for program funding allocation and student career guidance.",
+                sampleSize: "8,740 university graduates, 5-year post-graduation outcomes",
+                keyIssues: ["Field reference category", "Education-field interactions", "Economic vs statistical significance"],
+                interpretation: {
+                    fields: "Field dummies show starting salary differences relative to business graduates",
+                    interactions: "Education×Field terms reveal different returns to additional schooling",
+                    policy: "Identifies which fields benefit most from advanced degrees"
+                }
+            },
+            {
+                title: "🏭 Industry Productivity Effects",
+                question: "Which manufacturing industries show the highest productivity premiums?",
+                model: "ln(Output) = β₀ + β₁ln(Labor) + β₂ln(Capital) + ΣβᵢIndustry_i + β₃Technology + ε",
+                categories: {
+                    main: "Industry",
+                    levels: ["Food Processing (Ref)", "Automotive", "Electronics", "Chemicals", "Textiles", "Machinery", "Aerospace"],
+                    secondary: null,
+                    secLevels: null
+                },
+                challenge: "Government industrial policy requires identifying high-value sectors for targeted support and investment incentives.",
+                sampleSize: "2,340 manufacturing firms across 7 industries, 2019-2023",
+                keyIssues: ["Industry baseline selection", "Joint industry significance", "Technology-industry interactions"],
+                interpretation: {
+                    industries: "Industry coefficients show total factor productivity differences",
+                    reference: "Food processing chosen as traditional manufacturing baseline",
+                    policy: "Identifies industries with highest value-added potential"
+                }
+            },
+            {
+                title: "🌍 Trade Policy Impact",
+                question: "How did NAFTA renegotiation affect different regions asymmetrically?",
+                model: "Trade_Growth = β₀ + β₁Post_USMCA + ΣβᵢRegion_i + Σγᵢ(Region_i × Post_USMCA) + Controls",
+                categories: {
+                    main: "Region",
+                    levels: ["Central Canada (Ref)", "Western Canada", "Atlantic Canada", "Northern Territories"],
+                    secondary: "Time Period",
+                    secLevels: ["Pre-USMCA (Ref)", "Post-USMCA"]
+                },
+                challenge: "Trade negotiators need evidence of regional impacts for future trade agreement design and compensation mechanisms.",
+                sampleSize: "48 regions × 6 years = 288 region-year observations",
+                keyIssues: ["Regional baseline choice", "Policy-region interactions", "Difference-in-differences interpretation"],
+                interpretation: {
+                    regions: "Regional dummies capture pre-policy trade intensity differences",
+                    policy: "Post-USMCA dummy shows average national effect",
+                    interactions: "Region×Policy terms reveal differential regional impacts"
+                }
+            },
+            {
+                title: "🏥 Healthcare Access Analysis",
+                question: "Do urban-rural healthcare gaps vary by province and insurance type?",
+                model: "Access_Score = β₀ + β₁Rural + ΣβᵢProvince_i + ΣβⱼInsurance_j + Σγᵢⱼ(Province_i × Insurance_j) + Controls",
+                categories: {
+                    main: "Area Type",
+                    levels: ["Urban (Reference)", "Rural"],
+                    secondary: "Province",
+                    secLevels: ["Ontario (Ref)", "Quebec", "British Columbia", "Alberta", "Others"]
+                },
+                challenge: "Health Canada needs evidence for targeted rural healthcare funding and provincial transfer payment adjustments.",
+                sampleSize: "25,000 households across urban/rural and provincial divisions",
+                keyIssues: ["Multiple categorical variables", "Complex interactions", "Policy-relevant baselines"],
+                interpretation: {
+                    rural: "Rural dummy shows national urban-rural access gap",
+                    provinces: "Provincial effects capture healthcare system differences",
+                    interactions: "Province×Insurance interactions reveal policy heterogeneity"
+                }
+            },
+            {
+                title: "💰 Tax Policy Effectiveness",
+                question: "Which income brackets respond most to tax incentive changes?",
+                model: "Investment = β₀ + β₁Tax_Rate + ΣβᵢIncome_Bracket_i + Σγᵢ(Income_Bracket_i × Tax_Rate) + Controls",
+                categories: {
+                    main: "Income Bracket",
+                    levels: ["Middle Class (Ref)", "Low Income", "Upper Middle", "High Income", "Top 1%"],
+                    secondary: null,
+                    secLevels: null
+                },
+                challenge: "Department of Finance needs evidence for progressive tax design and optimal tax bracket structure.",
+                sampleSize: "12,500 tax filers across income distribution, 2018-2024",
+                keyIssues: ["Income bracket definition", "Tax rate interactions", "Reference group choice"],
+                interpretation: {
+                    brackets: "Income dummies show baseline investment differences across groups",
+                    interactions: "Tax rate×Bracket terms reveal differential policy responsiveness",
+                    policy: "Identifies which groups most sensitive to tax policy changes"
+                }
+            }
+        ];
+
+        function generateNewScenario() {
+            // Update button to show it's working
+            const btn = document.getElementById('generate-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '🔄 Loading...';
+            btn.disabled = true;
+            
+            // Select random scenario (ensure it's different from current)
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * scenarios.length);
+            } while (scenarios.length > 1 && newIndex === currentScenario.index);
+            
+            currentScenario = {...scenarios[newIndex]};
+            currentScenario.index = newIndex;
+            
+            // Add randomization to make each instance unique
+            randomizeScenario(currentScenario);
+            
+            // Update scenario counter
+            document.getElementById('current-scenario-num').textContent = newIndex + 1;
+            
+            setTimeout(() => {
+                displayScenario(currentScenario);
+                resetSelection();
+                
+                // Restore button
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 400);
+        }
+
+        function randomizeScenario(scenario) {
+            // Randomize sample size slightly
+            const baseSample = parseInt(scenario.sampleSize.match(/[\d,]+/)[0].replace(',', ''));
+            const variation = Math.floor(baseSample * (0.9 + Math.random() * 0.2));
+            scenario.sampleSize = scenario.sampleSize.replace(/[\d,]+/, variation.toLocaleString());
+            
+            // Slightly randomize some aspects based on scenario type
+            if (scenario.title.includes('Gender')) {
+                const provinces = ["Ontario (Ref)", "Quebec", "British Columbia", "Alberta", "Saskatchewan", "Manitoba", "Nova Scotia", "New Brunswick"];
+                scenario.categories.secLevels = provinces.sort(() => Math.random() - 0.5).slice(0, 6 + Math.floor(Math.random() * 3));
+                scenario.categories.secLevels[0] = "Ontario (Ref)"; // Keep Ontario as reference
+            } else if (scenario.title.includes('Education')) {
+                const fields = ["Business (Reference)", "Engineering", "Liberal Arts", "Sciences", "Health", "Education", "Computer Science", "Law"];
+                scenario.categories.levels = fields.sort(() => Math.random() - 0.5).slice(0, 5 + Math.floor(Math.random() * 2));
+                scenario.categories.levels[0] = "Business (Reference)"; // Keep Business as reference
+            }
+            
+            // Add some random variation to challenges
+            const challenges = [
+                "officials need evidence for",
+                "policymakers require analysis for", 
+                "administrators want data for",
+                "government agencies seek information for",
+                "decision-makers need research for"
+            ];
+            const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+            scenario.challenge = scenario.challenge.replace(/need evidence for|require analysis for|want data for|seek information for/i, randomChallenge);
+        }
+
+        function displayScenario(scenario) {
+            // Add loading animation briefly to show change
+            document.getElementById('scenario-title').textContent = '🔄 Loading New Scenario...';
+            document.getElementById('question-text').textContent = 'Generating new economic analysis...';
+            
+            setTimeout(() => {
+                document.getElementById('scenario-title').textContent = scenario.title;
+                document.getElementById('question-text').textContent = scenario.question;
+                document.getElementById('challenge-description').textContent = scenario.challenge;
+                
+                // Build model equation with emphasis
+                document.getElementById('model-equation').innerHTML = `<strong>Estimated Model: ${scenario.model}</strong>`;
+                
+                // Build detailed category display
+                let categoryHTML = `
+                    <strong>📋 Categorical Variables in This Analysis:</strong><br><br>
+                    <strong>🎯 Primary Category: ${scenario.categories.main}</strong><br>
+                    <em>Levels:</em> ${scenario.categories.levels.join(', ')}<br>
+                    <em>Number of dummies needed:</em> ${scenario.categories.levels.length - 1}<br><br>
+                `;
+                
+                if (scenario.categories.secondary) {
+                    categoryHTML += `
+                        <strong>📊 Secondary Category: ${scenario.categories.secondary}</strong><br>
+                        <em>Levels:</em> ${scenario.categories.secLevels.join(', ')}<br>
+                        <em>Interaction potential:</em> ${scenario.categories.main} × ${scenario.categories.secondary}<br><br>
+                    `;
+                }
+                
+                categoryHTML += `
+                    <strong>📈 Sample Details:</strong> ${scenario.sampleSize}<br>
+                    <strong>⚠️ Key Methodological Issues:</strong> ${scenario.keyIssues.join(', ')}<br><br>
+                    <strong>🎲 Scenario #${(scenario.index || 0) + 1} of ${scenarios.length}</strong>
+                `;
+                
+                document.getElementById('category-display').innerHTML = categoryHTML;
+                
+                // Update choice specifications based on scenario
+                updateChoiceSpecs(scenario);
+                
+                // Add visual indication of change
+                document.querySelector('.scenario-section').style.animation = 'none';
+                document.querySelector('.scenario-section').offsetHeight; // Trigger reflow
+                document.querySelector('.scenario-section').style.animation = 'fadeIn 0.5s ease-in';
+            }, 300);
+        }
+
+        function updateChoiceSpecs(scenario) {
+            // Update reference category choice spec with scenario-specific details
+            const refCategories = scenario.categories.levels;
+            const currentRef = refCategories[0];
+            const alternatives = refCategories.slice(1).join(', ');
+            
+            document.getElementById('ref-choice-spec').innerHTML = `
+                <strong>Current Reference:</strong> ${currentRef}<br>
+                <strong>Alternatives:</strong> ${alternatives}<br>
+                <strong>Key Decision:</strong> ${getRefChoiceAdvice(scenario)}
+            `;
+            
+            // Update dummy × dummy interaction spec with scenario-specific examples
+            document.getElementById('dummy-interaction-spec').innerHTML = `
+                <strong>Interaction Type:</strong> ${getDummyInteractionType(scenario)}<br>
+                <strong>Matrix Size:</strong> ${getDummyInteractionSize(scenario)}<br>
+                <strong>Example:</strong> ${getDummyInteractionExample(scenario)}
+            `;
+            
+            // Update continuous interaction spec with scenario-specific examples  
+            document.getElementById('continuous-interaction-spec').innerHTML = `
+                <strong>Main Effects:</strong> ${mainCat} dummies<br>
+                <strong>Interaction Options:</strong> ${getInteractionOptions(scenario)}<br>
+                <strong>Example:</strong> ${getInteractionExample(scenario)}
+            `;
+            
+            // Update joint test spec with actual numbers
+            const numDummies = scenario.categories.levels.length - 1;
+            document.getElementById('joint-test-spec').innerHTML = `
+                <strong>Null Hypothesis:</strong> All ${numDummies} ${mainCat} dummies = 0<br>
+                <strong>Degrees of Freedom:</strong> ${numDummies} numerator<br>
+                <strong>Interpretation:</strong> Do ${mainCat} categories matter overall?
+            `;
+            
+            // Update interpretation spec with scenario examples
+            document.getElementById('interp-spec').innerHTML = `
+                <strong>Base Interpretation:</strong> Relative to ${currentRef}<br>
+                <strong>Context:</strong> ${getInterpretationContext(scenario)}<br>
+                <strong>Policy Focus:</strong> ${getPolicyFocus(scenario)}
+            `;
+            
+            // Update specification test with scenario-specific alternatives
+            document.getElementById('spec-test-spec').innerHTML = `
+                <strong>Alternative 1:</strong> ${getSpecAlternative1(scenario)}<br>
+                <strong>Alternative 2:</strong> ${getSpecAlternative2(scenario)}<br>
+                <strong>Comparison:</strong> Model selection criteria
+            `;
+            
+            // Update multicollinearity spec with scenario warnings
+            document.getElementById('multicol-spec').innerHTML = `
+                <strong>Risk Level:</strong> ${getMulticolRisk(scenario)}<br>
+                <strong>Main Concern:</strong> ${getMulticolConcern(scenario)}<br>
+                <strong>Detection:</strong> VIF analysis, condition indices
+            `;
+        }
+
+        // Helper functions for dummy × dummy interactions
+        function getDummyInteractionType(scenario) {
+            if (scenario.categories.secondary) {
+                return `${scenario.categories.main} × ${scenario.categories.secondary}`;
+            }
+            return 'Single categorical variable (no interactions available)';
+        }
+
+        function getDummyInteractionSize(scenario) {
+            if (scenario.categories.secondary) {
+                const rows = scenario.categories.levels.length - 1; // Exclude reference
+                const cols = scenario.categories.secLevels.length - 1; // Exclude reference  
+                return `${rows} × ${cols} interaction terms`;
+            }
+            return 'N/A (need two categorical variables)';
+        }
+
+        function getDummyInteractionExample(scenario) {
+            if (scenario.title.includes('Gender-Profession')) {
+                return 'Female × Healthcare: Do women face different wage gaps in healthcare?';
+            } else if (scenario.title.includes('Region-Industry')) {
+                return 'Western × Technology: Does the West have tech advantages?';
+            } else if (scenario.title.includes('Education Level-Gender')) {
+                return 'Female × Master\'s: Do women get equal returns to graduate education?';
+            } else if (scenario.categories.secondary) {
+                return `${scenario.categories.main} × ${scenario.categories.secondary} combinations`;
+            }
+            return 'Requires two categorical variables in model';
+        }
+        function getRefChoiceAdvice(scenario) {
+            if (scenario.title.includes('Gender')) return 'Male = neutral baseline for wage gap interpretation';
+            if (scenario.title.includes('Education')) return 'Business = largest field, clear career outcomes';
+            if (scenario.title.includes('Industry')) return 'Food processing = traditional manufacturing baseline';
+            if (scenario.title.includes('Trade')) return 'Central Canada = largest economic region';
+            if (scenario.title.includes('Healthcare')) return 'Urban = majority population baseline';
+            if (scenario.title.includes('Tax')) return 'Middle class = policy-relevant baseline';
+            return 'Choose largest or most neutral category';
+        }
+
+        function getInteractionOptions(scenario) {
+            if (scenario.title.includes('Gender')) return 'Gender × Education, Gender × Experience';
+            if (scenario.title.includes('Education')) return 'Field × Years_Education, Field × Experience';
+            if (scenario.title.includes('Industry')) return 'Industry × Technology, Industry × Capital';
+            if (scenario.title.includes('Trade')) return 'Region × Trade_Intensity, Region × GDP_Growth';
+            if (scenario.title.includes('Healthcare')) return 'Rural × Distance, Rural × Income';
+            if (scenario.title.includes('Tax')) return 'Bracket × Income, Bracket × Year';
+            if (scenario.title.includes('Region')) return 'Region × Investment, Region × Technology';
+            return 'Category × Continuous variables';
+        }
+
+        function getInteractionExample(scenario) {
+            if (scenario.title.includes('Gender')) return 'Do women get different returns to education/experience?';
+            if (scenario.title.includes('Education')) return 'Do some fields benefit more from extra education?';
+            if (scenario.title.includes('Industry')) return 'Does technology affect industries differently?';
+            if (scenario.title.includes('Trade')) return 'Do regions respond differently to trade changes?';
+            if (scenario.title.includes('Healthcare')) return 'Are rural access gaps worse with distance?';
+            if (scenario.title.includes('Tax')) return 'Do tax changes affect income groups differently?';
+            if (scenario.title.includes('Region')) return 'Do regions benefit differently from investment?';
+            return 'Test differential effects across groups';
+        }
+
+        function getInterpretationContext(scenario) {
+            if (scenario.title.includes('Gender')) return 'Wage gap as % difference from male wages';
+            if (scenario.title.includes('Education')) return 'Field premiums relative to business graduates';
+            if (scenario.title.includes('Industry')) return 'Productivity premiums by industry sector';
+            if (scenario.title.includes('Trade')) return 'Regional trade growth differences';
+            if (scenario.title.includes('Healthcare')) return 'Access score differences from urban baseline';
+            if (scenario.title.includes('Tax')) return 'Investment response by income bracket';
+            return 'Group differences relative to reference';
+        }
+
+        function getPolicyFocus(scenario) {
+            if (scenario.title.includes('Gender')) return 'Pay equity legislation targeting';
+            if (scenario.title.includes('Education')) return 'Program funding allocation priorities';
+            if (scenario.title.includes('Industry')) return 'Industrial development incentives';
+            if (scenario.title.includes('Trade')) return 'Regional compensation mechanisms';
+            if (scenario.title.includes('Healthcare')) return 'Rural healthcare investment';
+            if (scenario.title.includes('Tax')) return 'Progressive tax design';
+            return 'Policy targeting and resource allocation';
+        }
+
+        function getSpecAlternative1(scenario) {
+            if (scenario.title.includes('Gender')) return 'Continuous wage gap index vs binary';
+            if (scenario.title.includes('Education')) return 'Years of education vs field dummies';
+            if (scenario.title.includes('Industry')) return 'Industry concentration index vs dummies';
+            return 'Continuous measure vs categorical';
+        }
+
+        function getSpecAlternative2(scenario) {
+            if (scenario.title.includes('Trade')) return 'Pre/post dummies vs continuous time trend';
+            if (scenario.title.includes('Healthcare')) return 'Urban/rural binary vs distance to city';
+            if (scenario.title.includes('Tax')) return 'Bracket dummies vs continuous income';
+            return 'Different categorization scheme';
+        }
+
+        function getMulticolRisk(scenario) {
+            if (scenario.categories.secondary) return 'High (multiple categorical variables)';
+            if (scenario.categories.levels.length > 6) return 'Moderate (many categories)';
+            return 'Low (simple categorical structure)';
+        }
+
+        function getDummyInteractionMatrix(scenario) {
+            if (scenario.title.includes('Gender-Profession')) {
+                return `
+                    Reference: Male Business/Finance workers<br>
+                    Female main effect: Gender gap in Business/Finance<br>
+                    Profession main effects: Male premiums in other professions<br>
+                    Female×Profession: Additional gender gap in each profession<br>
+                    Total female effect in Healthcare = β_Female + β_Female×Healthcare
+                `;
+            } else if (scenario.title.includes('Region-Industry')) {
+                return `
+                    Reference: Central Canada Manufacturing<br>
+                    Region main effects: Regional advantages in Manufacturing<br>
+                    Industry main effects: Sectoral premiums in Central Canada<br>
+                    Region×Industry: Comparative advantages by region-sector<br>
+                    Total Western Tech effect = β_Western + β_Technology + β_Western×Technology
+                `;
+            } else if (scenario.title.includes('Education Level-Gender')) {
+                return `
+                    Reference: Male High School graduates<br>
+                    Female main effect: Gender gap among HS graduates<br>
+                    Education main effects: Male education premiums<br>
+                    Female×Education: Additional returns for women<br>
+                    Total female Bachelor's effect = β_Female + β_Bachelor's + β_Female×Bachelor's
+                `;
+            }
+            return 'Interaction matrix shows all combinations of the two categorical variables';
+        }
+
+        function getReferenceCellInterpretation(scenario) {
+            if (scenario.title.includes('Gender-Profession')) {
+                return 'Male Business/Finance workers are the baseline - all effects interpreted relative to this group';
+            } else if (scenario.title.includes('Region-Industry')) {
+                return 'Central Canada Manufacturing is the baseline - all regional-industrial combinations compared to this';
+            } else if (scenario.title.includes('Education Level-Gender')) {
+                return 'Male High School graduates are the baseline - all gender-education combinations relative to this group';
+            }
+            return 'The reference cell represents the omitted combination of both categorical variables';
+        }
+
+        function getDummyInteractionCalculation(scenario) {
+            if (scenario.title.includes('Gender-Profession')) {
+                return `
+                    Female Healthcare Worker wage:<br>
+                    = Baseline + β_Female + β_Healthcare + β_Female×Healthcare<br>
+                    = Male Business wage + Gender gap + Healthcare premium + Additional gender gap in healthcare<br>
+                    If β_Female×Healthcare < 0: Healthcare has larger gender gaps
+                `;
+            } else if (scenario.title.includes('Region-Industry')) {
+                return `
+                    Western Technology Productivity:<br>
+                    = Baseline + β_Western + β_Technology + β_Western×Technology<br>
+                    = Central Manufacturing + Western advantage + Tech premium + Western tech advantage<br>
+                    If β_Western×Technology > 0: West has comparative advantage in tech
+                `;
+            }
+            return 'Calculate combined effects by adding main effects plus interaction term';
+        }
+
+        function getDummyInteractionInsight(scenario) {
+            if (scenario.title.includes('Gender-Profession')) {
+                return 'Reveals which professions have larger/smaller gender wage gaps - crucial for targeted equity policies.';
+            } else if (scenario.title.includes('Region-Industry')) {
+                return 'Identifies regional comparative advantages and guides industrial development strategies.';
+            } else if (scenario.title.includes('Education Level-Gender')) {
+                return 'Tests whether women benefit equally from education - glass ceiling vs human capital effects.';
+            }
+            return 'Reveals how one categorical effect varies across levels of another categorical variable.';
+        }
+
+        function getDummyInteractionWarning(scenario) {
+            if (scenario.complexInteractions) {
+                return 'Complex interaction matrices can be difficult to interpret and may overfit with limited data. Consider testing subsets of interactions first.';
+            }
+            return 'Provides valuable insights into policy heterogeneity and helps target interventions effectively.';
+        }
+
+        function getContinuousInteractionExamples(scenario) {
+            if (scenario.title.includes('Gender')) {
+                return 'Gender × Experience: Do women get different returns to experience?\nGender × Education: Do women get equal education premiums?';
+            } else if (scenario.title.includes('Region')) {
+                return 'Region × Investment: Do regions respond differently to capital investment?\nRegion × Technology: Do regional tech advantages vary with innovation?';
+            } else {
+                return `${scenario.categories.main} × Experience\n${scenario.categories.main} × Education`;
+            }
+        }
+
+        function getContinuousInteractionContext(scenario) {
+            if (scenario.title.includes('Gender')) {
+                return 'Gender wage gaps may vary with experience (glass ceiling) or education level (different returns).';
+            } else if (scenario.title.includes('Region')) {
+                return 'Regional economic advantages may depend on levels of investment, technology, or human capital.';
+            } else {
+                return 'Economic relationships often vary in magnitude across categorical groups.';
+            }
+        }
+
+        function selectChoice(element) {
+            const choiceType = element.getAttribute('data-choice');
+            
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                selectedChoices = selectedChoices.filter(choice => choice !== choiceType);
+            } else {
+                element.classList.add('selected');
+                selectedChoices.push(choiceType);
+            }
+        }
+
+        function resetSelection() {
+            document.querySelectorAll('.decision-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            selectedChoices = [];
+            document.getElementById('results').classList.remove('show');
+        }
+
+        function analyzeChoices() {
+            if (selectedChoices.length === 0) {
+                alert('Please select at least one dummy variable strategy to analyze!');
+                return;
+            }
+
+            const feedbackContent = document.getElementById('feedback-content');
+            let feedback = generateFeedback();
+            
+            feedbackContent.innerHTML = feedback;
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateFeedback() {
+            let feedback = '';
+            const scenario = currentScenario;
+
+            // Reference Category Choice
+            if (selectedChoices.includes('reference')) {
+                const currentRef = scenario.categories.levels[0];
+                feedback += `
+                    <div class="expert-feedback correct">
+                        <h4>✅ Reference Category Choice - Fundamental Decision!</h4>
+                        <div class="coefficient-example">
+                            <strong>Current Reference: ${currentRef}</strong><br>
+                            Alternative options: ${scenario.categories.levels.slice(1).join(', ')}<br><br>
+                            
+                            <strong>Interpretation Impact:</strong><br>
+                            All dummy coefficients interpreted relative to ${currentRef}<br>
+                            β_Female = wage difference between women and men (if Male = reference)<br>
+                            β_Quebec = wage difference between Quebec and Ontario (if Ontario = reference)
+                        </div>
+                        <div class="interpretation">
+                            <strong>Scenario-Specific Advice:</strong> ${getReferenceCategoryAdvice(scenario)}<br><br>
+                            <strong>Professional Tip:</strong> Choose the most neutral, largest, or policy-relevant baseline for clear interpretation.
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Dummy × Dummy Interactions
+            if (selectedChoices.includes('dummy-interactions')) {
+                if (scenario.categories.secondary) {
+                    const hasComplexMatrix = scenario.complexInteractions;
+                    feedback += `
+                        <div class="expert-feedback ${hasComplexMatrix ? 'warning' : 'correct'}">
+                            <h4>${hasComplexMatrix ? '⚠️' : '✅'} Dummy × Dummy Interactions - ${hasComplexMatrix ? 'Complex' : 'Sophisticated'} Analysis!</h4>
+                            <div class="coefficient-example">
+                                <strong>Interaction Matrix Interpretation:</strong><br>
+                                ${getDummyInteractionMatrix(scenario)}<br><br>
+                                
+                                <strong>Reference Cell:</strong><br>
+                                ${getReferenceCellInterpretation(scenario)}<br><br>
+                                
+                                <strong>Example Calculation:</strong><br>
+                                ${getDummyInteractionCalculation(scenario)}
+                            </div>
+                            <div class="interpretation">
+                                <strong>Economic Insight:</strong> ${getDummyInteractionInsight(scenario)}<br><br>
+                                <strong>${hasComplexMatrix ? 'Complexity Warning' : 'Policy Value'}:</strong> ${getDummyInteractionWarning(scenario)}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    feedback += `
+                        <div class="expert-feedback critical">
+                            <h4>❌ Dummy × Dummy Interactions - Not Applicable!</h4>
+                            <div class="coefficient-example">
+                                <strong>Issue:</strong><br>
+                                Current scenario only has one categorical variable: ${scenario.categories.main}<br>
+                                Dummy × dummy interactions require at least two categorical variables<br><br>
+                                
+                                <strong>Alternative:</strong><br>
+                                Consider dummy × continuous interactions instead<br>
+                                Example: ${scenario.categories.main} × Experience or ${scenario.categories.main} × Education
+                            </div>
+                            <div class="interpretation">
+                                <strong>Methodological Note:</strong> Dummy × dummy interactions are only meaningful when you have multiple categorical variables that could theoretically interact.
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Continuous Interactions (updated)
+            if (selectedChoices.includes('continuous-interactions')) {
+                feedback += `
+                    <div class="expert-feedback correct">
+                        <h4>✅ Dummy × Continuous Interactions - Important Analysis!</h4>
+                        <div class="coefficient-example">
+                            <strong>Continuous Interaction Examples:</strong><br>
+                            ${getContinuousInteractionExamples(scenario)}<br><br>
+                            
+                            <strong>Interpretation:</strong><br>
+                            Main effect: Average slope for reference group<br>
+                            Interaction: Additional slope for other groups<br>
+                            Total effect: Main + Interaction coefficient
+                        </div>
+                        <div class="interpretation">
+                            <strong>Economic Context:</strong> ${getContinuousInteractionContext(scenario)}<br><br>
+                            <strong>Testing Strategy:</strong> Test interactions individually, then jointly for overall heterogeneity.
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Joint Significance Testing
+            if (selectedChoices.includes('joint-test')) {
+                const numCategories = scenario.categories.levels.length - 1;
+                const fStat = (5 + Math.random() * 15).toFixed(2);
+                const fCritical = getFCritical(numCategories);
+                
+                feedback += `
+                    <div class="expert-feedback correct">
+                        <h4>✅ Joint Significance Testing - Proper Methodology!</h4>
+                        <div class="coefficient-example">
+                            <strong>F-test for ${scenario.categories.main} Effects:</strong><br>
+                            H₀: β₁ = β₂ = ... = β_{${numCategories}} = 0<br>
+                            H₁: At least one βᵢ ≠ 0<br><br>
+                            
+                            <strong>Test Results:</strong><br>
+                            F-statistic = ${fStat}<br>
+                            Critical value (α=0.05, df=${numCategories},${getResidualDF(scenario)}): ${fCritical}<br>
+                            ${parseFloat(fStat) > fCritical ? 'Reject H₀: Categories matter!' : 'Fail to reject H₀: Categories not significant'}
+                        </div>
+                        <div class="interpretation">
+                            <strong>Economic Interpretation:</strong> ${getJointTestInterpretation(scenario, parseFloat(fStat) > fCritical)}<br><br>
+                            <strong>Policy Implication:</strong> ${getJointTestPolicy(scenario, parseFloat(fStat) > fCritical)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Coefficient Interpretation
+            if (selectedChoices.includes('interpretation')) {
+                feedback += `
+                    <div class="expert-feedback correct">
+                        <h4>✅ Coefficient Interpretation - Economic Meaning!</h4>
+                        <div class="coefficient-example">
+                            <strong>Example Interpretation for ${scenario.title}:</strong><br>
+                            ${getInterpretationExample(scenario)}<br><br>
+                            
+                            <strong>Key Interpretation Rules:</strong><br>
+                            • All effects relative to reference category<br>
+                            • Ceteris paribus (holding other variables constant)<br>
+                            • Log-dependent: percentage effects<br>
+                            • Level-dependent: absolute effects
+                        </div>
+                        <div class="interpretation">
+                            <strong>Policy Communication:</strong> ${getPolicyInterpretation(scenario)}<br><br>
+                            <strong>Economic Significance:</strong> Consider magnitude, not just statistical significance.
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Add comprehensive guidance
+            feedback += `
+                <div class="expert-feedback">
+                    <h4>🎓 Professional Dummy Variable Strategy for ${scenario.title}</h4>
+                    <div style="margin: 15px 0;">
+                        <strong>Advanced Interaction Strategy:</strong><br>
+                        1. <strong>Simple Effects First:</strong> Test main effects before interactions<br>
+                        2. <strong>Dummy × Continuous:</strong> Test differential slopes (easier interpretation)<br>
+                        3. <strong>Dummy × Dummy:</strong> Test categorical combinations (complex matrix)<br>
+                        4. <strong>Joint Testing:</strong> F-test all interactions simultaneously<br>
+                        5. <strong>Economic Interpretation:</strong> Focus on policy-relevant combinations<br><br>
+                        
+                        <strong>Interaction Matrix Interpretation:</strong><br>
+                        • Reference cell = omitted combination of both categories<br>
+                        • Main effects = effects in reference category of other variable<br>
+                        • Interactions = additional effects for specific combinations<br>
+                        • Total effect = Main₁ + Main₂ + Interaction₁×₂<br><br>
+                        
+                        <strong>Scenario-Specific Recommendations:</strong><br>
+                        ${getScenarioRecommendations(scenario)}<br><br>
+                        
+                        <strong>Common Pitfalls to Avoid:</strong><br>
+                        • Including all categories (dummy trap)<br>
+                        • Ignoring interaction possibilities<br>
+                        • Focusing only on statistical vs economic significance<br>
+                        • Poor reference category choice<br><br>
+                        
+                        <strong>Policy Application:</strong><br>
+                        ${getPolicyApplication(scenario)}
+                    </div>
+                </div>
+            `;
+
+            return feedback;
+        }
+
+        // Helper functions for generating context-specific feedback
+        function getReferenceCategoryAdvice(scenario) {
+            if (scenario.title.includes('Gender')) {
+                return 'Male as reference makes the female coefficient directly interpretable as the gender wage gap.';
+            } else if (scenario.title.includes('Education')) {
+                return 'Business as reference provides a practical baseline since it\'s the largest field with clear career paths.';
+            } else if (scenario.title.includes('Industry')) {
+                return 'Food processing represents traditional manufacturing, making other industries\' productivity premiums clear.';
+            } else {
+                return 'The chosen reference category provides a neutral baseline for meaningful comparisons.';
+            }
+        }
+
+
+
+        function getFCritical(df1) {
+            const criticalValues = {1: 3.84, 2: 3.00, 3: 2.60, 4: 2.37, 5: 2.21, 6: 2.10, 9: 1.88};
+            return criticalValues[df1] || 2.00;
+        }
+
+        function getResidualDF(scenario) {
+            const sampleSize = parseInt(scenario.sampleSize.match(/\d+/)[0]);
+            return Math.max(sampleSize - 20, 100); // Approximate residual DF
+        }
+
+        function getJointTestInterpretation(scenario, significant) {
+            if (significant) {
+                return `${scenario.categories.main} categories are jointly significant - group differences are economically and statistically meaningful.`;
+            } else {
+                return `${scenario.categories.main} categories are not jointly significant - consider pooling groups or using continuous variables.`;
+            }
+        }
+
+        function getJointTestPolicy(scenario, significant) {
+            if (significant && scenario.title.includes('Gender')) {
+                return 'Evidence supports targeted gender equity policies varies across regions/sectors.';
+            } else if (significant && scenario.title.includes('Trade')) {
+                return 'Regional compensation mechanisms may be needed for trade policy impacts.';
+            } else if (significant) {
+                return 'Category-specific policies are justified by significant group differences.';
+            } else {
+                return 'Uniform policies may be appropriate given lack of group differences.';
+            }
+        }
+
+        function getInterpretationExample(scenario) {
+            if (scenario.title.includes('Gender')) {
+                return 'β_Female = -0.156 means women earn 15.6% less than men on average, holding education, experience, and province constant.';
+            } else if (scenario.title.includes('Education')) {
+                return 'β_Engineering = 0.234 means engineering graduates earn 23.4% more than business graduates at the same education level.';
+            } else {
+                return 'Dummy coefficients show percentage differences relative to the reference category, ceteris paribus.';
+            }
+        }
+
+        function getPolicyInterpretation(scenario) {
+            if (scenario.title.includes('Gender')) {
+                return 'Focus on magnitude: Is a 15.6% wage gap economically large enough to warrant policy intervention?';
+            } else if (scenario.title.includes('Trade')) {
+                return 'Regional effects inform compensation mechanisms and transition assistance targeting.';
+            } else {
+                return 'Translate statistical results into policy-relevant economic magnitudes and practical implications.';
+            }
+        }
+
+        function getMulticolConcern(scenario) {
+            if (scenario.title.includes('Gender-Profession')) return 'Complex Gender × Profession interaction matrix';
+            if (scenario.title.includes('Region-Industry')) return 'Large Region × Industry interaction matrix';
+            if (scenario.title.includes('Education Level-Gender')) return 'Education × Gender interaction terms';
+            if (scenario.categories.secondary) return 'Cross-category interactions';
+            return 'Standard dummy variable trap (K-1 rule)';
+        }
+
+        function getScenarioRecommendations(scenario) {
+            if (scenario.title.includes('Gender-Profession')) {
+                return '• Use male business/finance as reference (largest, neutral group)\n• Test Female × Profession interactions for differential wage gaps\n• Focus on professions with largest gender disparities\n• Consider experience and education controls';
+            } else if (scenario.title.includes('Region-Industry')) {
+                return '• Use Central Canada Manufacturing as reference (traditional baseline)\n• Test Region × Industry interactions for comparative advantages\n• Focus on high-value industries and regional strengths\n• Consider productivity and innovation controls';
+            } else if (scenario.title.includes('Education Level-Gender')) {
+                return '• Use male high school graduates as reference\n• Test Female × Education interactions for differential returns\n• Focus on glass ceiling vs human capital effects\n• Consider experience and field controls';
+            } else if (scenario.title.includes('Trade')) {
+                return '• Central Canada as reference (largest economic region)\n• Focus on region-policy interactions\n• Test pre-policy parallel trends assumption';
+            } else {
+                return '• Choose largest/most neutral category as reference\n• Test for interactions with key continuous variables\n• Verify economic significance of category differences';
+            }
+        }
+
+        function getPolicyApplication(scenario) {
+            if (scenario.title.includes('Gender-Profession')) {
+                return 'Results inform targeted employment equity policies and profession-specific gender pay gap interventions.';
+            } else if (scenario.title.includes('Region-Industry')) {
+                return 'Evidence guides regional industrial development strategies and comparative advantage policies.';
+            } else if (scenario.title.includes('Education Level-Gender')) {
+                return 'Findings inform education policy effectiveness and gender equality in human capital returns.';
+            } else if (scenario.title.includes('Trade')) {
+                return 'Evidence guides regional compensation mechanisms and future trade agreement design.';
+            } else if (scenario.title.includes('Education')) {
+                return 'Findings support program funding allocation and student career guidance policies.';
+            } else if (scenario.title.includes('Healthcare')) {
+                return 'Analysis informs rural healthcare investment and provincial transfer payment policies.';
+            } else if (scenario.title.includes('Tax')) {
+                return 'Evidence guides progressive tax design and optimal bracket structure policies.';
+            } else {
+                return 'Analysis informs policy design and resource allocation across different groups.';
+            }
+        }
+
+        // Initialize with random scenario on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize first scenario
+            const randomIndex = Math.floor(Math.random() * scenarios.length);
+            currentScenario = {...scenarios[randomIndex]};
+            currentScenario.index = randomIndex;
+            randomizeScenario(currentScenario);
+            
+            // Set initial scenario counter
+            document.getElementById('current-scenario-num').textContent = randomIndex + 1;
+            
+            displayScenario(currentScenario);
+            
+            // Add click counter for testing
+            let scenarioCount = 1;
+            const originalGenerateNew = window.generateNewScenario;
+            window.generateNewScenario = function() {
+                scenarioCount++;
+                console.log(`Loading scenario #${scenarioCount}`);
+                originalGenerateNew();
+            };
+        });
+    </script>
+</body>
+</html>
