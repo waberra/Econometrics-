@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dummy Variables & Interactions in Regression - Interactive Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .dummy-card     { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .baseline-card  { background: linear-gradient(135deg, #fd7e14, #e55353); border-color:#d63384; color:white; }
+        .mean-card      { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .multi-card     { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .trap-card      { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+        .interact-card  { background: linear-gradient(135deg, #9c27b0, #e040fb); border-color:#6a1b9a; color:white; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Dummy Variables & Interactions in Regression</h1>
+        <p>Practice interpreting dummy variables, baselines, and interactions between groups in linear regression</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas About Dummy Variables & Interactions</h3>
+        <div class="measures-grid">
+            <div class="measure-card dummy-card">
+                <h4>0/1 Dummy Variable</h4>
+                <div class="formula">
+                    D = 1 if observation is in group A, 0 otherwise
+                </div>
+                <div class="description">
+                    A dummy (indicator) variable takes the value 1 for one category and 0 for the baseline category.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Gender, union membership, region, time period, policy treated vs control.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Female = 1 if worker is female, 0 if male.
+                </div>
+            </div>
+
+            <div class="measure-card baseline-card">
+                <h4>Baseline Group & Intercept</h4>
+                <div class="formula">
+                    Y = β₀ + β₁D + u
+                </div>
+                <div class="description">
+                    β₀ is the mean of the baseline group (D=0). β₁ is the difference in mean between D=1 and D=0.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Compare average outcomes across two groups.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β₀ = mean wage for men (D=0), β₁ = (mean wage of women − mean wage of men).
+                </div>
+            </div>
+
+            <div class="measure-card mean-card">
+                <h4>Group Means from Coefficients</h4>
+                <div class="formula">
+                    E[Y|D=0] = β₀ &nbsp;&nbsp;&nbsp; E[Y|D=1] = β₀ + β₁
+                </div>
+                <div class="description">
+                    You can recover the mean of each group directly from the intercept and dummy coefficient.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Report average wages, prices, or outcomes by group.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Mean wage (men) = 20, mean wage (women) = 23 ⇒ β₀ = 20, β₁ = 3.
+                </div>
+            </div>
+
+            <div class="measure-card multi-card">
+                <h4>Multiple Categories</h4>
+                <div class="formula">
+                    Y = β₀ + β₁D₁ + β₂D₂ + ... + u
+                </div>
+                <div class="description">
+                    For k categories, use k−1 dummies and one baseline category. Each dummy shifts the intercept for that category.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Regions (East, West, Central), education levels, industries.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Region: East is baseline, West and Central as dummies.
+                </div>
+            </div>
+
+            <div class="measure-card trap-card">
+                <h4>Dummy Variable Trap</h4>
+                <div class="formula">
+                    Don’t include all dummies + intercept
+                </div>
+                <div class="description">
+                    Including an intercept and dummies for every category causes perfect multicollinearity (dummy variable trap).
+                </div>
+                <div class="use-cases">
+                    <strong>Rule:</strong> With an intercept, drop one category as the baseline.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> For 3 regions, include only 2 region dummies with an intercept.
+                </div>
+            </div>
+
+            <div class="measure-card interact-card">
+                <h4>Interactions Between Dummies</h4>
+                <div class="formula">
+                    Y = β₀ + β₁D₁ + β₂D₂ + β₃(D₁·D₂) + u
+                </div>
+                <div class="description">
+                    The interaction term D₁·D₂ lets the effect of one dummy depend on the other (non-additive effects).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Gender × union, gender × marital status, treatment × subgroup.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> β₃ is the extra effect of being in both groups at once (e.g., married female) beyond adding the separate dummy effects.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Dummy Variable Practice (with Interactions)</h3>
+            <p>Each scenario gives you a regression with one or more dummy variables (sometimes with an interaction). Compute group means, group differences, and interpret the coefficients.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the regression equation shown in the scenario. Focus on the intercept, dummy coefficients, interaction term, and predicted means.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Baseline group mean</strong><br>Compute E[Y] for the baseline group (all dummies = 0).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Other group means</strong><br>Compute E[Y] for other groups (dummy combinations = 1).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Group differences / interaction</strong><br>Compute differences in means and, when relevant, the interaction effect.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Write a sentence interpreting the dummy coefficient(s) and interaction.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Dummy variable & interaction regression practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: some simple dummy models + some with dummy-dummy interactions
+    var scenarios = [
+        {
+            id: "wageGender",
+            title: "Hourly Wage vs Gender (Single Dummy)",
+            description: "You estimate a simple regression of hourly wage (Y, $/hour) on a female dummy (Female = 1 for women, 0 for men).",
+            context: "Interpret the gender dummy and compute the mean wage for men and women.",
+            equation: "Wage = 20.0 + 3.5·Female",
+            intercept: 20.0,
+            dummies: [
+                { name: "Female", value: 3.5, group1: "Women (Female = 1)", group0: "Men (Female = 0)" }
+            ],
+            // no interaction term here
+            baselineLabel: "Men (Female = 0)",
+            otherGroups: ["Women (Female = 1)"],
+            expertInterpretation: "Men earn on average $20/hour. Women earn on average $23.50/hour, which is $3.50 more than men, according to this regression."
+        },
+        {
+            id: "wageUnion",
+            title: "Hourly Wage vs Union Membership (Single Dummy)",
+            description: "You regress hourly wage (Y, $/hour) on a union dummy (Union = 1 if the worker is in a union, 0 otherwise).",
+            context: "Interpret the union dummy and compute mean wages for union and non-union workers.",
+            equation: "Wage = 18.0 + 4.0·Union",
+            intercept: 18.0,
+            dummies: [
+                { name: "Union", value: 4.0, group1: "Union workers (Union = 1)", group0: "Non-union workers (Union = 0)" }
+            ],
+            baselineLabel: "Non-union workers (Union = 0)",
+            otherGroups: ["Union workers (Union = 1)"],
+            expertInterpretation: "Non-union workers earn on average $18/hour, while union workers earn $22/hour, $4 more than non-union workers on average."
+        },
+        {
+            id: "houseRegion",
+            title: "House Price vs Region (3 Regions, No Interaction)",
+            description: "You regress house price (Y, in $1000s) on two region dummies: West and Central. East is the baseline category.",
+            context: "Interpret region dummies and compare average house prices across regions.",
+            equation: "Price = 300 + 40·West + 20·Central",
+            intercept: 300,
+            dummies: [
+                { name: "West", value: 40,  group1: "West",    group0: "East (baseline)" },
+                { name: "Central", value: 20, group1: "Central", group0: "East (baseline)" }
+            ],
+            baselineLabel: "East (West = 0, Central = 0)",
+            otherGroups: ["West", "Central"],
+            expertInterpretation: "East houses average $300,000; West houses average $340,000; Central houses average $320,000. West is $40,000 higher than East; Central is $20,000 higher."
+        },
+        // --- NEW: Wooldridge-style dummy × dummy interaction scenarios ---
+        {
+            id: "wageGenderMarried",
+            title: "Hourly Wage vs Gender and Marital Status (Interaction)",
+            description: "You regress hourly wage (Y, $/hour) on a female dummy, a married dummy, and their interaction (Female × Married).",
+            context: "Compute mean wages for the four groups (male/female × married/unmarried) and interpret the interaction effect.",
+            equation: "Wage = 18.0 + 4.0·Female + 2.0·Married − 3.0·(Female×Married)",
+            intercept: 18.0,
+            dummies: [
+                { name: "Female", value: 4.0, group1: "Females (Female = 1)",     group0: "Males (Female = 0)" },
+                { name: "Married", value: 2.0, group1: "Married (Married = 1)", group0: "Unmarried (Married = 0)" }
+            ],
+            interaction: {
+                name: "Female×Married",
+                value: -3.0,
+                description: "Extra effect of being both female and married beyond adding separate female and married effects."
+            },
+            baselineLabel: "Unmarried men (Female = 0, Married = 0)",
+            otherGroups: [
+                "Unmarried women (Female = 1, Married = 0)",
+                "Married men (Female = 0, Married = 1)",
+                "Married women (Female = 1, Married = 1)"
+            ],
+            expertInterpretation: "Unmarried men earn $18/hour on average. Unmarried women earn $22/hour. Married men earn $20/hour. Married women earn $21/hour. The interaction term (−3) means the married female wage is $3/hour lower than what you would get by just adding the separate female (+4) and married (+2) effects."
+        },
+        {
+            id: "wageFemaleUnion",
+            title: "Hourly Wage vs Gender and Union (Interaction)",
+            description: "You regress hourly wage on a female dummy, a union dummy, and their interaction (Female × Union).",
+            context: "Compute mean wages by gender and union status, and interpret how the union premium differs by gender.",
+            equation: "Wage = 19.0 + 1.0·Female + 3.0·Union − 2.0·(Female×Union)",
+            intercept: 19.0,
+            dummies: [
+                { name: "Female", value: 1.0, group1: "Females (Female = 1)",   group0: "Males (Female = 0)" },
+                { name: "Union",  value: 3.0, group1: "Union (Union = 1)",    group0: "Non-union (Union = 0)" }
+            ],
+            interaction: {
+                name: "Female×Union",
+                value: -2.0,
+                description: "Difference in the union wage premium for women compared to men."
+            },
+            baselineLabel: "Non-union men (Female = 0, Union = 0)",
+            otherGroups: [
+                "Non-union women (Female = 1, Union = 0)",
+                "Union men (Female = 0, Union = 1)",
+                "Union women (Female = 1, Union = 1)"
+            ],
+            expertInterpretation: "Non-union men earn $19/hour. Non-union women earn $20/hour. Union men earn $22/hour. Union women earn $21/hour. The union premium is +$3 for men but only +$1 for women; the interaction term (−2) captures that the female union premium is $2 smaller."
+        },
+        {
+            id: "testScoreTreatGPA",
+            title: "Test Scores vs Treatment and High GPA (Interaction)",
+            description: "A study regresses test score (Y, points) on a treatment dummy, a high-GPA dummy, and their interaction (Treat × HighGPA).",
+            context: "Compute mean scores for the four groups and interpret the interaction as a 'treatment effect by subgroup'.",
+            equation: "Score = 70 + 5.0·Treat + 8.0·HighGPA + 4.0·(Treat×HighGPA)",
+            intercept: 70.0,
+            dummies: [
+                { name: "Treat",   value: 5.0, group1: "Treated (Treat = 1)",             group0: "Control (Treat = 0)" },
+                { name: "HighGPA", value: 8.0, group1: "High GPA (HighGPA = 1)", group0: "Low GPA (HighGPA = 0)" }
+            ],
+            interaction: {
+                name: "Treat×HighGPA",
+                value: 4.0,
+                description: "Extra treatment effect for high-GPA students relative to low-GPA students."
+            },
+            baselineLabel: "Control, low GPA (Treat = 0, HighGPA = 0)",
+            otherGroups: [
+                "Treated, low GPA (Treat = 1, HighGPA = 0)",
+                "Control, high GPA (Treat = 0, HighGPA = 1)",
+                "Treated, high GPA (Treat = 1, HighGPA = 1)"
+            ],
+            expertInterpretation: "Control low-GPA students score 70 on average. Treated low-GPA: 75. Control high-GPA: 78. Treated high-GPA: 87. The treatment effect is +5 for low-GPA students but +9 for high-GPA students; the interaction term (+4) is exactly this extra gain."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Estimated Regression with Dummy Variable(s)</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Model:</strong></p>';
+        html += '<p style="margin-top:8px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.equation;
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Term</th><th>Coefficient</th><th>Interpretation (group)</th></tr></thead><tbody>';
+        html += '<tr><td>Intercept</td><td>' + scenario.intercept.toFixed(2) + '</td><td>' +
+                'Mean of baseline group: ' + scenario.baselineLabel + '</td></tr>';
+
+        for (var i = 0; i < scenario.dummies.length; i++) {
+            var d = scenario.dummies[i];
+            html += '<tr><td>' + d.name + '</td><td>' + d.value.toFixed(2) + '</td><td>' +
+                    'Difference in mean between ' + d.group1 + ' and ' + d.group0 + '</td></tr>';
+        }
+
+        if (scenario.interaction) {
+            html += '<tr><td>' + scenario.interaction.name + '</td><td>' +
+                    scenario.interaction.value.toFixed(2) + '</td><td>' +
+                    scenario.interaction.description + '</td></tr>';
+        }
+
+        html += '</tbody></table>';
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var baseMean = currentScenario.intercept;
+        var groups = [];
+
+        // Build group means depending on scenario
+        if (currentScenario.id === "wageGender") {
+            groups.push({ label: "Women (Female = 1)", mean: baseMean + currentScenario.dummies[0].value });
+        } else if (currentScenario.id === "wageUnion") {
+            groups.push({ label: "Union workers (Union = 1)", mean: baseMean + currentScenario.dummies[0].value });
+        } else if (currentScenario.id === "houseRegion") {
+            groups.push({ label: "West",    mean: baseMean + currentScenario.dummies[0].value });
+            groups.push({ label: "Central", mean: baseMean + currentScenario.dummies[1].value });
+        } else if (currentScenario.id === "wageGenderMarried") {
+            var b0 = baseMean;
+            var bF = currentScenario.dummies[0].value;
+            var bM = currentScenario.dummies[1].value;
+            var bFM = currentScenario.interaction.value;
+            groups.push({ label: "Unmarried women (Female = 1, Married = 0)", mean: b0 + bF });
+            groups.push({ label: "Married men (Female = 0, Married = 1)",     mean: b0 + bM });
+            groups.push({ label: "Married women (Female = 1, Married = 1)",   mean: b0 + bF + bM + bFM });
+        } else if (currentScenario.id === "wageFemaleUnion") {
+            var b0u = baseMean;
+            var bFe = currentScenario.dummies[0].value;
+            var bU  = currentScenario.dummies[1].value;
+            var bFU = currentScenario.interaction.value;
+            groups.push({ label: "Non-union women (Female = 1, Union = 0)", mean: b0u + bFe });
+            groups.push({ label: "Union men (Female = 0, Union = 1)",       mean: b0u + bU });
+            groups.push({ label: "Union women (Female = 1, Union = 1)",     mean: b0u + bFe + bU + bFU });
+        } else if (currentScenario.id === "testScoreTreatGPA") {
+            var b0s = baseMean;
+            var bT  = currentScenario.dummies[0].value;
+            var bH  = currentScenario.dummies[1].value;
+            var bTH = currentScenario.interaction.value;
+            groups.push({ label: "Treated, low GPA (Treat = 1, HighGPA = 0)",   mean: b0s + bT });
+            groups.push({ label: "Control, high GPA (Treat = 0, HighGPA = 1)",  mean: b0s + bH });
+            groups.push({ label: "Treated, high GPA (Treat = 1, HighGPA = 1)",  mean: b0s + bT + bH + bTH });
+        }
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "baselineMean",
+                type: "numeric",
+                title: "🏁 Mean of Baseline Group",
+                prompt: "What is the predicted mean of the baseline group (" + currentScenario.baselineLabel + ")?",
+                correctValue: baseMean,
+                unitHint: "(same units as Y)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            for (var i = 0; i < groups.length; i++) {
+                currentQuestions.push({
+                    conceptId: "groupMean" + i,
+                    type: "numeric",
+                    title: "📊 Mean of " + groups[i].label,
+                    prompt: "What is the predicted mean of " + groups[i].label + "?",
+                    correctValue: groups[i].mean,
+                    unitHint: "(same units as Y)"
+                });
+            }
+        }
+
+        if (chkDifference) {
+            if (currentScenario.id === "houseRegion" && groups.length === 2) {
+                var diff_C_W = groups[0].mean - groups[1].mean;
+                currentQuestions.push({
+                    conceptId: "diffGroups",
+                    type: "numeric",
+                    title: "📉 Difference: West vs Central",
+                    prompt: "What is the difference in predicted mean price between West and Central? (West minus Central)",
+                    correctValue: diff_C_W,
+                    unitHint: "(same units as Y)"
+                });
+            } else if (currentScenario.interaction) {
+                // One basic difference: first non-baseline group vs baseline
+                if (groups.length >= 1) {
+                    var diff = groups[0].mean - baseMean;
+                    currentQuestions.push({
+                        conceptId: "diffDummy",
+                        type: "numeric",
+                        title: "📉 Difference Between First Listed Group and Baseline",
+                        prompt: "What is the difference in mean between " + groups[0].label + " and the baseline group?",
+                        correctValue: diff,
+                        unitHint: "(same units as Y)"
+                    });
+                }
+                // Explicit interaction effect (β₃)
+                currentQuestions.push({
+                    conceptId: "interactionEffect",
+                    type: "numeric",
+                    title: "🔁 Interaction Effect",
+                    prompt: "What is the interaction effect (coefficient on the interaction term)?",
+                    correctValue: currentScenario.interaction.value,
+                    unitHint: "(same units as Y)"
+                });
+            } else if (groups.length >= 1) {
+                var diff2 = groups[0].mean - baseMean;
+                currentQuestions.push({
+                    conceptId: "diffDummy",
+                    type: "numeric",
+                    title: "📉 Difference Between Dummy=1 and Baseline",
+                    prompt: "What is the difference in mean between the group with dummy=1 and the baseline (dummy=0)?",
+                    correctValue: diff2,
+                    unitHint: "(same units as Y)"
+                });
+            }
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "Interpret the dummy coefficient(s) and, if present, the interaction term in the context of this scenario. We’ll show expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Use the explanations to reinforce how the intercept, dummy coefficients, and interaction terms map into group means and differences.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var html = "<strong>How to think about this:</strong><br>";
+        var base = currentScenario.intercept;
+        var dums = currentScenario.dummies;
+
+        if (q.conceptId === "baselineMean") {
+            html += "The baseline group is defined by all dummy variables = 0.<br>";
+            html += "In a model Y = β₀ + β₁D + ..., the intercept β₀ is the mean of the baseline group.<br>";
+            html += "So the baseline mean is simply β₀ = " + base.toFixed(2) + ".";
+        } else if (q.conceptId.startsWith("groupMean")) {
+            if (currentScenario.id === "wageGender") {
+                var meanWomen = base + dums[0].value;
+                html += "For women (Female = 1), the predicted mean is:<br>";
+                html += "E[Wage|Female=1] = β₀ + β₁ = " +
+                        base.toFixed(2) + " + " + dums[0].value.toFixed(2) +
+                        " = " + meanWomen.toFixed(2) + ".";
+            } else if (currentScenario.id === "wageUnion") {
+                var meanUnion = base + dums[0].value;
+                html += "For union workers (Union = 1), the predicted mean is:<br>";
+                html += "E[Wage|Union=1] = β₀ + β₁ = " +
+                        base.toFixed(2) + " + " + dums[0].value.toFixed(2) +
+                        " = " + meanUnion.toFixed(2) + ".";
+            } else if (currentScenario.id === "houseRegion") {
+                var meanWest = base + dums[0].value;
+                var meanCentral = base + dums[1].value;
+                html += "Baseline (East): " + base.toFixed(2) + ".<br>";
+                html += "West: " + base.toFixed(2) + " + " + dums[0].value.toFixed(2) +
+                        " = " + meanWest.toFixed(2) + ".<br>";
+                html += "Central: " + base.toFixed(2) + " + " + dums[1].value.toFixed(2) +
+                        " = " + meanCentral.toFixed(2) + ".";
+            } else if (currentScenario.id === "wageGenderMarried") {
+                var bF = dums[0].value, bM = dums[1].value, bFM = currentScenario.interaction.value;
+                var meanUnmarriedWomen = base + bF;
+                var meanMarriedMen     = base + bM;
+                var meanMarriedWomen   = base + bF + bM + bFM;
+                html += "Baseline (unmarried men): " + base.toFixed(2) + ".<br>";
+                html += "Unmarried women: β₀ + β₁ = " +
+                        base.toFixed(2) + " + " + bF.toFixed(2) +
+                        " = " + meanUnmarriedWomen.toFixed(2) + ".<br>";
+                html += "Married men: β₀ + β₂ = " +
+                        base.toFixed(2) + " + " + bM.toFixed(2) +
+                        " = " + meanMarriedMen.toFixed(2) + ".<br>";
+                html += "Married women: β₀ + β₁ + β₂ + β₃ = " +
+                        base.toFixed(2) + " + " + bF.toFixed(2) +
+                        " + " + bM.toFixed(2) + " + " + bFM.toFixed(2) +
+                        " = " + meanMarriedWomen.toFixed(2) + ".";
+            } else if (currentScenario.id === "wageFemaleUnion") {
+                var bFe = dums[0].value, bU = dums[1].value, bFU = currentScenario.interaction.value;
+                var meanNonUnionWomen = base + bFe;
+                var meanUnionMen      = base + bU;
+                var meanUnionWomen    = base + bFe + bU + bFU;
+                html += "Baseline (non-union men): " + base.toFixed(2) + ".<br>";
+                html += "Non-union women: β₀ + β₁ = " +
+                        base.toFixed(2) + " + " + bFe.toFixed(2) +
+                        " = " + meanNonUnionWomen.toFixed(2) + ".<br>";
+                html += "Union men: β₀ + β₂ = " +
+                        base.toFixed(2) + " + " + bU.toFixed(2) +
+                        " = " + meanUnionMen.toFixed(2) + ".<br>";
+                html += "Union women: β₀ + β₁ + β₂ + β₃ = " +
+                        base.toFixed(2) + " + " + bFe.toFixed(2) +
+                        " + " + bU.toFixed(2) + " + " + bFU.toFixed(2) +
+                        " = " + meanUnionWomen.toFixed(2) + ".";
+            } else if (currentScenario.id === "testScoreTreatGPA") {
+                var bT = dums[0].value, bH = dums[1].value, bTH = currentScenario.interaction.value;
+                var meanTreatLow = base + bT;
+                var meanControlHigh = base + bH;
+                var meanTreatHigh = base + bT + bH + bTH;
+                html += "Baseline (control, low GPA): " + base.toFixed(2) + ".<br>";
+                html += "Treated, low GPA: β₀ + β₁ = " +
+                        base.toFixed(2) + " + " + bT.toFixed(2) +
+                        " = " + meanTreatLow.toFixed(2) + ".<br>";
+                html += "Control, high GPA: β₀ + β₂ = " +
+                        base.toFixed(2) + " + " + bH.toFixed(2) +
+                        " = " + meanControlHigh.toFixed(2) + ".<br>";
+                html += "Treated, high GPA: β₀ + β₁ + β₂ + β₃ = " +
+                        base.toFixed(2) + " + " + bT.toFixed(2) +
+                        " + " + bH.toFixed(2) + " + " + bTH.toFixed(2) +
+                        " = " + meanTreatHigh.toFixed(2) + ".";
+            } else {
+                html += "Take the intercept (baseline mean) and add the dummy coefficient(s) and interaction term that apply to that group.";
+            }
+        } else if (q.conceptId === "diffDummy") {
+            if (currentScenario.interaction) {
+                html += "Compute the difference in predicted means between the specified group and the baseline.<br>";
+                html += "Write down the model, plug in the relevant dummy values, and subtract the baseline mean β₀.";
+            } else {
+                html += "The dummy coefficient in a simple model directly represents the difference in mean between dummy=1 and dummy=0.<br>";
+                html += "So the difference is β₁ = " + dums[0].value.toFixed(2) + ".";
+            }
+        } else if (q.conceptId === "diffGroups") {
+            if (currentScenario.id === "houseRegion") {
+                var diff = dums[0].value - dums[1].value;
+                html += "Difference in means between West and Central:<br>";
+                html += "(β₀ + β₁West) − (β₀ + β₂Central) = β₁West − β₂Central.<br>";
+                html += "Here: " + dums[0].value.toFixed(2) + " − " + dums[1].value.toFixed(2) +
+                        " = " + diff.toFixed(2) + ".";
+            } else {
+                html += "For two groups, subtract their predicted means: (β₀ + dummy effect for group A) − (β₀ + dummy effect for group B).";
+            }
+        } else if (q.conceptId === "interactionEffect" && currentScenario.interaction) {
+            var bInt = currentScenario.interaction.value;
+            html += "In a model with two dummies D₁ and D₂ and their interaction D₁·D₂:<br>";
+            html += "Y = β₀ + β₁D₁ + β₂D₂ + β₃(D₁·D₂) + u.<br>";
+            html += "β₃ is the interaction effect: how much the effect of one dummy changes when the other dummy goes from 0 to 1.<br>";
+            html += "Numerically, it is also a difference-in-differences: <br>";
+            html += "(Effect of D₁ when D₂=1) − (Effect of D₁ when D₂=0).<br>";
+            html += "Here, the interaction coefficient is β₃ = " + bInt.toFixed(2) + ".";
+        } else if (q.conceptId === "interpret") {
+            html += "A good interpretation might sound like:<br>";
+            html += "<em>" + currentScenario.expertInterpretation + "</em>";
+        } else {
+            html += "Remember: the intercept is the baseline mean, each dummy coefficient is a difference relative to the baseline, and an interaction term adjusts the combined effect of the two dummies.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Dummy variable & interaction practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
