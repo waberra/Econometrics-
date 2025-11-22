@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Regression Goodness of Fit - R² and Adjusted R²</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .r2-card       { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .sst-card      { background: linear-gradient(135deg, #fd7e14, #e55353); border-color:#d63384; color:white; }
+        .ssr-card      { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .sse-card      { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .adj-card      { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:120px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Regression Goodness of Fit (R² and Adjusted R²)</h1>
+        <p>Practice computing SST, SSR, SSE, R² and adjusted R² for simple regression models</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Sums of Squares and Goodness of Fit</h3>
+        <div class="measures-grid">
+            <div class="measure-card sst-card">
+                <h4>📦 Total Sum of Squares (SST)</h4>
+                <div class="formula">
+                    SST = Σ (yᵢ − ȳ)²
+                </div>
+                <div class="description">
+                    Measures total variation of Y around its mean. It does not depend on any model.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Benchmark to compare how much variation is left after fitting a regression.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> How spread out are wages around the average wage?
+                </div>
+            </div>
+
+            <div class="measure-card ssr-card">
+                <h4>📉 Residual Sum of Squares (SSR)</h4>
+                <div class="formula">
+                    SSR = Σ (yᵢ − ŷᵢ)²
+                </div>
+                <div class="description">
+                    Measures unexplained variation: how far actual Y values are from predicted Ŷ.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Smaller SSR means the regression fits the data better.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Remaining error in predicting consumption from income.
+                </div>
+            </div>
+
+            <div class="measure-card sse-card">
+                <h4>📈 Explained Sum of Squares (SSE)</h4>
+                <div class="formula">
+                    SSE = Σ (ŷᵢ − ȳ)²
+                </div>
+                <div class="description">
+                    Measures variation in Y that is explained by the regression model.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Part of total variation captured by the fitted line.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> How much of wage variation is explained by education.
+                </div>
+            </div>
+
+            <div class="measure-card r2-card">
+                <h4>🔢 Coefficient of Determination (R²)</h4>
+                <div class="formula">
+                    R² = 1 − SSR / SST = SSE / SST
+                </div>
+                <div class="description">
+                    Proportion of total variation in Y explained by the regression model.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Summary measure of fit (between 0 and 1).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> R² = 0.80 → 80% of the variation in Y is explained by the model.
+                </div>
+            </div>
+
+            <div class="measure-card adj-card">
+                <h4>📐 Adjusted R²</h4>
+                <div class="formula">
+                    Adj R² = 1 − (SSR/(n − k − 1)) / (SST/(n − 1))
+                </div>
+                <div class="description">
+                    Adjusts R² for the number of explanatory variables k (excluding the intercept).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Comparing models with different numbers of regressors.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Adding a useless variable can raise R² slightly, but usually lowers adjusted R².
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Goodness-of-Fit Practice</h3>
+            <p>Generate a small regression output, then compute SST, SSR, SSE, R², and adjusted R² from the data.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Quantities to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the table of actual values Y and fitted values Ŷ from an estimated regression model.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkSST" checked>
+                        <div><strong>📦 SST</strong><br>Total sum of squares Σ(yᵢ − ȳ)².</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkSSR" checked>
+                        <div><strong>📉 SSR</strong><br>Residual sum of squares Σ(yᵢ − ŷᵢ)².</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkSSE" checked>
+                        <div><strong>📈 SSE</strong><br>Explained sum of squares Σ(ŷᵢ − ȳ)².</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkR2" checked>
+                        <div><strong>🔢 R²</strong><br>Proportion of variation explained: 1 − SSR/SST.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkAdjR2" checked>
+                        <div><strong>📐 Adjusted R²</strong><br>Uses n and k (number of explanatory variables).</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Regression goodness-of-fit practice loaded.");
+
+    var currentScenario = null;
+    var currentMetrics = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    var scenarios = [
+        {
+            id: "consumptionIncome",
+            title: "Household Consumption vs Income",
+            description: "A regression model relates monthly consumption spending (Y, in $100s) to household income (X, in $100s). The table shows actual Y and fitted values Ŷ for a sample of households.",
+            context: "Evaluate how well the model fits the consumption data.",
+            n: 6,
+            k: 1,   // one explanatory variable
+            yLabel: "Actual consumption Y (hundreds of $)",
+            yhatLabel: "Fitted value Ŷ",
+            y:    [18, 20, 23, 25, 27, 30],
+            yhat: [17, 21, 22, 24, 26, 29]
+        },
+        {
+            id: "wageEducation",
+            title: "Hourly Wage vs Education & Experience",
+            description: "A multiple regression model predicts hourly wage (Y, in $/hour) from years of education and years of experience. The table shows actual wages and fitted values.",
+            context: "Assess how much of wage variation is explained by the model.",
+            n: 7,
+            k: 2,   // two explanatory variables (education, experience)
+            yLabel: "Actual wage Y ($/hour)",
+            yhatLabel: "Fitted value Ŷ",
+            y:    [15, 17, 19, 21, 23, 24, 26],
+            yhat: [14, 18, 19, 20, 22, 25, 25]
+        },
+        {
+            id: "housePrice",
+            title: "House Price vs Size and Location Score",
+            description: "A real estate regression predicts house price (Y, in $1000s) using house size and a location score. The table lists actual and fitted prices.",
+            context: "Check the fit of the house price model.",
+            n: 5,
+            k: 2,   // two explanatory variables
+            yLabel: "Actual price Y (thousands of $)",
+            yhatLabel: "Fitted value Ŷ",
+            y:    [260, 275, 295, 310, 335],
+            yhat: [255, 280, 290, 305, 330]
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentMetrics = computeMetrics(currentScenario);
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '<p style="margin-top:8px;font-size:0.85em;"><strong>Model information:</strong> n = ' +
+                    currentScenario.n + ' observations, k = ' + currentScenario.k +
+                    ' explanatory variable(s) (excluding the intercept).</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkSST").checked = true;
+        document.getElementById("chkSSR").checked = true;
+        document.getElementById("chkSSE").checked = true;
+        document.getElementById("chkR2").checked  = true;
+        document.getElementById("chkAdjR2").checked = true;
+    }
+
+    function displayData(scenario) {
+        var y = scenario.y;
+        var yhat = scenario.yhat;
+        var html = "";
+        html += '<h4>📋 Data: Actual vs Fitted Values</h4>';
+        html += '<div class="data-block">';
+        html += '<table class="data-table">';
+        html += '<thead><tr><th>Obs</th><th>' + scenario.yLabel + '</th><th>' + scenario.yhatLabel + '</th></tr></thead><tbody>';
+        for (var i = 0; i < y.length; i++) {
+            html += '<tr><td>' + (i+1) + '</td><td>' + y[i] + '</td><td>' + yhat[i] + '</td></tr>';
+        }
+        html += '</tbody></table>';
+        html += '</div>';
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function computeMetrics(scenario) {
+        var y    = scenario.y;
+        var yhat = scenario.yhat;
+        var n = y.length;
+        var sumY = 0;
+        var i;
+        for (i = 0; i < n; i++) {
+            sumY += y[i];
+        }
+        var ybar = sumY / n;
+
+        var SST = 0, SSR = 0, SSE = 0;
+        for (i = 0; i < n; i++) {
+            var dy  = y[i] - ybar;
+            var e   = y[i] - yhat[i];
+            var dyp = yhat[i] - ybar;
+            SST += dy * dy;
+            SSR += e  * e;
+            SSE += dyp * dyp;
+        }
+
+        var R2  = 1 - (SSR / SST);
+        var dfTotal = n - 1;
+        var dfRes   = n - scenario.k - 1;
+        var adjR2 = 1 - (SSR / dfRes) / (SST / dfTotal);
+
+        return {
+            ybar: ybar,
+            SST: SST,
+            SSR: SSR,
+            SSE: SSE,
+            R2:  R2,
+            adjR2: adjR2,
+            dfTotal: dfTotal,
+            dfRes: dfRes
+        };
+    }
+
+    function generateQuestions() {
+        if (!currentScenario || !currentMetrics) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkSST   = document.getElementById("chkSST").checked;
+        var chkSSR   = document.getElementById("chkSSR").checked;
+        var chkSSE   = document.getElementById("chkSSE").checked;
+        var chkR2    = document.getElementById("chkR2").checked;
+        var chkAdj   = document.getElementById("chkAdjR2").checked;
+
+        if (chkSST)   addSSTQuestion();
+        if (chkSSR)   addSSRQuestion();
+        if (chkSSE)   addSSEQuestion();
+        if (chkR2)    addR2Question();
+        if (chkAdj)   addAdjR2Question();
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No questions selected. Tick at least one quantity.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        var i;
+        for (i = 0; i < currentQuestions.length; i++) {
+            html += renderQuestionCard(currentQuestions[i], i);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function addSSTQuestion() {
+        var q = {
+            conceptId: "SST",
+            title: "📦 Total Sum of Squares (SST)",
+            prompt: "Compute SST = Σ(yᵢ − ȳ)² using the actual Y values and their mean ȳ.",
+            correctValue: currentMetrics.SST,
+            format: "sumSquares",
+            unitHint: "(SST)"
+        };
+        currentQuestions.push(q);
+    }
+
+    function addSSRQuestion() {
+        var q = {
+            conceptId: "SSR",
+            title: "📉 Residual Sum of Squares (SSR)",
+            prompt: "Compute SSR = Σ(yᵢ − ŷᵢ)², the sum of squared residuals.",
+            correctValue: currentMetrics.SSR,
+            format: "sumSquares",
+            unitHint: "(SSR)"
+        };
+        currentQuestions.push(q);
+    }
+
+    function addSSEQuestion() {
+        var q = {
+            conceptId: "SSE",
+            title: "📈 Explained Sum of Squares (SSE)",
+            prompt: "Compute SSE = Σ(ŷᵢ − ȳ)², the explained sum of squares.",
+            correctValue: currentMetrics.SSE,
+            format: "sumSquares",
+            unitHint: "(SSE)"
+        };
+        currentQuestions.push(q);
+    }
+
+    function addR2Question() {
+        var q = {
+            conceptId: "R2",
+            title: "🔢 R²",
+            prompt: "Compute R² = 1 − SSR/SST using your values for SSR and SST.",
+            correctValue: currentMetrics.R2,
+            format: "R2",
+            unitHint: "(between 0 and 1)"
+        };
+        currentQuestions.push(q);
+    }
+
+    function addAdjR2Question() {
+        var q = {
+            conceptId: "AdjR2",
+            title: "📐 Adjusted R²",
+            prompt: "Compute adjusted R² = 1 − (SSR/(n − k − 1)) / (SST/(n − 1)) using n, k, SSR and SST.",
+            correctValue: currentMetrics.adjR2,
+            format: "R2",
+            unitHint: "(adjusted R²)"
+        };
+        currentQuestions.push(q);
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="number" id="answer_' + index + '" step="any">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+        var i;
+        for (i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var valStr = ansInput.value;
+            if (valStr === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            var userVal = parseFloat(valStr);
+            if (isNaN(userVal)) {
+                feedbackEl.textContent = "Please enter a numeric answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            var correct = q.correctValue;
+            var ok = isClose(userVal, correct, q.format);
+
+            if (ok) {
+                numCorrect++;
+                feedbackEl.textContent = "✅ Correct (expected about " + formatValue(correct, q.format) + ").";
+                feedbackEl.className = "feedback correct";
+            } else {
+                feedbackEl.textContent = "❌ Not quite. A good answer is about " + formatValue(correct, q.format) + ".";
+                feedbackEl.className = "feedback incorrect";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " questions correctly (within a small tolerance).");
+        interpLines.push("• Use the explanations to see clearly how SST, SSR, SSE, R² and adjusted R² are built from the same Y and Ŷ values.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isClose(userVal, correctVal, format) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol;
+
+        if (format === "sumSquares") {
+            tol = Math.max(0.5, Math.abs(correctVal) * 0.03);  // ±3% or at least 0.5
+        } else if (format === "R2") {
+            tol = 0.01;  // ±0.01
+        } else {
+            tol = Math.max(0.01, Math.abs(correctVal) * 0.03);
+        }
+        return diff <= tol;
+    }
+
+    function formatValue(v, format) {
+        if (format === "R2") return v.toFixed(3);
+        return v.toFixed(2);
+    }
+
+    function getExplanationHtml(q) {
+        var m = currentMetrics;
+        var html = "";
+        html += "<strong>How to compute this:</strong><br>";
+
+        if (q.conceptId === "SST") {
+            html += "1. Compute the mean of Y: ȳ = (Σyᵢ) / n.<br>";
+            html += "2. For each observation, compute (yᵢ − ȳ).<br>";
+            html += "3. Square each difference and sum them: SST = Σ(yᵢ − ȳ)².<br>";
+            html += "4. This measures total variation in Y around the mean.";
+        } else if (q.conceptId === "SSR") {
+            html += "1. For each observation, compute the residual eᵢ = yᵢ − ŷᵢ.<br>";
+            html += "2. Square each residual and sum them: SSR = Σ(yᵢ − ŷᵢ)².<br>";
+            html += "3. This is the unexplained variation left after fitting the regression.";
+        } else if (q.conceptId === "SSE") {
+            html += "1. Compute the mean ȳ.<br>";
+            html += "2. For each observation, compute (ŷᵢ − ȳ).<br>";
+            html += "3. Square each and sum: SSE = Σ(ŷᵢ − ȳ)².<br>";
+            html += "4. This is the part of the variation in Y explained by the model.";
+        } else if (q.conceptId === "R2") {
+            html += "1. First compute SST and SSR.<br>";
+            html += "2. Use the formula R² = 1 − SSR/SST (equivalently, SSE/SST).<br>";
+            html += "3. Interpret as the proportion of total variation in Y explained by the model.";
+        } else if (q.conceptId === "AdjR2") {
+            html += "1. Note that n is the sample size and k is the number of explanatory variables (excluding the intercept).<br>";
+            html += "2. Compute the mean squared error of the residuals: SSR/(n − k − 1).<br>";
+            html += "3. Compute the total mean square: SST/(n − 1).<br>";
+            html += "4. Use the formula adjusted R² = 1 − (SSR/(n − k − 1)) / (SST/(n − 1)).<br>";
+            html += "5. This penalizes adding extra regressors that do not really improve the fit.";
+        } else {
+            html += "Review the definition and formula, then plug in the values from the table.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentMetrics = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Goodness-of-fit practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
