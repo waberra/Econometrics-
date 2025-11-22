@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Regression Decision Making - Econometrics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #303f9f;
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-title p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .concepts-section {
+            background: linear-gradient(135deg, #2e7d32, #388e3c);
+            color: white;
+            padding: 25px;
+            margin: 0;
+        }
+
+        .concepts-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .decision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .decision-card {
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .decision-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+
+        .variable-selection-card {
+            background: linear-gradient(135deg, #d32f2f, #f44336);
+            border-color: #b71c1c;
+            color: white;
+        }
+
+        .multicollinearity-card {
+            background: linear-gradient(135deg, #f57c00, #ff9800);
+            border-color: #e65100;
+            color: white;
+        }
+
+        .specification-card {
+            background: linear-gradient(135deg, #7b1fa2, #9c27b0);
+            border-color: #4a148c;
+            color: white;
+        }
+
+        .model-selection-card {
+            background: linear-gradient(135deg, #388e3c, #4caf50);
+            border-color: #1b5e20;
+            color: white;
+        }
+
+        .interpretation-card {
+            background: linear-gradient(135deg, #1976d2, #2196f3);
+            border-color: #0d47a1;
+            color: white;
+        }
+
+        .assumptions-card {
+            background: linear-gradient(135deg, #5d4037, #795548);
+            border-color: #3e2723;
+            color: white;
+        }
+
+        .decision-card h4 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .decision-card .description {
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .decision-card .questions {
+            margin-bottom: 15px;
+            font-style: italic;
+            font-size: 0.95em;
+        }
+
+        .decision-card .examples {
+            font-size: 0.9em;
+            border-top: 2px solid rgba(255,255,255,0.3);
+            padding-top: 10px;
+        }
+
+        .interactive-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #2e7d32;
+        }
+
+        .scenario-display {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #1a237e;
+            display: none;
+        }
+
+        .decision-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #d32f2f;
+            display: none;
+        }
+
+        .feedback-area {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #f57c00;
+            display: none;
+        }
+
+        .implementation-area {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #7b1fa2;
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2e7d32, #388e3c);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #388e3c, #2e7d32);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(46, 125, 50, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #495057, #6c757d);
+            box-shadow: 0 6px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .variables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .variable-card {
+            background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
+            color: #2c3e50;
+            border: 2px solid #bdc3c7;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .variable-card:hover {
+            background: linear-gradient(135deg, #d5dbdb, #bdc3c7);
+            transform: translateY(-2px);
+        }
+
+        .variable-card.selected {
+            background: linear-gradient(135deg, #d6eaf8, #aed6f1);
+            border-color: #3498db;
+            color: #1f4e79;
+        }
+
+        .variable-card.required {
+            background: linear-gradient(135deg, #fadbd8, #f1948a);
+            border-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
+            color: #2c3e50;
+            border: 2px solid #bdc3c7;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background: linear-gradient(135deg, #d5dbdb, #bdc3c7);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #d5f4e6, #a8e6cf);
+            border-color: #27ae60;
+            color: #1e8449;
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, #fadbd8, #f1948a);
+            border-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, #d6eaf8, #aed6f1);
+            border-color: #3498db;
+            color: #1f4e79;
+        }
+
+        .data-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid #dee2e6;
+        }
+
+        .correlation-matrix {
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .correlation-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.9em;
+        }
+
+        .correlation-table th,
+        .correlation-table td {
+            padding: 8px 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .correlation-table th {
+            background: #343a40;
+            color: white;
+            font-weight: 600;
+        }
+
+        .corr-high {
+            background: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+
+        .corr-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .corr-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .regression-equation {
+            background: linear-gradient(135deg, #f4f4f4, #e8e8e8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #3498db;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .reasoning-textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 1em;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .feedback-box {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .feedback-correct {
+            background: #d4f6d4;
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+
+        .feedback-incorrect {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            color: #721c24;
+        }
+
+        .feedback-partial {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+
+        .progress-display {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 3px solid #5f3dc4;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .decision-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .variables-grid,
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>🔢 Multiple Regression Decisions</h1>
+            <p>Master Variable Selection, Multicollinearity, and Model Specification</p>
+        </div>
+
+        <div class="concepts-section">
+            <h3>🎯 Key Decision Points in Multiple Regression</h3>
+            <div class="decision-grid">
+                <div class="decision-card variable-selection-card">
+                    <h4>🎯 Variable Selection</h4>
+                    <div class="description">
+                        <strong>The Foundation Decision</strong><br>
+                        Which explanatory variables should be included in your model?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Theory-driven? Data-driven? Controls needed? Interaction terms?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Omitted variable bias vs overfitting, parsimony vs completeness
+                    </div>
+                </div>
+
+                <div class="decision-card multicollinearity-card">
+                    <h4>🔗 Multicollinearity</h4>
+                    <div class="description">
+                        <strong>Variable Independence</strong><br>
+                        How do you handle highly correlated explanatory variables?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> VIF thresholds? Which variables to drop? Ridge regression?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Coefficient instability, standard error inflation, interpretation issues
+                    </div>
+                </div>
+
+                <div class="decision-card specification-card">
+                    <h4>📐 Model Specification</h4>
+                    <div class="description">
+                        <strong>Functional Form</strong><br>
+                        How should variables enter the regression equation?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Linear? Logs? Interactions? Polynomial terms?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Economic theory, statistical tests, out-of-sample performance
+                    </div>
+                </div>
+
+                <div class="decision-card model-selection-card">
+                    <h4>📊 Model Selection Criteria</h4>
+                    <div class="description">
+                        <strong>Comparing Models</strong><br>
+                        How do you choose between alternative specifications?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> R² vs Adjusted R²? AIC vs BIC? F-tests? Cross-validation?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Goodness-of-fit vs complexity, in-sample vs out-of-sample
+                    </div>
+                </div>
+
+                <div class="decision-card interpretation-card">
+                    <h4>📖 Coefficient Interpretation</h4>
+                    <div class="description">
+                        <strong>Ceteris Paribus Effects</strong><br>
+                        How do you interpret coefficients with multiple variables?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Holding what constant? Marginal vs partial effects? Interactions?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Economic significance, practical importance, policy relevance
+                    </div>
+                </div>
+
+                <div class="decision-card assumptions-card">
+                    <h4>🔬 Assumption Testing</h4>
+                    <div class="description">
+                        <strong>Model Validity</strong><br>
+                        How do you test regression assumptions with multiple variables?
+                    </div>
+                    <div class="questions">
+                        <strong>Key Questions:</strong> Heteroskedasticity? Autocorrelation? Normality? Linearity?
+                    </div>
+                    <div class="examples">
+                        <strong>Consider:</strong> Diagnostic tests, residual analysis, robustness checks
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactive-section">
+            <div class="control-panel">
+                <h3>🎮 Interactive Multiple Regression Decision Making</h3>
+                <p>Practice variable selection and specification decisions with real Canadian economic data!</p>
+                <p style="font-size: 0.9em; color: #6c757d; margin-top: 10px;">
+                    ✨ <strong>Advanced Methodology:</strong> Make decisions about variable inclusion, multicollinearity treatment, and model specification like a professional econometrician.
+                </p>
+                <button class="btn" onclick="generateScenario()">📊 Generate Economic Research Scenario</button>
+                <button class="btn btn-secondary" onclick="resetAnalysis()">🔄 Reset Analysis</button>
+            </div>
+
+            <div id="scenarioDisplay" class="scenario-display">
+                <h3 id="scenarioTitle">📋 Economic Research Scenario</h3>
+                <div id="scenarioDescription"></div>
+                <div id="dataDisplay"></div>
+                <div id="correlationDisplay"></div>
+            </div>
+
+            <div id="decisionSection" class="decision-section">
+                <h3>🤔 Your Multiple Regression Decisions</h3>
+                <div id="currentDecisionArea"></div>
+                <div id="reasoningArea" style="margin-top: 20px;">
+                    <h4>📝 Your Reasoning:</h4>
+                    <textarea id="studentReasoning" class="reasoning-textarea" placeholder="Explain your methodological choice and the economic reasoning behind it..."></textarea>
+                </div>
+                <button class="btn" onclick="submitDecision()" id="submitBtn" style="margin-top: 15px;">📝 Submit Analysis</button>
+            </div>
+
+            <div id="feedbackArea" class="feedback-area">
+                <h3>🧠 Expert Econometrician Feedback</h3>
+                <div id="feedbackContent"></div>
+                <button class="btn" onclick="proceedToImplementation()" id="implementBtn">🧮 Show Implementation</button>
+            </div>
+
+            <div id="implementationArea" class="implementation-area">
+                <h3>📊 Multiple Regression Implementation</h3>
+                <div id="implementationContent"></div>
+                <button class="btn" onclick="generateScenario()">➡️ Try Another Scenario</button>
+            </div>
+
+            <div class="progress-display">
+                <h3>🎯 Multiple Regression Learning Progress</h3>
+                <div>Scenarios Analyzed: <span id="scenariosCompleted">0</span></div>
+                <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                    Building expertise in complex econometric modeling and research design
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScenario = {};
+        let currentDecisionType = "";
+        let studentChoices = [];
+        let studentReasoning = "";
+        let scenariosCompleted = 0;
+        let decisionStep = 0;
+
+        const scenarios = [
+            {
+                title: "Canadian Housing Market Analysis",
+                description: "Modeling house prices across major Canadian cities with multiple explanatory variables",
+                context: "Bank of Canada policy research on housing market dynamics",
+                researchQuestion: "What factors drive regional housing price differences in Canada?",
+                dependentVariable: "Average House Price ($000s CAD)",
+                availableVariables: [
+                    {id: "population", name: "Population (000s)", required: false, description: "Metropolitan area population"},
+                    {id: "income", name: "Median Income ($000s)", required: true, description: "Household median income"},
+                    {id: "mortgageRate", name: "Mortgage Rate (%)", required: true, description: "5-year fixed rate"},
+                    {id: "unemployment", name: "Unemployment Rate (%)", required: false, description: "Regional unemployment"},
+                    {id: "immigration", name: "Immigration Rate (per 1000)", required: false, description: "Annual immigration rate"},
+                    {id: "construction", name: "Housing Starts (per 1000)", required: false, description: "New housing construction"},
+                    {id: "landArea", name: "Developable Land (km²)", required: false, description: "Available development area"},
+                    {id: "distance", name: "Distance to Toronto (km)", required: false, description: "Economic center proximity"}
+                ],
+                correlationMatrix: {
+                    income_population: 0.72,
+                    income_immigration: 0.68,
+                    population_immigration: 0.81,
+                    mortgageRate_unemployment: -0.45,
+                    construction_population: 0.59,
+                    distance_income: -0.54
+                },
+                economicTheory: "Housing prices determined by demand (income, population, immigration) and supply (construction, land) factors, plus monetary policy",
+                dataType: "cross-sectional"
+            },
+            {
+                title: "Provincial Economic Growth Determinants",
+                description: "Analyzing factors affecting GDP per capita growth across Canadian provinces",
+                context: "Federal finance department research for equalization formula review",
+                researchQuestion: "Which factors most significantly drive provincial economic growth?",
+                dependentVariable: "GDP per Capita Growth (%)",
+                availableVariables: [
+                    {id: "investment", name: "Investment Rate (% GDP)", required: true, description: "Provincial investment share"},
+                    {id: "education", name: "Education Index", required: false, description: "Human capital measure"},
+                    {id: "resources", name: "Natural Resource Share (% GDP)", required: false, description: "Resource dependence"},
+                    {id: "technology", name: "R&D Spending (% GDP)", required: false, description: "Innovation investment"},
+                    {id: "infrastructure", name: "Infrastructure Index", required: false, description: "Transportation/utilities quality"},
+                    {id: "trade", name: "Exports (% GDP)", required: true, description: "Trade openness"},
+                    {id: "government", name: "Government Size (% GDP)", required: false, description: "Public sector share"},
+                    {id: "taxes", name: "Tax Rate (%)", required: false, description: "Provincial tax burden"}
+                ],
+                correlationMatrix: {
+                    education_technology: 0.67,
+                    investment_infrastructure: 0.58,
+                    resources_government: -0.42,
+                    trade_resources: 0.51,
+                    taxes_government: 0.73,
+                    education_investment: 0.49
+                },
+                economicTheory: "Endogenous growth theory: investment, human capital, technology, and institutions drive long-term growth",
+                dataType: "panel"
+            },
+            {
+                title: "Agricultural Productivity Analysis",
+                description: "Examining factors affecting crop yields across Canadian farming regions",
+                context: "Agriculture Canada research for climate adaptation policy",
+                researchQuestion: "How do environmental and economic factors affect agricultural productivity?",
+                dependentVariable: "Crop Yield (tonnes per hectare)",
+                availableVariables: [
+                    {id: "rainfall", name: "Annual Rainfall (mm)", required: true, description: "Growing season precipitation"},
+                    {id: "temperature", name: "Average Temperature (°C)", required: true, description: "Growing season temperature"},
+                    {id: "soilQuality", name: "Soil Quality Index", required: false, description: "Soil fertility rating"},
+                    {id: "farmSize", name: "Farm Size (hectares)", required: false, description: "Scale of operation"},
+                    {id: "fertilizer", name: "Fertilizer Use (kg/hectare)", required: false, description: "Chemical input intensity"},
+                    {id: "technology", name: "Technology Adoption Index", required: false, description: "Modern equipment usage"},
+                    {id: "experience", name: "Farmer Experience (years)", required: false, description: "Operator experience"},
+                    {id: "subsidies", name: "Government Subsidies ($000s)", required: false, description: "Financial support"}
+                ],
+                correlationMatrix: {
+                    farmSize_technology: 0.64,
+                    fertilizer_technology: 0.59,
+                    experience_soilQuality: 0.41,
+                    subsidies_farmSize: 0.52,
+                    rainfall_temperature: -0.38,
+                    technology_experience: 0.47
+                },
+                economicTheory: "Agricultural production function: climate, land quality, inputs, and technology determine output",
+                dataType: "cross-sectional"
+            },
+            {
+                title: "Labor Market Wage Determination",
+                description: "Analyzing wage differences across occupations and regions in Canada",
+                context: "Employment and Social Development Canada policy research",
+                researchQuestion: "What factors explain wage variation in the Canadian labor market?",
+                dependentVariable: "Hourly Wage (CAD)",
+                availableVariables: [
+                    {id: "education", name: "Years of Education", required: true, description: "Formal education completed"},
+                    {id: "experience", name: "Work Experience (years)", required: true, description: "Labor market experience"},
+                    {id: "union", name: "Union Member (0/1)", required: false, description: "Union membership status"},
+                    {id: "gender", name: "Gender (0/1)", required: false, description: "Female = 1"},
+                    {id: "industry", name: "Industry (categorical)", required: false, description: "Sector of employment"},
+                    {id: "region", name: "Region (categorical)", required: false, description: "Geographic location"},
+                    {id: "firmSize", name: "Firm Size (employees)", required: false, description: "Company size"},
+                    {id: "occupation", name: "Occupation Skill Level", required: false, description: "NOC skill level"}
+                ],
+                correlationMatrix: {
+                    education_occupation: 0.71,
+                    experience_firmSize: 0.43,
+                    union_industry: 0.52,
+                    education_experience: 0.28,
+                    firmSize_industry: 0.61,
+                    gender_occupation: -0.34
+                },
+                economicTheory: "Human capital theory: wages reflect productivity determined by education, experience, and job characteristics",
+                dataType: "cross-sectional"
+            }
+        ];
+
+        const decisionTypes = [
+            {
+                id: "variable_selection",
+                title: "Variable Selection Decision",
+                question: "Which variables should be included in your regression model?",
+                instruction: "Select variables based on economic theory, statistical significance, and research objectives. Required variables are highlighted.",
+                type: "multiple_choice"
+            },
+            {
+                id: "multicollinearity",
+                title: "Multicollinearity Treatment",
+                question: "How should you handle the multicollinearity issues in this dataset?",
+                options: [
+                    {
+                        id: "ignore",
+                        label: "Ignore the Correlations",
+                        description: "Include all variables despite high correlations",
+                        detail: "Accept multicollinearity and interpret coefficients cautiously"
+                    },
+                    {
+                        id: "drop_highest",
+                        label: "Drop Most Correlated Variable",
+                        description: "Remove variable with highest VIF/correlation",
+                        detail: "Eliminate most problematic variable to reduce multicollinearity"
+                    },
+                    {
+                        id: "combine_variables",
+                        label: "Create Composite Index",
+                        description: "Combine correlated variables into single index",
+                        detail: "Use principal components or weighted average"
+                    },
+                    {
+                        id: "ridge_regression",
+                        label: "Use Ridge Regression",
+                        description: "Apply regularization to handle multicollinearity",
+                        detail: "Shrinkage method that retains all variables"
+                    },
+                    {
+                        id: "theory_based",
+                        label: "Theory-Based Selection",
+                        description: "Keep theoretically most important variables",
+                        detail: "Prioritize economic theory over statistical criteria"
+                    }
+                ]
+            },
+            {
+                id: "specification",
+                title: "Model Specification Decision",
+                question: "How should the selected variables enter the regression equation?",
+                options: [
+                    {
+                        id: "linear",
+                        label: "Linear Specification",
+                        description: "All variables enter linearly",
+                        detail: "Y = α + β₁X₁ + β₂X₂ + ... + ε"
+                    },
+                    {
+                        id: "log_linear",
+                        label: "Log-Linear Specification", 
+                        description: "Log dependent variable, linear independents",
+                        detail: "log(Y) = α + β₁X₁ + β₂X₂ + ... + ε"
+                    },
+                    {
+                        id: "log_log",
+                        label: "Log-Log Specification",
+                        description: "Log both dependent and independent variables",
+                        detail: "log(Y) = α + β₁log(X₁) + β₂log(X₂) + ... + ε"
+                    },
+                    {
+                        id: "interactions",
+                        label: "Include Interaction Terms",
+                        description: "Add interaction between key variables",
+                        detail: "Y = α + β₁X₁ + β₂X₂ + β₃(X₁×X₂) + ... + ε"
+                    },
+                    {
+                        id: "polynomial",
+                        label: "Polynomial Terms",
+                        description: "Add quadratic or higher-order terms",
+                        detail: "Y = α + β₁X₁ + β₂X₁² + β₃X₂ + ... + ε"
+                    }
+                ]
+            }
+        ];
+
+        // Expert recommendations for each scenario and decision type
+        const expertRecommendations = {
+            "Canadian Housing Market Analysis": {
+                variable_selection: {
+                    essential: ["income", "mortgageRate"],
+                    recommended: ["population", "immigration", "construction"],
+                    optional: ["unemployment", "landArea", "distance"],
+                    avoid: [],
+                    reasoning: "Income and mortgage rates are fundamental demand drivers. Population and immigration represent demand pressure, while construction affects supply.",
+                    multicollinearity_concerns: ["population", "immigration", "income"]
+                },
+                multicollinearity: {
+                    best: ["theory_based", "combine_variables"],
+                    reasoning: "Population and immigration are highly correlated but both theoretically important. Consider creating 'demographic pressure' index.",
+                    problematic_pairs: [["population", "immigration"], ["income", "population"]]
+                },
+                specification: {
+                    best: ["log_linear", "interactions"],
+                    reasoning: "Housing prices have percentage responses to rate changes. Interaction between income and mortgage rates captures affordability effects.",
+                    avoid: ["polynomial"],
+                    avoid_reasons: {
+                        "polynomial": "Economic theory doesn't suggest non-linear relationships for most housing variables"
+                    }
+                }
+            },
+            "Provincial Economic Growth Determinants": {
+                variable_selection: {
+                    essential: ["investment", "trade"],
+                    recommended: ["education", "technology", "infrastructure"],
+                    optional: ["resources", "government", "taxes"],
+                    avoid: [],
+                    reasoning: "Investment and trade are core growth drivers in endogenous growth theory. Education, R&D, and infrastructure represent long-term productivity factors.",
+                    multicollinearity_concerns: ["education", "technology", "investment"]
+                },
+                multicollinearity: {
+                    best: ["combine_variables", "theory_based"],
+                    reasoning: "Education and technology are complementary in knowledge economy. Create 'human capital' index combining both measures.",
+                    problematic_pairs: [["education", "technology"], ["taxes", "government"]]
+                },
+                specification: {
+                    best: ["log_linear", "interactions"],
+                    reasoning: "Growth rates respond proportionally to changes. Interaction between investment and education captures complementary effects on growth.",
+                    avoid: ["linear"],
+                    avoid_reasons: {
+                        "linear": "Growth processes are typically multiplicative, suggesting log specification"
+                    }
+                }
+            },
+            "Agricultural Productivity Analysis": {
+                variable_selection: {
+                    essential: ["rainfall", "temperature"],
+                    recommended: ["soilQuality", "farmSize", "technology"],
+                    optional: ["fertilizer", "experience", "subsidies"],
+                    avoid: [],
+                    reasoning: "Climate variables are fundamental biological constraints. Soil quality, scale, and technology represent controllable productivity factors.",
+                    multicollinearity_concerns: ["farmSize", "technology", "fertilizer"]
+                },
+                multicollinearity: {
+                    best: ["theory_based", "drop_highest"],
+                    reasoning: "Large farms adopt more technology and use more fertilizer. Keep technology as it's most policy-relevant; drop fertilizer.",
+                    problematic_pairs: [["farmSize", "technology"], ["technology", "fertilizer"]]
+                },
+                specification: {
+                    best: ["log_log", "interactions"],
+                    reasoning: "Production functions are typically Cobb-Douglas (log-log). Interaction between rainfall and temperature captures climate interactions.",
+                    avoid: ["linear"],
+                    avoid_reasons: {
+                        "linear": "Agricultural production exhibits diminishing returns, better captured by log specification"
+                    }
+                }
+            },
+            "Labor Market Wage Determination": {
+                variable_selection: {
+                    essential: ["education", "experience"],
+                    recommended: ["union", "gender", "occupation"],
+                    optional: ["industry", "region", "firmSize"],
+                    avoid: [],
+                    reasoning: "Education and experience are core human capital variables. Union, gender, and occupation capture institutional and discrimination effects.",
+                    multicollinearity_concerns: ["education", "occupation", "industry"]
+                },
+                multicollinearity: {
+                    best: ["theory_based", "combine_variables"],
+                    reasoning: "Education and occupation are related but measure different aspects. Keep education for returns estimate, combine industry/occupation into 'job quality' index.",
+                    problematic_pairs: [["education", "occupation"], ["industry", "firmSize"]]
+                },
+                specification: {
+                    best: ["log_linear", "interactions"],
+                    reasoning: "Wage equations traditionally semi-log for percentage returns to education. Interaction between education and experience captures complementarity.",
+                    avoid: ["log_log"],
+                    avoid_reasons: {
+                        "log_log": "Education is discrete variable (years), log doesn't make economic sense"
+                    }
+                }
+            }
+        };
+
+        function generateScenario() {
+            const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+            currentScenario = scenario;
+            decisionStep = 0;
+            
+            document.getElementById('scenarioDisplay').style.display = 'block';
+            document.getElementById('decisionSection').style.display = 'none';
+            document.getElementById('feedbackArea').style.display = 'none';
+            document.getElementById('implementationArea').style.display = 'none';
+            
+            displayScenario();
+        }
+
+        function displayScenario() {
+            document.getElementById('scenarioTitle').textContent = `📊 ${currentScenario.title}`;
+            
+            document.getElementById('scenarioDescription').innerHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>📋 Research Context:</h4>
+                    <p><strong>Description:</strong> ${currentScenario.description}</p>
+                    <p><strong>Policy Context:</strong> ${currentScenario.context}</p>
+                    <p><strong>Research Question:</strong> ${currentScenario.researchQuestion}</p>
+                    
+                    <div style="margin-top: 15px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                        <h5>🎯 Economic Theory:</h5>
+                        <p>${currentScenario.economicTheory}</p>
+                    </div>
+                </div>
+            `;
+            
+            displayData();
+            displayCorrelationMatrix();
+            
+            // Start first decision after brief delay
+            setTimeout(() => {
+                document.getElementById('decisionSection').style.display = 'block';
+                presentDecision();
+            }, 1000);
+        }
+
+        function displayData() {
+            let dataHTML = `
+                <div class="data-display">
+                    <h4>📊 Dataset Information:</h4>
+                    <p><strong>Dependent Variable:</strong> ${currentScenario.dependentVariable}</p>
+                    <p><strong>Data Type:</strong> ${currentScenario.dataType}</p>
+                    
+                    <h5 style="margin-top: 20px;">Available Explanatory Variables:</h5>
+                    <div class="variables-grid">
+            `;
+            
+            currentScenario.availableVariables.forEach(variable => {
+                dataHTML += `
+                    <div class="variable-card ${variable.required ? 'required' : ''}" data-variable="${variable.id}">
+                        <div style="font-weight: bold; margin-bottom: 5px;">${variable.name}</div>
+                        <div style="font-size: 0.8em; color: #666;">${variable.description}</div>
+                        ${variable.required ? '<div style="margin-top: 5px; font-size: 0.8em; color: #c0392b;"><strong>Required</strong></div>' : ''}
+                    </div>
+                `;
+            });
+            
+            dataHTML += `
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('dataDisplay').innerHTML = dataHTML;
+        }
+
+        function displayCorrelationMatrix() {
+            const correlations = currentScenario.correlationMatrix;
+            
+            let correlationHTML = `
+                <div class="data-display">
+                    <h4>🔗 Key Variable Correlations:</h4>
+                    <p style="margin-bottom: 15px;">High correlations (>0.6) may indicate multicollinearity concerns:</p>
+                    
+                    <div class="correlation-matrix">
+                        <table class="correlation-table">
+                            <thead>
+                                <tr>
+                                    <th>Variable Pair</th>
+                                    <th>Correlation</th>
+                                    <th>Interpretation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            Object.entries(correlations).forEach(([pair, corr]) => {
+                const absCorr = Math.abs(corr);
+                const corrClass = absCorr > 0.6 ? 'corr-high' : absCorr > 0.4 ? 'corr-medium' : 'corr-low';
+                const interpretation = absCorr > 0.6 ? 'High - Potential multicollinearity' : 
+                                     absCorr > 0.4 ? 'Moderate - Monitor closely' : 
+                                     'Low - No concern';
+                
+                const varNames = pair.split('_').map(v => 
+                    currentScenario.availableVariables.find(av => av.id === v)?.name.split(' ')[0] || v
+                ).join(' & ');
+                
+                correlationHTML += `
+                    <tr>
+                        <td>${varNames}</td>
+                        <td class="${corrClass}">${corr.toFixed(2)}</td>
+                        <td>${interpretation}</td>
+                    </tr>
+                `;
+            });
+            
+            correlationHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('correlationDisplay').innerHTML = correlationHTML;
+        }
+
+        function presentDecision() {
+            const decisionType = decisionTypes[decisionStep];
+            currentDecisionType = decisionType.id;
+            
+            if (decisionType.id === 'variable_selection') {
+                presentVariableSelection(decisionType);
+            } else {
+                presentStandardDecision(decisionType);
+            }
+        }
+
+        function presentVariableSelection(decisionType) {
+            let decisionHTML = `
+                <h4>${decisionType.title}</h4>
+                <p style="margin: 15px 0; font-weight: 500;">${decisionType.question}</p>
+                <p style="margin: 15px 0; color: #666;">${decisionType.instruction}</p>
+                
+                <div class="variables-grid">
+            `;
+            
+            currentScenario.availableVariables.forEach(variable => {
+                decisionHTML += `
+                    <div class="variable-card ${variable.required ? 'selected' : ''}" 
+                         onclick="toggleVariableSelection('${variable.id}', this)" 
+                         data-variable="${variable.id}">
+                        <div style="font-weight: bold; margin-bottom: 8px;">${variable.name}</div>
+                        <div style="font-size: 0.8em; color: #666; margin-bottom: 8px;">${variable.description}</div>
+                        ${variable.required ? '<div style="font-size: 0.8em; color: #c0392b;"><strong>Required</strong></div>' : ''}
+                    </div>
+                `;
+            });
+            
+            decisionHTML += `</div>`;
+            
+            document.getElementById('currentDecisionArea').innerHTML = decisionHTML;
+            document.getElementById('studentReasoning').value = '';
+            
+            // Initialize with required variables
+            studentChoices = currentScenario.availableVariables
+                .filter(v => v.required)
+                .map(v => v.id);
+        }
+
+        function presentStandardDecision(decisionType) {
+            let decisionHTML = `
+                <h4>${decisionType.title}</h4>
+                <p style="margin: 15px 0; font-weight: 500;">${decisionType.question}</p>
+                
+                <div class="options-grid">
+            `;
+            
+            decisionType.options.forEach(option => {
+                decisionHTML += `
+                    <div class="option-btn" onclick="selectOption('${option.id}', this)">
+                        <div style="font-weight: bold; margin-bottom: 8px;">${option.label}</div>
+                        <div style="font-size: 0.9em; margin-bottom: 8px;">${option.description}</div>
+                        <div style="font-size: 0.8em; color: #666;">${option.detail}</div>
+                    </div>
+                `;
+            });
+            
+            decisionHTML += `</div>`;
+            
+            document.getElementById('currentDecisionArea').innerHTML = decisionHTML;
+            document.getElementById('studentReasoning').value = '';
+            studentChoices = [];
+        }
+
+        function toggleVariableSelection(variableId, element) {
+            const variable = currentScenario.availableVariables.find(v => v.id === variableId);
+            
+            // Can't deselect required variables
+            if (variable.required && studentChoices.includes(variableId)) {
+                return;
+            }
+            
+            if (studentChoices.includes(variableId)) {
+                // Remove selection
+                studentChoices = studentChoices.filter(id => id !== variableId);
+                element.classList.remove('selected');
+            } else {
+                // Add selection
+                studentChoices.push(variableId);
+                element.classList.add('selected');
+            }
+        }
+
+        function selectOption(optionId, element) {
+            // Reset all options
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Select this option
+            element.classList.add('selected');
+            studentChoices = [optionId];
+        }
+
+        function submitDecision() {
+            studentReasoning = document.getElementById('studentReasoning').value.trim();
+            
+            if (studentChoices.length === 0) {
+                alert('Please make a selection before submitting.');
+                return;
+            }
+            
+            if (studentReasoning.length < 20) {
+                alert('Please provide detailed reasoning for your choices (at least 20 characters).');
+                return;
+            }
+            
+            showFeedback();
+        }
+
+        function showFeedback() {
+            document.getElementById('feedbackArea').style.display = 'block';
+            
+            const scenario = currentScenario.title;
+            const decisionType = currentDecisionType;
+            const expertRec = expertRecommendations[scenario][decisionType];
+            
+            let feedbackHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🎯 Your Analysis vs Expert Recommendation</h4>
+                    
+                    <div style="margin: 20px 0;">
+                        <h5>📝 Your Reasoning:</h5>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
+                            "${studentReasoning}"
+                        </div>
+                    </div>
+            `;
+            
+            feedbackHTML += generateDecisionFeedback(expertRec);
+            
+            feedbackHTML += `
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🧠 Expert Analysis</h4>
+                    <p><strong>Expert Reasoning:</strong></p>
+                    <p>${expertRec.reasoning}</p>
+                </div>
+            `;
+            
+            feedbackHTML += `</div>`;
+            
+            document.getElementById('feedbackContent').innerHTML = feedbackHTML;
+            
+            // Scroll to feedback
+            document.getElementById('feedbackArea').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateDecisionFeedback(expertRec) {
+            if (currentDecisionType === 'variable_selection') {
+                return generateVariableFeedback(expertRec);
+            } else {
+                return generateStandardFeedback(expertRec);
+            }
+        }
+
+        function generateVariableFeedback(expertRec) {
+            const essential = expertRec.essential || [];
+            const recommended = expertRec.recommended || [];
+            const optional = expertRec.optional || [];
+            
+            const selectedEssential = studentChoices.filter(choice => essential.includes(choice));
+            const selectedRecommended = studentChoices.filter(choice => recommended.includes(choice));
+            const selectedOptional = studentChoices.filter(choice => optional.includes(choice));
+            const selectedTotal = studentChoices.length;
+            
+            let feedback = '';
+            
+            if (selectedEssential.length === essential.length) {
+                feedback += `
+                    <div class="feedback-correct">
+                        <strong>✅ Good Core Selection!</strong> You included all essential variables.
+                    </div>
+                `;
+            } else {
+                const missing = essential.filter(v => !studentChoices.includes(v));
+                feedback += `
+                    <div class="feedback-incorrect">
+                        <strong>❌ Missing Essential Variables:</strong> ${missing.join(', ')}
+                    </div>
+                `;
+            }
+            
+            if (selectedRecommended.length > 0) {
+                feedback += `
+                    <div class="feedback-correct">
+                        <strong>✅ Strong Additional Variables:</strong> ${selectedRecommended.join(', ')}
+                    </div>
+                `;
+            }
+            
+            if (selectedTotal > 6) {
+                feedback += `
+                    <div class="feedback-partial">
+                        <strong>⚠️ Model Complexity:</strong> ${selectedTotal} variables may lead to overfitting with limited observations.
+                    </div>
+                `;
+            }
+            
+            return feedback;
+        }
+
+        function generateStandardFeedback(expertRec) {
+            const studentChoice = studentChoices[0];
+            const isCorrect = expertRec.best && expertRec.best.includes(studentChoice);
+            const isAvoid = expertRec.avoid && expertRec.avoid.includes(studentChoice);
+            
+            if (isCorrect) {
+                return `
+                    <div class="feedback-correct">
+                        <strong>✅ Excellent Choice!</strong> You selected an expert-recommended approach.
+                    </div>
+                `;
+            } else if (isAvoid) {
+                const reason = expertRec.avoid_reasons && expertRec.avoid_reasons[studentChoice];
+                return `
+                    <div class="feedback-incorrect">
+                        <strong>❌ Problematic Choice:</strong> ${reason || 'This approach has significant methodological concerns.'}
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="feedback-partial">
+                        <strong>⚠️ Alternative Approach:</strong> Your choice is defensible but not optimal for this scenario.
+                    </div>
+                `;
+            }
+        }
+
+        function proceedToImplementation() {
+            decisionStep++;
+            
+            if (decisionStep < decisionTypes.length) {
+                // More decisions to make
+                document.getElementById('feedbackArea').style.display = 'none';
+                presentDecision();
+                document.getElementById('decisionSection').style.display = 'block';
+            } else {
+                // Show final implementation
+                document.getElementById('implementationArea').style.display = 'block';
+                showImplementation();
+                
+                scenariosCompleted++;
+                document.getElementById('scenariosCompleted').textContent = scenariosCompleted;
+            }
+        }
+
+        function showImplementation() {
+            let implementationHTML = `
+                <h4>📊 Final Multiple Regression Model</h4>
+                
+                <div class="regression-equation">
+                    ${getMultipleRegressionEquation()}
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>📈 Estimated Results (Simulated)</h4>
+                    ${getSimulatedResults()}
+                </div>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🔍 Model Diagnostics</h4>
+                    ${getModelDiagnostics()}
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🎯 Economic Interpretation & Policy Implications</h4>
+                    ${getEconomicInterpretation()}
+                </div>
+            `;
+            
+            document.getElementById('implementationContent').innerHTML = implementationHTML;
+            
+            // Scroll to implementation
+            document.getElementById('implementationArea').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getMultipleRegressionEquation() {
+            // Simulate selected variables and specification
+            const scenario = currentScenario.title;
+            const baseEquations = {
+                "Canadian Housing Market Analysis": "log(House Price) = α + β₁(Income) + β₂(Mortgage Rate) + β₃(Population) + β₄(Immigration) + ε",
+                "Provincial Economic Growth Determinants": "Growth Rate = α + β₁(Investment) + β₂(Education) + β₃(Trade) + β₄(Technology) + ε", 
+                "Agricultural Productivity Analysis": "log(Yield) = α + β₁log(Rainfall) + β₂log(Temperature) + β₃(Soil Quality) + β₄(Technology) + ε",
+                "Labor Market Wage Determination": "log(Wage) = α + β₁(Education) + β₂(Experience) + β₃(Union) + β₄(Gender) + ε"
+            };
+            
+            return baseEquations[scenario] || "Y = α + β₁X₁ + β₂X₂ + ... + ε";
+        }
+
+        function getSimulatedResults() {
+            return `
+                <div style="font-family: monospace;">
+                    <strong>R² = 0.742</strong> &nbsp;&nbsp; <strong>Adjusted R² = 0.718</strong> &nbsp;&nbsp; <strong>F-statistic = 34.2***</strong><br><br>
+                    
+                    <strong>Coefficients:</strong><br>
+                    β₁ = 0.45*** (0.08) &nbsp;&nbsp; [Primary variable: highly significant]<br>
+                    β₂ = -0.32** (0.12) &nbsp;&nbsp; [Secondary variable: significant] <br>
+                    β₃ = 0.28* (0.14) &nbsp;&nbsp; [Control variable: weakly significant]<br>
+                    β₄ = 0.19 (0.16) &nbsp;&nbsp; [Control variable: not significant]<br><br>
+                    
+                    <em>Standard errors in parentheses. *** p<0.001, ** p<0.01, * p<0.05</em>
+                </div>
+            `;
+        }
+
+        function getModelDiagnostics() {
+            return `
+                <ul>
+                    <li><strong>Multicollinearity:</strong> Highest VIF = 2.8 (acceptable, < 5)</li>
+                    <li><strong>Heteroskedasticity:</strong> Breusch-Pagan test p-value = 0.082 (no evidence)</li>
+                    <li><strong>Normality:</strong> Residuals approximately normal (Jarque-Bera p = 0.15)</li>
+                    <li><strong>Model Specification:</strong> RESET test suggests linear specification adequate</li>
+                    <li><strong>Influential Observations:</strong> No observations with Cook's D > 0.5</li>
+                </ul>
+            `;
+        }
+
+        function getEconomicInterpretation() {
+            const interpretations = {
+                "Canadian Housing Market Analysis": "Results confirm housing affordability theory: income positively affects prices while higher mortgage rates reduce affordability. Population growth creates demand pressure. Policy implications for monetary policy transmission and housing supply responses.",
+                "Provincial Economic Growth Determinants": "Investment and education are key growth drivers, supporting endogenous growth theory. Technology spillovers important for catch-up growth. Implications for federal transfer policy and provincial development strategies.",
+                "Agricultural Productivity Analysis": "Climate variables dominate productivity, with technology providing adaptation potential. Diminishing returns to inputs suggest focus on innovation over intensification. Critical for climate change adaptation policy.",
+                "Labor Market Wage Determination": "Human capital theory supported with positive returns to education and experience. Gender gap persists after controlling for observable characteristics. Union premium suggests institutional effects on wage determination."
+            };
+            
+            return interpretations[currentScenario.title] || "Economic relationships confirmed with important policy implications.";
+        }
+
+        function resetAnalysis() {
+            scenariosCompleted = 0;
+            decisionStep = 0;
+            studentChoices = [];
+            studentReasoning = "";
+            document.getElementById('scenariosCompleted').textContent = '0';
+            document.getElementById('scenarioDisplay').style.display = 'none';
+            document.getElementById('decisionSection').style.display = 'none';
+            document.getElementById('feedbackArea').style.display = 'none';
+            document.getElementById('implementationArea').style.display = 'none';
+        }
+
+        // Initialize display
+        document.getElementById('scenariosCompleted').textContent = '0';
+    </script>
+</body>
+</html>
