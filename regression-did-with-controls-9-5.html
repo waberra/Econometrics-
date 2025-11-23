@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DiD with Additional Controls (Wooldridge 9.5)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .did-card      { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .control-card  { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .partial-card  { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Difference-in-Differences with Controls (Wooldridge 9.5)</h1>
+        <p>Practice DiD when you include additional covariates in the regression</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Adding Controls to DiD</h3>
+        <div class="measures-grid">
+            <div class="measure-card did-card">
+                <h4>DiD with a Covariate</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·Post + β₂·Treat + β₃·(Post·Treat) + γ·X + u
+                </div>
+                <div class="description">
+                    We extend the basic DiD model by adding a control variable X (e.g. education, experience, income). X affects Y directly through γ, but the DiD effect is still captured by β₃.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Make treated and control groups more comparable by controlling for observable differences.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Control for age when evaluating a minimum wage change on teen employment.
+                </div>
+            </div>
+
+            <div class="measure-card control-card">
+                <h4>What β₃ Means with Controls</h4>
+                <div class="formula">
+                    β₃ = DiD effect, <br>holding X fixed
+                </div>
+                <div class="description">
+                    Even with X in the regression, β₃ is still the DiD effect: the extra change in Y for the treated group relative to the control group, <strong>for the same value of X</strong>.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> “Conditional DiD” – differences in conditional means given X.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Policy effect on workers with 10 years of experience.
+                </div>
+            </div>
+
+            <div class="measure-card partial-card">
+                <h4>Partialling Out X</h4>
+                <div class="formula">
+                    β₃ = DiD using residuals<br>
+                    (after removing X)
+                </div>
+                <div class="description">
+                    You can think of the regression as first “partialling out” X from Y and from the dummies, then running DiD on the residuals. This is why adding X does not change the basic DiD logic.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Reduce omitted variable bias when X is correlated with Treat or Post.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Controlling for income when evaluating a soda tax on soda consumption.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    DiD + controls = more credible
+                </div>
+                <div class="description">
+                    In many applications, you add several controls (education, age, region, etc.). As long as you do not interact them with Treat or Post, the coefficient on Treat·Post is still the DiD effect, now interpreted as holding those controls fixed.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Improve precision and reduce bias when treated and control differ in observables.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> Clearly state, “This DiD estimate is conditional on the included controls.”
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: DiD with a Control Variable</h3>
+            <p>Each scenario gives you a DiD regression with an added covariate X. Compute predictions at a given X, the DiD effect, and interpret β₃ while keeping X fixed.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the regression to compute E[Y] for a specific X, in different groups and periods. Then compute the DiD effect and see that it still equals β₃ when X is held fixed.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Predictions at given X</strong><br>Compute E[Y] in selected group–time cells for a fixed value of X.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Group-specific changes</strong><br>Compute ΔY over time in control and treatment groups at that X.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 DiD effect & β₃</strong><br>Compute DiD at that X and verify that it equals β₃.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain β₃ as a conditional DiD effect (holding X fixed).</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("DiD with controls (9.5) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: DiD with one extra covariate X (no interactions with X)
+    // Y = β0 + β1*Post + β2*Treat + β3*(Post*Treat) + γ*X + u
+    var scenarios = [
+        {
+            id: "minWageAge",
+            title: "Minimum Wage, Teen Employment, and Age",
+            description: "State T raises the minimum wage; State C does not. You pool cross sections of teens from before and after the policy. You include age (in years) as a control variable.",
+            context: "Interpret β₃ as the effect of the minimum wage on employment, holding age fixed.",
+            model: "Y = employment probability (in percentage points).",
+            treatName: "State T (Treat=1, higher minimum wage)",
+            controlName: "State C (Treat=0, no change)",
+            preLabel: "Pre-policy (Post=0)",
+            postLabel: "Post-policy (Post=1)",
+            equation: "Employ = 60 − 2·Post − 3·Treat − 5·(Post·Treat) + 0.5·Age",
+            beta0: 60,
+            betaPost: -2,
+            betaTreat: -3,
+            betaInt: -5,
+            gammaX: 0.5,
+            xName: "Age (years)",
+            xValue: 17,
+            yUnits: "percentage points",
+            expertInterpretation:
+                "Holding age fixed, the control state’s employment falls by 2 points over time; the treatment state’s employment falls by 7 points (−2 − 5). The DiD effect is −7 − (−2) = −5, equal to β₃. Thus the higher minimum wage is associated with a 5-percentage-point additional reduction in employment for teens of a given age (e.g. age 17)."
+        },
+        {
+            id: "trainingExperience",
+            title: "Training Program, Productivity, and Experience",
+            description: "Some firms introduce a training program (Treat=1), others do not. You pool worker data from before and after, and you control for years of experience.",
+            context: "Use DiD with a control to estimate the training effect on productivity, for a worker with a given level of experience.",
+            model: "Y = output per worker (units per week).",
+            treatName: "Treated firms (Treat=1, training)",
+            controlName: "Control firms (Treat=0, no training)",
+            preLabel: "Pre-training (Post=0)",
+            postLabel: "Post-training (Post=1)",
+            equation: "Prod = 90 + 4·Post + 3·Treat + 8·(Post·Treat) + 1.5·Exper",
+            beta0: 90,
+            betaPost: 4,
+            betaTreat: 3,
+            betaInt: 8,
+            gammaX: 1.5,
+            xName: "Exper (years of experience)",
+            xValue: 5,
+            yUnits: "units per worker per week",
+            expertInterpretation:
+                "For workers with the same experience, control-firm productivity increases by 4 units; treated-firm productivity increases by 12 units (4 + 8). The DiD effect is 12 − 4 = 8, equal to β₃. This suggests the training program raises productivity by about 8 units per worker per week, holding experience constant."
+        },
+        {
+            id: "sodaTaxIncome",
+            title: "Soda Tax, Consumption, and Income",
+            description: "A soda tax is introduced in treated cities but not control cities. You pool household data from before and after and include income as a control.",
+            context: "Interpret β₃ as the effect of the soda tax on consumption for households at a given income.",
+            model: "Y = daily soft drink consumption (in ounces).",
+            treatName: "Tax city (Treat=1, soda tax)",
+            controlName: "No-tax city (Treat=0)",
+            preLabel: "Pre-tax (Post=0)",
+            postLabel: "Post-tax (Post=1)",
+            equation: "Cons = 18 − 0.5·Post − 0.8·Treat − 3·(Post·Treat) − 0.1·Income",
+            beta0: 18,
+            betaPost: -0.5,
+            betaTreat: -0.8,
+            betaInt: -3,
+            gammaX: -0.1,
+            xName: "Income (in $1,000s)",
+            xValue: 40,
+            yUnits: "ounces per day",
+            expertInterpretation:
+                "For households with the same income, control-city consumption falls by 0.5 ounces; tax-city consumption falls by 3.5 ounces (−0.5 − 3). The DiD effect is −3.5 − (−0.5) = −3, equal to β₃. So the tax reduces soft drink consumption by about 3 ounces per day relative to the control trend, holding income fixed."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 DiD Regression with Control Variable</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Outcome:</strong> ' + scenario.model + '</p>';
+        html += '<p><strong>Control variable X:</strong> ' + scenario.xName + '</p>';
+
+        html += '<p style="margin-top:6px;"><strong>Treatment group:</strong> ' + scenario.treatName + '<br>';
+        html += '<strong>Control group:</strong> ' + scenario.controlName + '<br>';
+        html += '<strong>Pre period:</strong> ' + scenario.preLabel + '<br>';
+        html += '<strong>Post period:</strong> ' + scenario.postLabel + '</p>';
+
+        html += '<p style="margin-top:8px;"><strong>Estimated regression (pooled cross sections):</strong></p>';
+        html += '<p style="margin-top:4px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.equation;
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Term</th><th>Coefficient</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td>β₀</td><td>' + scenario.beta0.toFixed(2) +
+                '</td><td>Baseline level when Treat=0, Post=0 and X=0</td></tr>';
+        html += '<tr><td>β₁ (Post)</td><td>' + scenario.betaPost.toFixed(2) +
+                '</td><td>Time trend in control group, holding X fixed</td></tr>';
+        html += '<tr><td>β₂ (Treat)</td><td>' + scenario.betaTreat.toFixed(2) +
+                '</td><td>Baseline difference between treated and control, holding X fixed</td></tr>';
+        html += '<tr><td>β₃ (Treat·Post)</td><td>' + scenario.betaInt.toFixed(2) +
+                '</td><td>DiD effect: extra change in treated group beyond control, at a given X</td></tr>';
+        html += '<tr><td>γ (X)</td><td>' + scenario.gammaX.toFixed(2) +
+                '</td><td>Effect of X on Y, holding Treat and Post fixed</td></tr>';
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Reminder:</strong> The DiD effect β₃ is interpreted conditional on X. We usually compare treated and control units at the same value of X (for example, X = ' + scenario.xValue + ').';
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var X = s.xValue;
+
+        // Generic formula:
+        // E[Y|Treat,Post,X] = β0 + β1*Post + β2*Treat + β3*(Treat*Post) + γ*X
+        function EY(treat, post) {
+            return s.beta0 + s.betaPost*post + s.betaTreat*treat + s.betaInt*(treat*post) + s.gammaX*X;
+        }
+
+        var y_C_pre  = EY(0,0);
+        var y_C_post = EY(0,1);
+        var y_T_pre  = EY(1,0);
+        var y_T_post = EY(1,1);
+
+        var d_C = y_C_post - y_C_pre;
+        var d_T = y_T_post - y_T_pre;
+        var did = d_T - d_C; // should equal β3
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "xLevel",
+                type: "numeric",
+                title: "🏁 Fixed value of X",
+                prompt: "We will evaluate all predictions at X = " + X + ". For reference, write this value here.",
+                correctValue: X,
+                unitHint: "(" + s.xName + ")"
+            });
+            currentQuestions.push({
+                conceptId: "controlPre",
+                type: "numeric",
+                title: "🏁 Control, pre (Treat=0, Post=0)",
+                prompt: "Compute E[Y|Treat=0, Post=0, X=" + X + "].",
+                correctValue: y_C_pre,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "treatPre",
+                type: "numeric",
+                title: "🏁 Treatment, pre (Treat=1, Post=0)",
+                prompt: "Compute E[Y|Treat=1, Post=0, X=" + X + "].",
+                correctValue: y_T_pre,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "controlPost",
+                type: "numeric",
+                title: "🏁 Control, post (Treat=0, Post=1)",
+                prompt: "Compute E[Y|Treat=0, Post=1, X=" + X + "].",
+                correctValue: y_C_post,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "treatPost",
+                type: "numeric",
+                title: "🏁 Treatment, post (Treat=1, Post=1)",
+                prompt: "Compute E[Y|Treat=1, Post=1, X=" + X + "].",
+                correctValue: y_T_post,
+                unitHint: "(" + s.yUnits + ")"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "changeControl",
+                type: "numeric",
+                title: "📊 Change over time in control group",
+                prompt: "Compute ΔY_control = E[Y|Treat=0,Post=1,X] − E[Y|Treat=0,Post=0,X].",
+                correctValue: d_C,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "changeTreat",
+                type: "numeric",
+                title: "📊 Change over time in treatment group",
+                prompt: "Compute ΔY_treat = E[Y|Treat=1,Post=1,X] − E[Y|Treat=1,Post=0,X].",
+                correctValue: d_T,
+                unitHint: "(" + s.yUnits + ")"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "didEffect",
+                type: "numeric",
+                title: "📉 DiD effect at X = " + X,
+                prompt: "Compute DiD(X) = ΔY_treat − ΔY_control. This should equal β₃.",
+                correctValue: did,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "beta3",
+                type: "numeric",
+                title: "📉 Interaction coefficient β₃",
+                prompt: "What is β₃ (coefficient on Treat·Post) in this regression?",
+                correctValue: s.betaInt,
+                unitHint: "(" + s.yUnits + ")"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation (Open Answer)",
+                prompt: "In words, interpret β₃ in this scenario, being explicit that it is conditional on X. Then compare with the expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Key idea: With controls, β₃ is still the DiD effect, now interpreted as the extra change in Y for the treated group relative to the control group, holding X fixed.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var X = s.xValue;
+
+        function EY(treat, post) {
+            return s.beta0 + s.betaPost*post + s.betaTreat*treat + s.betaInt*(treat*post) + s.gammaX*X;
+        }
+
+        var y_C_pre  = EY(0,0);
+        var y_C_post = EY(0,1);
+        var y_T_pre  = EY(1,0);
+        var y_T_post = EY(1,1);
+
+        var d_C = y_C_post - y_C_pre;
+        var d_T = y_T_post - y_T_pre;
+        var did = d_T - d_C;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "xLevel") {
+            html += "We treat X as fixed at " + X + " (" + s.xName + "). All comparisons are conditional on this value.";
+        } else if (q.conceptId === "controlPre") {
+            html += "Plug Treat=0, Post=0, X=" + X + " into the regression:<br>";
+            html += "E[Y|0,0,X] = β₀ + γ·X = " +
+                    s.beta0.toFixed(2) + " + " +
+                    s.gammaX.toFixed(2) + "·(" + X + ") = " +
+                    y_C_pre.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "treatPre") {
+            html += "Set Treat=1, Post=0, X=" + X + ":<br>";
+            html += "E[Y|1,0,X] = β₀ + β₂ + γ·X = " +
+                    y_T_pre.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "controlPost") {
+            html += "Control, post: Treat=0, Post=1, X=" + X + ":<br>";
+            html += "E[Y|0,1,X] = β₀ + β₁ + γ·X = " +
+                    y_C_post.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "treatPost") {
+            html += "Treatment, post: Treat=1, Post=1, X=" + X + ":<br>";
+            html += "E[Y|1,1,X] = β₀ + β₁ + β₂ + β₃ + γ·X = " +
+                    y_T_post.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "changeControl") {
+            html += "Control change at X=" + X + ":<br>";
+            html += "ΔY_control = E[Y|0,1,X] − E[Y|0,0,X] = " +
+                    y_C_post.toFixed(2) + " − " + y_C_pre.toFixed(2) +
+                    " = " + d_C.toFixed(2) + " " + s.yUnits +
+                    ". This equals β₁; the γ·X term cancels out.";
+        } else if (q.conceptId === "changeTreat") {
+            html += "Treatment change at X=" + X + ":<br>";
+            html += "ΔY_treat = E[Y|1,1,X] − E[Y|1,0,X] = " +
+                    y_T_post.toFixed(2) + " − " + y_T_pre.toFixed(2) +
+                    " = " + d_T.toFixed(2) + " " + s.yUnits +
+                    ". This equals β₁ + β₃, since the γ·X term cancels again.";
+        } else if (q.conceptId === "didEffect") {
+            html += "DiD(X) compares the two changes:<br>";
+            html += "DiD(X) = ΔY_treat − ΔY_control = " +
+                    d_T.toFixed(2) + " − " + d_C.toFixed(2) +
+                    " = " + did.toFixed(2) + " " + s.yUnits + ".<br>";
+            html += "Algebraically, this is always β₃, because the β₁ terms and γ·X terms cancel. So DiD at a fixed X is still the interaction coefficient.";
+        } else if (q.conceptId === "beta3") {
+            html += "β₃ is read directly from the regression table. It equals the DiD effect (extra change in treated vs control) holding X fixed.<br>";
+            html += "Here β₃ = " + s.betaInt.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>" + s.expertInterpretation + "</em>";
+            html += "<br><br>The key is that this interpretation is conditional on X: we compare treated and control units with the same value of X.";
+        } else {
+            html += "With controls, DiD is computed at a given X. The coefficient β₃ still measures the extra change in Y for treated units relative to control units, holding X fixed.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("DiD with controls practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
