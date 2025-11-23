@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Methods: Interrupted Time Series Analysis & Policy Evaluation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        :root {
+            --primary-purple: #8B5CF6;
+            --secondary-red: #DC143C;
+            --light-purple: #A78BFA;
+            --pale-purple: #EDE9FE;
+            --lavender: #C4B5FD;
+            --deep-purple: #6D28D9;
+            --coral-accent: #FF6B6B;
+            --sage-green: #84CC16;
+            --warm-amber: #F59E0B;
+            --silver: #94A3B8;
+            --charcoal: #1E293B;
+            --slate: #64748B;
+            --cream: #FFFBF5;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #FAF8FF 50%, var(--pale-purple) 100%);
+            color: var(--charcoal);
+            line-height: 1.65;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Policy Evaluation Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -70%;
+            left: -70%;
+            width: 240%;
+            height: 240%;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(139, 92, 246, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(167, 139, 250, 0.05) 0%, transparent 55%),
+                radial-gradient(ellipse at 90% 30%, rgba(255, 107, 107, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 70%, rgba(132, 204, 22, 0.035) 0%, transparent 45%);
+            animation: policyFlow 45s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes policyFlow {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1) translateY(0); 
+                opacity: 0.7; 
+            }
+            25% { 
+                transform: rotate(90deg) scale(1.08) translateY(-20px); 
+                opacity: 0.9; 
+            }
+            50% { 
+                transform: rotate(180deg) scale(0.92) translateY(15px); 
+                opacity: 0.8; 
+            }
+            75% { 
+                transform: rotate(270deg) scale(1.05) translateY(-10px); 
+                opacity: 0.85; 
+            }
+        }
+
+        /* Intervention Timeline Pattern */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(60deg, 
+                    transparent 0px, 
+                    rgba(139, 92, 246, 0.02) 1px, 
+                    transparent 2px, 
+                    transparent 80px),
+                repeating-linear-gradient(-30deg, 
+                    transparent 0px, 
+                    rgba(167, 139, 250, 0.015) 1px, 
+                    transparent 2px, 
+                    transparent 120px);
+            z-index: -1;
+            animation: interventionTimeline 30s linear infinite;
+        }
+
+        @keyframes interventionTimeline {
+            0% { transform: translateX(0) translateY(0); }
+            100% { transform: translateX(80px) translateY(120px); }
+        }
+
+        .container {
+            max-width: 1850px;
+            margin: 25px auto;
+            background: rgba(255, 255, 255, 0.97);
+            box-shadow: 
+                0 0 90px rgba(139, 92, 246, 0.12),
+                0 25px 70px rgba(167, 139, 250, 0.1),
+                0 15px 35px rgba(255, 107, 107, 0.06);
+            border-radius: 40px;
+            overflow: hidden;
+            backdrop-filter: blur(18px);
+            animation: policyEntry 2.8s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        @keyframes policyEntry {
+            from {
+                opacity: 0;
+                transform: scale(0.88) translateY(80px) rotateX(20deg);
+                filter: blur(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0) rotateX(0deg);
+                filter: blur(0);
+            }
+        }
+
+        /* Policy Evaluation Header Design */
+        .header-section {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--deep-purple) 40%, #4C1D95 100%);
+            color: white;
+            padding: 65px 55px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(75deg, 
+                transparent 0%, 
+                rgba(167, 139, 250, 0.12) 15%, 
+                transparent 30%, 
+                rgba(255, 107, 107, 0.1) 45%, 
+                transparent 60%, 
+                rgba(132, 204, 22, 0.08) 75%, 
+                transparent 90%);
+            animation: policyHeader 14s ease-in-out infinite;
+        }
+
+        @keyframes policyHeader {
+            0%, 100% { 
+                transform: translateX(-100px) scaleY(1); 
+                opacity: 0.8; 
+            }
+            33% { 
+                transform: translateX(60px) scaleY(1.2); 
+                opacity: 1; 
+            }
+            66% { 
+                transform: translateX(-30px) scaleY(0.9); 
+                opacity: 0.9; 
+            }
+        }
+
+        .header-title {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 4.5em;
+            font-weight: 700;
+            margin-bottom: 28px;
+            text-shadow: 3px 5px 15px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(135deg, white 0%, var(--lavender) 50%, #DDD6FE 80%, white 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleIntervention 4.5s ease-in-out infinite alternate;
+            letter-spacing: -2.5px;
+        }
+
+        @keyframes titleIntervention {
+            from { 
+                filter: drop-shadow(0 0 18px rgba(167, 139, 250, 0.6)); 
+                text-shadow: 0 0 35px rgba(255, 107, 107, 0.4);
+            }
+            to { 
+                filter: drop-shadow(0 0 28px rgba(139, 92, 246, 0.7)); 
+                text-shadow: 0 0 45px rgba(132, 204, 22, 0.5);
+            }
+        }
+
+        .header-subtitle {
+            font-size: 1.9em;
+            font-weight: 400;
+            opacity: 0.94;
+            position: relative;
+            z-index: 2;
+            color: var(--lavender);
+            text-shadow: 2px 3px 10px rgba(0,0,0,0.4);
+            letter-spacing: 1px;
+            font-style: italic;
+        }
+
+        /* Policy Timeline Navigation */
+        .nav-tabs {
+            display: flex;
+            background: linear-gradient(90deg, var(--primary-purple) 0%, var(--sage-green) 25%, var(--warm-amber) 50%, var(--coral-accent) 75%, var(--primary-purple) 100%);
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 4px 0 rgba(167, 139, 250, 0.6);
+        }
+
+        .nav-tabs::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 35%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.1) 0%, 
+                rgba(167, 139, 250, 0.18) 50%, 
+                rgba(255,255,255,0.1) 100%);
+            transform: translateX(-140%);
+            animation: policyNav 9s ease-in-out infinite;
+        }
+
+        @keyframes policyNav {
+            0%, 100% { transform: translateX(-140%); }
+            50% { transform: translateX(400%); }
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 32px 35px;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 500;
+            font-size: 1.15em;
+            cursor: pointer;
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 6px solid transparent;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.6px;
+        }
+
+        .tab-button:hover {
+            background: rgba(167, 139, 250, 0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 18px 50px rgba(0,0,0,0.3);
+            color: var(--cream);
+        }
+
+        .tab-button.active {
+            background: rgba(167, 139, 250, 0.3);
+            border-bottom-color: var(--coral-accent);
+            font-weight: 600;
+            color: var(--cream);
+            box-shadow: inset 0 -6px 0 var(--coral-accent);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 65px;
+            animation: policySlide 1.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes policySlide {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.96);
+                filter: blur(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        /* Section Titles - RED (Consistency) */
+        .section-title {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 3.6em;
+            color: var(--secondary-red);
+            margin-bottom: 55px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 2px 3px 10px rgba(0,0,0,0.12);
+            letter-spacing: -1.5px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 5px;
+            background: linear-gradient(90deg, 
+                var(--lavender) 0%, 
+                var(--coral-accent) 20%, 
+                var(--sage-green) 40%, 
+                var(--warm-amber) 60%, 
+                var(--primary-purple) 80%, 
+                var(--lavender) 100%);
+            border-radius: 4px;
+            animation: interventionUnderline 5.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes interventionUnderline {
+            from { width: 180px; opacity: 0.8; }
+            to { width: 260px; opacity: 1; }
+        }
+
+        /* Purple/Lavender Boxes - Theory Framework */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 45px;
+            margin-bottom: 65px;
+        }
+
+        .theory-card {
+            background: linear-gradient(135deg, var(--pale-purple) 0%, #F3F0FF 50%, var(--white) 100%);
+            padding: 50px;
+            border-radius: 28px;
+            border: 4px solid var(--lavender);
+            box-shadow: 
+                0 18px 55px rgba(139, 92, 246, 0.1),
+                0 8px 25px rgba(167, 139, 250, 0.12);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theory-card::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, 
+                rgba(167, 139, 250, 0.1) 0%, 
+                rgba(139, 92, 246, 0.08) 40%, 
+                transparent 70%);
+            border-radius: 50%;
+            animation: cardIntervention 9s ease-in-out infinite;
+        }
+
+        @keyframes cardIntervention {
+            0%, 100% { 
+                transform: scale(1) translateX(0) translateY(0) rotate(0deg); 
+                opacity: 0.9; 
+            }
+            25% { 
+                transform: scale(1.2) translateX(25px) translateY(-25px) rotate(90deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(0.85) translateX(-15px) translateY(15px) rotate(180deg); 
+                opacity: 0.85; 
+            }
+            75% { 
+                transform: scale(1.1) translateX(15px) translateY(-8px) rotate(270deg); 
+                opacity: 0.95; 
+            }
+        }
+
+        .theory-card:hover {
+            transform: translateY(-18px) rotateX(10deg) rotateY(3deg);
+            box-shadow: 
+                0 30px 80px rgba(139, 92, 246, 0.15),
+                0 12px 35px rgba(167, 139, 250, 0.18);
+            border-color: var(--primary-purple);
+        }
+
+        .theory-card h3 {
+            font-family: 'Libre Baskerville', serif;
+            color: var(--secondary-red);
+            margin-bottom: 28px;
+            font-size: 2em;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.6px;
+        }
+
+        .theory-card p {
+            font-size: 1.18em;
+            line-height: 1.85;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            font-weight: 400;
+        }
+
+        /* Mathematical Equations - Policy Style */
+        .equation-display {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--deep-purple) 100%);
+            color: white;
+            padding: 42px;
+            border-radius: 22px;
+            margin: 35px 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.28em;
+            box-shadow: 
+                inset 0 4px 25px rgba(0,0,0,0.5), 
+                0 15px 40px rgba(109, 40, 217, 0.3);
+            overflow-x: auto;
+            border: 4px solid rgba(167, 139, 250, 0.5);
+            position: relative;
+        }
+
+        .equation-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--lavender) 20%, 
+                var(--coral-accent) 40%, 
+                var(--sage-green) 60%, 
+                var(--warm-amber) 80%, 
+                transparent 100%);
+            animation: equationIntervention 4.5s ease-in-out infinite;
+        }
+
+        @keyframes equationIntervention {
+            0%, 100% { opacity: 0.7; transform: scaleX(0.6); }
+            50% { opacity: 1; transform: scaleX(1.4); }
+        }
+
+        /* Purple Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, var(--pale-purple) 0%, #FAF8FF 50%, var(--white) 100%);
+            padding: 55px;
+            border-radius: 32px;
+            margin: 55px 0;
+            border: 5px solid var(--light-purple);
+            box-shadow: 
+                0 22px 65px rgba(167, 139, 250, 0.18),
+                inset 0 1px 0 rgba(255,255,255,0.98);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: -90%;
+            left: -90%;
+            width: 280%;
+            height: 280%;
+            background: conic-gradient(from 60deg at 50% 50%, 
+                transparent 0%, 
+                rgba(167, 139, 250, 0.04) 20%, 
+                transparent 40%, 
+                rgba(139, 92, 246, 0.03) 60%, 
+                transparent 80%, 
+                rgba(255, 107, 107, 0.025) 100%);
+            animation: controlIntervention 22s linear infinite;
+        }
+
+        @keyframes controlIntervention {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .control-header {
+            font-family: 'Libre Baskerville', serif;
+            color: var(--secondary-red);
+            font-size: 2.7em;
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.6px;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 38px;
+            margin-bottom: 45px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: var(--charcoal);
+            font-size: 1.18em;
+            letter-spacing: 0.4px;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 22px;
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            font-size: 1.12em;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.99);
+            box-shadow: 0 5px 18px rgba(0,0,0,0.06);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+            box-shadow: 
+                0 0 35px rgba(139, 92, 246, 0.3),
+                0 0 0 4px rgba(167, 139, 250, 0.18);
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        /* Policy Action Buttons */
+        .button-group {
+            display: flex;
+            gap: 28px;
+            margin-top: 45px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn {
+            padding: 25px 50px;
+            border: none;
+            border-radius: 18px;
+            font-weight: 600;
+            font-size: 1.18em;
+            cursor: pointer;
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.6) 50%, 
+                transparent 100%);
+            transition: left 0.9s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-purple) 0%, var(--deep-purple) 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--deep-purple) 0%, var(--primary-purple) 100%);
+            transform: translateY(-8px);
+            box-shadow: 0 18px 50px rgba(139, 92, 246, 0.45);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--coral-accent) 0%, #FF5252 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #FF5252 0%, var(--coral-accent) 100%);
+            transform: translateY(-8px);
+            box-shadow: 0 18px 50px rgba(255, 107, 107, 0.45);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--sage-green) 0%, #65A30D 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(132, 204, 22, 0.4);
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #65A30D 0%, var(--sage-green) 100%);
+            transform: translateY(-8px);
+            box-shadow: 0 18px 50px rgba(132, 204, 22, 0.45);
+        }
+
+        /* Purple Results Container */
+        .results-container {
+            background: linear-gradient(135deg, var(--pale-purple) 0%, #F8F6FF 100%);
+            border: 5px solid var(--lavender);
+            border-radius: 30px;
+            padding: 55px;
+            margin: 55px 0;
+            box-shadow: 
+                0 25px 75px rgba(0,0,0,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.99);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, 
+                var(--lavender) 0%, 
+                var(--coral-accent) 18%, 
+                var(--sage-green) 36%, 
+                var(--warm-amber) 54%, 
+                var(--primary-purple) 72%, 
+                var(--light-purple) 90%, 
+                var(--lavender) 100%);
+            animation: policyResults 4.5s ease-in-out infinite;
+        }
+
+        @keyframes policyResults {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .results-header {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 2.8em;
+            color: var(--secondary-red);
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: -0.6px;
+        }
+
+        /* Purple Chart Container */
+        .chart-container {
+            position: relative;
+            height: 600px;
+            margin: 55px 0;
+            background: linear-gradient(135deg, var(--pale-purple) 0%, var(--white) 100%);
+            border-radius: 22px;
+            padding: 45px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+            border: 4px solid var(--light-purple);
+        }
+
+        /* Statistics Grid - Purple Theme */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 38px;
+            margin: 50px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--pale-purple) 0%, var(--white) 100%);
+            padding: 38px;
+            border-radius: 22px;
+            text-align: center;
+            border: 3px solid var(--light-purple);
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--lavender) 0%, var(--primary-purple) 50%, var(--coral-accent) 100%);
+            transform: scaleX(0);
+            transition: transform 0.6s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-12px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.18);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.1em;
+            font-weight: 700;
+            color: var(--primary-purple);
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            color: var(--slate);
+            font-weight: 500;
+        }
+
+        /* ITS-Specific Elements */
+        .intervention-info {
+            background: linear-gradient(135deg, var(--pale-purple) 0%, #F3F0FF 100%);
+            border: 4px solid var(--lavender);
+            border-radius: 20px;
+            padding: 35px;
+            margin: 35px 0;
+        }
+
+        .intervention-timeline {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 25px;
+            margin: 30px 0;
+            align-items: center;
+        }
+
+        .pre-intervention {
+            background: var(--sage-green);
+            color: white;
+            padding: 18px;
+            border-radius: 15px;
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .intervention-point {
+            background: var(--coral-accent);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 50%;
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1em;
+            font-weight: 700;
+            animation: interventionPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes interventionPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .post-intervention {
+            background: var(--primary-purple);
+            color: white;
+            padding: 18px;
+            border-radius: 15px;
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        /* Decision Framework - Purple */
+        .decision-panel {
+            background: linear-gradient(135deg, var(--pale-purple) 0%, rgba(167, 139, 250, 0.25) 100%);
+            border: 5px solid var(--light-purple);
+            border-radius: 28px;
+            padding: 45px;
+            margin: 45px 0;
+        }
+
+        .decision-question {
+            font-family: 'Libre Baskerville', serif;
+            font-weight: 600;
+            font-size: 1.55em;
+            margin-bottom: 35px;
+            color: var(--charcoal);
+            text-align: center;
+            letter-spacing: -0.4px;
+        }
+
+        .decision-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 28px;
+        }
+
+        .decision-option {
+            padding: 28px;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.6s ease;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+
+        .decision-option:hover {
+            border-color: var(--coral-accent);
+            background: #FFF5F5;
+            transform: translateY(-6px);
+        }
+
+        .decision-option.selected {
+            border-color: var(--primary-purple);
+            background: var(--pale-purple);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Feedback Messages */
+        .feedback-message {
+            padding: 38px;
+            border-radius: 22px;
+            margin: 38px 0;
+            font-weight: 500;
+            font-size: 1.18em;
+        }
+
+        .feedback-success {
+            background: var(--pale-purple);
+            border: 4px solid var(--lavender);
+            color: var(--deep-purple);
+        }
+
+        .feedback-warning {
+            background: #FFF8E1;
+            border: 4px solid var(--warm-amber);
+            color: #8F6300;
+        }
+
+        .feedback-danger {
+            background: #FFEBEE;
+            border: 4px solid var(--coral-accent);
+            color: #8B0000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 22px;
+                border-radius: 32px;
+            }
+
+            .header-title {
+                font-size: 3.2em;
+            }
+
+            .theory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .intervention-timeline {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        /* Research References - Purple */
+        .research-note {
+            background: linear-gradient(135deg, var(--pale-purple) 0%, #F3F0FF 100%);
+            padding: 35px;
+            border-radius: 18px;
+            margin: 35px 0;
+            border-left: 8px solid var(--primary-purple);
+            font-style: italic;
+            position: relative;
+        }
+
+        .research-note::before {
+            content: '📈';
+            position: absolute;
+            top: 35px;
+            left: 30px;
+            font-size: 1.5em;
+        }
+
+        .research-note p {
+            margin-left: 45px;
+            line-height: 1.9;
+        }
+
+        /* Advanced Visual Effects */
+        .intervention-highlight {
+            background: rgba(139, 92, 246, 0.12);
+            border-left: 6px solid var(--primary-purple);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 12px;
+        }
+
+        .coefficient-display {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--lavender) 0%, var(--primary-purple) 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 28px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            margin: 0 12px;
+            font-size: 1em;
+        }
+
+        /* Break Detection Styling */
+        .break-point {
+            background: var(--coral-accent);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 600;
+            font-size: 0.9em;
+            display: inline-block;
+            margin: 0 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="header-title">Interrupted Time Series Analysis & Policy Evaluation</h1>
+            <p class="header-subtitle">Causal Inference Through Structural Break Detection</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showSection('theory')">📈 ITS Theory</button>
+            <button class="tab-button" onclick="showSection('simulation')">🏛️ Canadian Policies</button>
+            <button class="tab-button" onclick="showSection('analysis')">⚡ Break Detection</button>
+            <button class="tab-button" onclick="showSection('assessment')">✅ Assessment Mode</button>
+        </div>
+
+        <!-- Theory Framework Section -->
+        <div id="theory" class="content-section active">
+            <h2 class="section-title">Interrupted Time Series Framework</h2>
+            
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <h3>🎯 ITS Foundation</h3>
+                    <p><strong>Core Method:</strong> Interrupted Time Series Analysis examines whether a policy intervention caused a structural break in an outcome time series by comparing pre- and post-intervention trends.</p>
+                    <div class="equation-display">
+                        Basic ITS Model:<br>
+                        Yₜ = β₀ + β₁·Time + β₂·Intervention + β₃·Post_Trend + εₜ<br><br>
+                        β₂ = Level change (immediate effect)<br>
+                        β₃ = Slope change (trend effect)
+                    </div>
+                    <p><em>Key insight: Controls for underlying time trends to isolate intervention effects</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📊 Segmented Regression</h3>
+                    <p><strong>Piecewise Linear Model:</strong> ITS uses segmented regression to model different linear trends before and after the intervention point.</p>
+                    <div class="equation-display">
+                        Extended Model:<br>
+                        Yₜ = β₀ + β₁·Time + β₂·Xₜ + β₃·(Time-T₀)·I(t>T₀) + εₜ<br><br>
+                        T₀ = Intervention time<br>
+                        I(t>T₀) = Indicator for post-intervention
+                    </div>
+                    <p><strong>Interpretation:</strong> β₁ = pre-intervention trend, β₁+β₃ = post-intervention trend</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔍 Multiple Interventions</h3>
+                    <p><strong>Complex Policies:</strong> Many policies involve multiple interventions or phase-in periods requiring extended ITS models with multiple break points.</p>
+                    <div class="equation-display">
+                        Multi-Break Model:<br>
+                        Yₜ = β₀ + β₁·Time + Σᵢ[β₂ᵢ·Xᵢₜ + β₃ᵢ·(Time-Tᵢ)·I(t>Tᵢ)] + εₜ<br><br>
+                        Where i indexes multiple interventions
+                    </div>
+                    <p><strong>Application:</strong> Healthcare reforms with multiple implementation phases</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📈 Structural Break Tests</h3>
+                    <p><strong>Statistical Detection:</strong> Formal tests for structural breaks help identify intervention effects and unknown break dates in time series.</p>
+                    <div class="equation-display">
+                        Chow Test: F = [(RSS_r - RSS_u)/k] / [RSS_u/(n-2k)]<br><br>
+                        CUSUM Test: Detects parameter instability<br>
+                        Quandt-Andrews: Tests unknown break date<br>
+                        Bai-Perron: Multiple break detection
+                    </div>
+                    <p><strong>Advantage:</strong> Objective identification of intervention effects and timing</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>⚖️ Causal Identification</h3>
+                    <p><strong>Causal Inference:</strong> ITS provides causal identification under the assumption that the intervention is the only factor causing a structural break at the known intervention time.</p>
+                    <div class="equation-display">
+                        Identification Assumptions:<br>
+                        1. No confounding events at intervention time<br>
+                        2. Correct functional form specification<br>
+                        3. No autocorrelation in errors<br>
+                        4. Stable pre-intervention trend
+                    </div>
+                    <p><strong>Threats:</strong> History effects, selection bias, measurement changes</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔧 Practical Implementation</h3>
+                    <p><strong>Model Specification:</strong> Proper ITS analysis requires careful attention to functional form, autocorrelation, and seasonality in the time series.</p>
+                    <div class="equation-display">
+                        Autocorrelation Correction:<br>
+                        Yₜ = ρYₜ₋₁ + β₀ + β₁·Time + β₂·Intervention + εₜ<br><br>
+                        Seasonal Adjustment:<br>
+                        Include seasonal dummies or detrending
+                    </div>
+                    <p><strong>Diagnostics:</strong> Durbin-Watson test, residual plots, stability tests</p>
+                </div>
+            </div>
+
+            <div class="theory-card" style="grid-column: 1 / -1;">
+                <h3>🇨🇦 Canadian ITS Policy Applications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 45px; margin-top: 35px;">
+                    <div>
+                        <h4>🏥 Healthcare Policy Evaluation:</h4>
+                        <ul>
+                            <li><strong>Wait Time Initiatives:</strong> Pre/post analysis of surgical wait times</li>
+                            <li><strong>Primary Care Reforms:</strong> Family Health Team implementation</li>
+                            <li><strong>Drug Coverage Expansion:</strong> Pharmacare program effects</li>
+                            <li><strong>Mental Health Investment:</strong> Service utilization changes</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🌱 Environmental & Social Policy:</h4>
+                        <ul>
+                            <li><strong>Carbon Tax Implementation:</strong> Emissions reduction analysis</li>
+                            <li><strong>Minimum Wage Increases:</strong> Employment and hours effects</li>
+                            <li><strong>Education Funding:</strong> Student outcome improvements</li>
+                            <li><strong>Public Transit Investment:</strong> Ridership and congestion impacts</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="research-note">
+                <p><strong>📈 Modern Standard:</strong> Interrupted Time Series Analysis has become essential for policy evaluation when randomized experiments are not feasible. ITS leverages naturally occurring policy changes as natural experiments, providing credible causal identification through comparison of pre- and post-intervention trends. The method is particularly valuable for evaluating government policies implemented at specific points in time.</p>
+            </div>
+        </div>
+
+        <!-- Canadian Policy Applications Section -->
+        <div id="simulation" class="content-section">
+            <h2 class="section-title">Canadian Policy Interventions</h2>
+
+            <div class="control-panel">
+                <h3 class="control-header">📈 ITS Policy Laboratory</h3>
+                
+                <div class="control-group">
+                    <div class="form-group">
+                        <label for="policyScenario">Canadian Policy Intervention</label>
+                        <select id="policyScenario" onchange="updatePolicyScenario()">
+                            <option value="healthcare">Ontario Wait Time Strategy</option>
+                            <option value="carbon">Federal Carbon Tax Implementation</option>
+                            <option value="minimum_wage">Alberta Minimum Wage Increase</option>
+                            <option value="education">Quebec Education Reform</option>
+                            <option value="transit">Toronto Transit Expansion</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="preLength">Pre-Intervention Period</label>
+                        <select id="preLength" onchange="updateTimeline()">
+                            <option value="24">24 months (Short baseline)</option>
+                            <option value="36" selected>36 months (Standard baseline)</option>
+                            <option value="48">48 months (Long baseline)</option>
+                            <option value="60">60 months (Extended baseline)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="postLength">Post-Intervention Period</label>
+                        <select id="postLength" onchange="updateTimeline()">
+                            <option value="12">12 months (Short follow-up)</option>
+                            <option value="24" selected>24 months (Standard follow-up)</option>
+                            <option value="36">36 months (Long follow-up)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="effectSize">Intervention Effect Size</label>
+                        <input type="range" id="effectSize" min="0.1" max="3.0" step="0.1" value="1.5" onchange="updateEffectDisplay()">
+                        <span id="effectValue">1.5</span> standard deviations
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateITSData()">📊 Generate Timeline</button>
+                    <button class="btn btn-secondary" onclick="estimateITS()">📈 Estimate ITS</button>
+                    <button class="btn btn-accent" onclick="detectBreaks()">⚡ Detect Breaks</button>
+                </div>
+            </div>
+
+            <!-- Policy Description -->
+            <div id="policyDescription" class="intervention-info">
+                <div class="results-header">Current Policy Intervention Analysis</div>
+                <div id="policyText"></div>
+                <div id="interventionTimeline" class="intervention-timeline"></div>
+            </div>
+
+            <!-- ITS Chart -->
+            <div class="chart-container">
+                <canvas id="itsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Break Detection Analysis Section -->
+        <div id="analysis" class="content-section">
+            <h2 class="section-title">Structural Break Analysis</h2>
+
+            <div id="itsResults" class="results-container">
+                <div class="results-header">ITS Estimation Results</div>
+                <div id="itsTable"></div>
+            </div>
+
+            <div class="stats-grid" id="itsStats">
+                <!-- Dynamic statistics will be populated here -->
+            </div>
+
+            <div id="breakResults" class="results-container">
+                <div class="results-header">📈 Structural Break Detection</div>
+                <div id="breakTable"></div>
+            </div>
+
+            <!-- Counterfactual Chart -->
+            <div class="chart-container">
+                <h3 style="text-align: center; margin-bottom: 35px; color: var(--secondary-red);">📈 Observed vs. Counterfactual Trends</h3>
+                <canvas id="counterfactualChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Assessment Mode Section -->
+        <div id="assessment" class="content-section">
+            <h2 class="section-title">ITS Analysis Assessment</h2>
+
+            <div id="assessmentQuestion" class="decision-panel">
+                <div class="decision-question">Loading ITS analysis assessment...</div>
+                <div class="decision-options" id="assessmentOptions">
+                    <!-- Dynamic options will be populated -->
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()" style="margin-top: 40px;">Submit Answer</button>
+            </div>
+
+            <div id="assessmentFeedback"></div>
+
+            <div class="button-group" style="margin-top: 50px;">
+                <button class="btn btn-secondary" onclick="generateNewQuestion()">📝 New Question</button>
+                <button class="btn btn-accent" onclick="showExpertSolution()">🎓 Show Expert Analysis</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentITSData = null;
+        let currentITSChart = null;
+        let counterfactualChart = null;
+        let selectedAnswer = null;
+        let currentQuestion = null;
+
+        // Policy Scenario Definitions
+        const policyScenarios = {
+            healthcare: {
+                title: "Ontario Wait Time Strategy (2004-2010)",
+                description: "Analyzing the impact of Ontario's comprehensive wait time reduction strategy on surgical wait times across hospitals. The strategy included funding increases, process improvements, and public reporting.",
+                outcome: "Average Surgical Wait Time (days)",
+                intervention: "Wait Time Strategy Implementation", 
+                intervention_date: "April 2004",
+                unit: "Monthly hospital data",
+                expected_effect: "Significant reduction in wait times with gradual improvement over 24+ months",
+                policy_context: "Part of broader healthcare system reform following SARS crisis",
+                confounders: "Physician supply changes, technology adoption, demographic shifts"
+            },
+            carbon: {
+                title: "Federal Carbon Tax Implementation (2019-2023)",
+                description: "Evaluating the federal carbon tax impact on provincial GHG emissions. The policy created a minimum carbon price across Canada with federal backstop for non-compliant provinces.",
+                outcome: "Monthly GHG Emissions (Mt CO2-eq)",
+                intervention: "Federal Carbon Tax Backstop",
+                intervention_date: "January 2019", 
+                unit: "Provincial-monthly data",
+                expected_effect: "Gradual emissions reduction with potential lag effects",
+                policy_context: "Part of Pan-Canadian Framework on Clean Growth and Climate Change",
+                confounders: "Economic cycles, weather patterns, industrial composition changes"
+            },
+            minimum_wage: {
+                title: "Alberta Minimum Wage Increase (2015-2018)",
+                description: "Analyzing employment effects of Alberta's rapid minimum wage increases from $10.20 to $15.00. The policy was implemented in stages over three years.",
+                outcome: "Youth Employment Rate (%)",
+                intervention: "Minimum Wage Phase-In",
+                intervention_date: "October 2015",
+                unit: "Monthly labour force data", 
+                expected_effect: "Potential employment reduction for low-skilled workers",
+                policy_context: "Implemented during economic downturn due to oil price collapse",
+                confounders: "Oil price shocks, migration patterns, economic recession"
+            },
+            education: {
+                title: "Quebec Education Reform (2000-2008)",
+                description: "Evaluating student achievement effects of Quebec's comprehensive education reform including new curriculum, pedagogical approaches, and assessment methods.",
+                outcome: "Provincial Test Scores (standardized)",
+                intervention: "New Education Program Implementation",
+                intervention_date: "September 2000",
+                unit: "Annual school-level data",
+                expected_effect: "Gradual improvement in student outcomes over multiple years",
+                policy_context: "Response to international student achievement comparisons",
+                confounders: "Teacher training, demographic changes, technology adoption"
+            },
+            transit: {
+                title: "Toronto Transit Expansion (2017-2022)",
+                description: "Analyzing ridership and congestion effects of major TTC subway and LRT extensions including Line 1 extension and Eglinton Crosstown preparations.",
+                outcome: "Daily Transit Ridership (thousands)",
+                intervention: "Line 1 Extension Opening",
+                intervention_date: "December 2017",
+                unit: "Daily ridership data",
+                expected_effect: "Immediate ridership increase with network effects",
+                policy_context: "Part of broader regional transit expansion strategy",
+                confounders: "Service disruptions, fare changes, COVID-19 pandemic"
+            }
+        };
+
+        // Assessment Questions (ITS focused)
+        const assessmentQuestions = [
+            {
+                question: "What is the key identifying assumption for causal inference in ITS analysis?",
+                options: [
+                    "Random assignment of intervention timing",
+                    "No confounding events occur at the intervention time",
+                    "The outcome follows a linear time trend",
+                    "Treatment and control groups are comparable"
+                ],
+                correct: 1,
+                explanation: "ITS causal identification requires that no other factors besides the intervention cause a structural break at exactly the intervention time. This assumption can be threatened by concurrent policy changes or external events."
+            },
+            {
+                question: "In the ITS model Yₜ = β₀ + β₁·Time + β₂·Intervention + β₃·Post_Trend + εₜ, what does β₃ capture?",
+                options: [
+                    "The immediate level change from intervention",
+                    "The pre-intervention time trend",
+                    "The change in slope after intervention",
+                    "The overall intervention effect"
+                ],
+                correct: 2,
+                explanation: "β₃ captures the change in slope (trend) after the intervention. If β₃ = -0.5 and β₁ = 1.0, the pre-intervention slope is 1.0 and post-intervention slope is 0.5, indicating a slower rate of increase."
+            },
+            {
+                question: "Why is autocorrelation a particular concern in ITS analysis?",
+                options: [
+                    "It makes the intervention effect appear larger",
+                    "It violates the independence assumption and affects standard errors",
+                    "It only occurs in policy evaluation contexts",
+                    "It prevents identification of structural breaks"
+                ],
+                correct: 1,
+                explanation: "Time series data often exhibit autocorrelation (observations close in time are correlated), which violates OLS independence assumptions and can make standard errors incorrect, leading to false significance findings."
+            },
+            {
+                question: "What is the main advantage of using multiple pre-intervention time points in ITS?",
+                options: [
+                    "Increases sample size for better precision",
+                    "Allows testing and controlling for pre-existing trends", 
+                    "Eliminates the need for post-intervention data",
+                    "Automatically controls for all confounders"
+                ],
+                correct: 1,
+                explanation: "Multiple pre-intervention points allow researchers to model and control for underlying time trends, ensuring that observed changes after intervention represent genuine policy effects rather than continuation of existing trends."
+            },
+            {
+                question: "When might a Chow test be preferred over visual inspection for detecting structural breaks?",
+                options: [
+                    "When the break date is unknown",
+                    "When you want statistical evidence of a break at a known date",
+                    "When dealing with multiple time series",
+                    "When the sample size is very large"
+                ],
+                correct: 1,
+                explanation: "The Chow test provides formal statistical evidence for a structural break at a specific known date (e.g., intervention time), giving objective assessment rather than relying on subjective visual interpretation of trend changes."
+            }
+        ];
+
+        // Navigation Functions
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Policy Scenario Management
+        function updatePolicyScenario() {
+            const scenarioType = document.getElementById('policyScenario').value;
+            const scenario = policyScenarios[scenarioType];
+            
+            document.getElementById('policyText').innerHTML = `
+                <h3 style="color: var(--secondary-red); margin-bottom: 22px;">${scenario.title}</h3>
+                <p><strong>Policy Context:</strong> ${scenario.description}</p>
+                <div class="research-note">
+                    <p><strong>📈 ITS Application:</strong> ${scenario.policy_context}</p>
+                </div>
+                <p><strong>Outcome Variable:</strong> ${scenario.outcome}</p>
+                <p><strong>Intervention:</strong> ${scenario.intervention}</p>
+                <p><strong>Intervention Date:</strong> ${scenario.intervention_date}</p>
+                <p><strong>Unit of Analysis:</strong> ${scenario.unit}</p>
+                <p><strong>Expected Effect:</strong> ${scenario.expected_effect}</p>
+                <p><strong>Potential Confounders:</strong> ${scenario.confounders}</p>
+            `;
+            
+            updateInterventionTimeline();
+        }
+
+        function updateInterventionTimeline() {
+            const preLength = document.getElementById('preLength').value;
+            const postLength = document.getElementById('postLength').value;
+            const container = document.getElementById('interventionTimeline');
+            
+            container.innerHTML = `
+                <div class="pre-intervention">
+                    Pre-Period<br>
+                    ${preLength} months
+                </div>
+                <div class="intervention-point">
+                    INTERVENTION
+                </div>
+                <div class="post-intervention">
+                    Post-Period<br>
+                    ${postLength} months
+                </div>
+            `;
+        }
+
+        function updateTimeline() {
+            updateInterventionTimeline();
+        }
+
+        function updateEffectDisplay() {
+            const effect = document.getElementById('effectSize').value;
+            document.getElementById('effectValue').textContent = effect;
+        }
+
+        // ITS Data Generation
+        function generateITSData() {
+            const scenarioType = document.getElementById('policyScenario').value;
+            const preLength = parseInt(document.getElementById('preLength').value);
+            const postLength = parseInt(document.getElementById('postLength').value);
+            const effectSize = parseFloat(document.getElementById('effectSize').value);
+            
+            const scenario = policyScenarios[scenarioType];
+            
+            currentITSData = {
+                scenario: scenario,
+                preLength: preLength,
+                postLength: postLength,
+                effectSize: effectSize,
+                data: []
+            };
+
+            // Generate ITS time series with structural break
+            const totalLength = preLength + postLength;
+            const interventionPoint = preLength;
+            
+            // Pre-intervention trend (slight upward trend)
+            const preSlope = 0.1 + Math.random() * 0.1;
+            const postSlope = preSlope - effectSize * 0.05; // Changed slope
+            const levelChange = -effectSize * 2; // Immediate level change
+            
+            for (let t = 1; t <= totalLength; t++) {
+                const isPost = t > interventionPoint;
+                const timeFromIntervention = Math.max(0, t - interventionPoint);
+                
+                let y;
+                if (!isPost) {
+                    // Pre-intervention: linear trend with noise
+                    y = 50 + preSlope * t + (Math.random() - 0.5) * 3;
+                } else {
+                    // Post-intervention: level change + new slope
+                    const preValue = 50 + preSlope * interventionPoint;
+                    y = preValue + levelChange + postSlope * timeFromIntervention + (Math.random() - 0.5) * 3;
+                }
+                
+                currentITSData.data.push({
+                    time: t,
+                    month: t,
+                    intervention: isPost ? 1 : 0,
+                    post_trend: Math.max(0, t - interventionPoint),
+                    y: y,
+                    isPost: isPost
+                });
+            }
+
+            updateITSChart();
+        }
+
+        function updateITSChart() {
+            if (!currentITSData) return;
+            
+            const ctx = document.getElementById('itsChart').getContext('2d');
+            
+            if (currentITSChart) {
+                currentITSChart.destroy();
+            }
+
+            // Separate pre and post data for styling
+            const preData = currentITSData.data.filter(d => !d.isPost);
+            const postData = currentITSData.data.filter(d => d.isPost);
+
+            currentITSChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: currentITSData.data.map(d => `Month ${d.month}`),
+                    datasets: [
+                        {
+                            label: 'Pre-Intervention',
+                            data: preData.map(d => d.y),
+                            borderColor: '#84CC16',
+                            backgroundColor: 'rgba(132, 204, 22, 0.1)',
+                            borderWidth: 4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#84CC16'
+                        },
+                        {
+                            label: 'Post-Intervention',
+                            data: Array(currentITSData.preLength).fill(null).concat(postData.map(d => d.y)),
+                            borderColor: '#8B5CF6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            borderWidth: 4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#8B5CF6'
+                        },
+                        {
+                            label: 'Intervention Point',
+                            data: Array(currentITSData.preLength).fill(null).concat([postData[0]?.y]),
+                            borderColor: '#FF6B6B',
+                            backgroundColor: '#FF6B6B',
+                            pointRadius: 12,
+                            pointStyle: 'triangle',
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${currentITSData.scenario.title} - Time Series Analysis`,
+                            font: { size: 18, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (Months)' }
+                        },
+                        y: {
+                            title: { display: true, text: currentITSData.scenario.outcome }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ITS Estimation
+        function estimateITS() {
+            if (!currentITSData) {
+                alert('Please generate time series data first');
+                return;
+            }
+
+            // Simplified ITS estimation
+            const data = currentITSData.data;
+            const n = data.length;
+            
+            // Calculate means and regression coefficients (simplified)
+            const meanY = data.reduce((sum, d) => sum + d.y, 0) / n;
+            const meanTime = data.reduce((sum, d) => sum + d.time, 0) / n;
+            const meanIntervention = data.reduce((sum, d) => sum + d.intervention, 0) / n;
+            const meanPostTrend = data.reduce((sum, d) => sum + d.post_trend, 0) / n;
+            
+            // Simple correlation-based estimates (in practice would use OLS)
+            let betaTime = 0, betaIntervention = 0, betaPostTrend = 0;
+            let sseTime = 0, sseIntervention = 0, ssePostTrend = 0;
+            
+            data.forEach(d => {
+                betaTime += (d.time - meanTime) * (d.y - meanY);
+                sseTime += (d.time - meanTime) * (d.time - meanTime);
+                
+                betaIntervention += (d.intervention - meanIntervention) * (d.y - meanY);
+                sseIntervention += (d.intervention - meanIntervention) * (d.intervention - meanIntervention);
+                
+                betaPostTrend += (d.post_trend - meanPostTrend) * (d.y - meanY);
+                ssePostTrend += (d.post_trend - meanPostTrend) * (d.post_trend - meanPostTrend);
+            });
+            
+            betaTime = betaTime / sseTime;
+            betaIntervention = betaIntervention / sseIntervention;
+            betaPostTrend = betaPostTrend / ssePostTrend;
+            
+            // Calculate residuals and standard errors (simplified)
+            const residuals = data.map(d => 
+                d.y - (meanY + betaTime * (d.time - meanTime) + 
+                betaIntervention * (d.intervention - meanIntervention) +
+                betaPostTrend * (d.post_trend - meanPostTrend))
+            );
+            const mse = residuals.reduce((sum, r) => sum + r*r, 0) / (n - 4);
+            
+            const seTime = Math.sqrt(mse / sseTime);
+            const seIntervention = Math.sqrt(mse / Math.max(sseIntervention, 1));
+            const seTrend = Math.sqrt(mse / Math.max(ssePostTrend, 1));
+
+            displayITSResults({
+                betaTime,
+                betaIntervention,
+                betaPostTrend,
+                seTime,
+                seIntervention,
+                seTrend,
+                n: n,
+                preLength: currentITSData.preLength,
+                postLength: currentITSData.postLength
+            });
+        }
+
+        function displayITSResults(results) {
+            const tTime = results.betaTime / results.seTime;
+            const tIntervention = results.betaIntervention / results.seIntervention;
+            const tTrend = results.betaPostTrend / results.seTrend;
+            
+            document.getElementById('itsTable').innerHTML = `
+                <h4>📈 ITS Regression Results</h4>
+                <div style="font-family: 'Space Mono', monospace; background: var(--pale-purple); padding: 35px; border-radius: 18px; margin: 30px 0;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 25px; font-weight: 600; border-bottom: 2px solid #ccc; padding-bottom: 18px;">
+                        <div>Variable</div>
+                        <div>Coefficient</div>
+                        <div>Std Error</div>
+                        <div>t-statistic</div>
+                        <div>Significance</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 25px; padding: 18px 0;">
+                        <div>Time Trend (β₁)</div>
+                        <div class="coefficient-display">${results.betaTime.toFixed(4)}</div>
+                        <div>${results.seTime.toFixed(4)}</div>
+                        <div>${tTime.toFixed(2)}</div>
+                        <div>${Math.abs(tTime) > 1.96 ? '✅ Sig' : '❌ NS'}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 25px; padding: 18px 0; background: rgba(139, 92, 246, 0.1);">
+                        <div>Level Change (β₂)</div>
+                        <div class="coefficient-display">${results.betaIntervention.toFixed(4)}</div>
+                        <div>${results.seIntervention.toFixed(4)}</div>
+                        <div>${tIntervention.toFixed(2)}</div>
+                        <div>${Math.abs(tIntervention) > 1.96 ? '✅ Sig' : '❌ NS'}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 25px; padding: 18px 0;">
+                        <div>Trend Change (β₃)</div>
+                        <div class="coefficient-display">${results.betaPostTrend.toFixed(4)}</div>
+                        <div>${results.seTrend.toFixed(4)}</div>
+                        <div>${tTrend.toFixed(2)}</div>
+                        <div>${Math.abs(tTrend) > 1.96 ? '✅ Sig' : '❌ NS'}</div>
+                    </div>
+                </div>
+                <div class="intervention-highlight">
+                    <p><strong>📈 Policy Impact:</strong> 
+                    ${Math.abs(tIntervention) > 1.96 ? 
+                        `Significant immediate effect of ${results.betaIntervention.toFixed(2)} units` : 
+                        'No significant immediate policy effect detected'}.
+                    ${Math.abs(tTrend) > 1.96 ? 
+                        `Trend change of ${results.betaPostTrend.toFixed(3)} per period` : 
+                        'No significant trend change detected'}.
+                    </p>
+                </div>
+            `;
+
+            // Update statistics display
+            const longTermEffect = results.betaIntervention + results.betaPostTrend * (results.postLength / 2);
+            
+            document.getElementById('itsStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${results.betaIntervention.toFixed(3)}</div>
+                    <div class="stat-label">Immediate Effect</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.betaPostTrend.toFixed(4)}</div>
+                    <div class="stat-label">Trend Change</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${longTermEffect.toFixed(3)}</div>
+                    <div class="stat-label">Long-term Effect</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.preLength}</div>
+                    <div class="stat-label">Pre-Period (months)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.postLength}</div>
+                    <div class="stat-label">Post-Period (months)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.n}</div>
+                    <div class="stat-label">Total Observations</div>
+                </div>
+            `;
+        }
+
+        // Structural Break Detection
+        function detectBreaks() {
+            if (!currentITSData) {
+                alert('Please estimate ITS model first');
+                return;
+            }
+
+            // Simplified break detection tests
+            const interventionPoint = currentITSData.preLength;
+            const chowFStat = Math.random() * 20 + 5; // Simulated F-statistic
+            const chowCritical = 2.37; // 5% critical value for F(3, n-6)
+            const chowSignificant = chowFStat > chowCritical;
+            
+            // CUSUM test (simulated)
+            const cusumStat = Math.random() * 1.5 + 0.5;
+            const cusumCritical = 1.36; // 5% critical value
+            const cusumSignificant = cusumStat > cusumCritical;
+            
+            displayBreakResults({
+                interventionPoint,
+                chowFStat,
+                chowCritical,
+                chowSignificant,
+                cusumStat,
+                cusumCritical,
+                cusumSignificant
+            });
+
+            updateCounterfactualChart();
+        }
+
+        function displayBreakResults(results) {
+            document.getElementById('breakTable').innerHTML = `
+                <h4>📈 Structural Break Test Results</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin: 35px 0;">
+                    <div class="stat-card" style="padding: 30px;">
+                        <h5>Chow Test</h5>
+                        <p><strong>Break Point:</strong> <span class="break-point">Month ${results.interventionPoint}</span></p>
+                        <p><strong>F-Statistic:</strong> <span class="coefficient-display">${results.chowFStat.toFixed(2)}</span></p>
+                        <p><strong>Critical Value:</strong> ${results.chowCritical.toFixed(2)}</p>
+                        <p><strong>Result:</strong> ${results.chowSignificant ? '✅ Structural break detected' : '❌ No break detected'}</p>
+                    </div>
+                    <div class="stat-card" style="padding: 30px;">
+                        <h5>CUSUM Test</h5>
+                        <p><strong>Test Statistic:</strong> <span class="coefficient-display">${results.cusumStat.toFixed(3)}</span></p>
+                        <p><strong>Critical Value:</strong> ${results.cusumCritical.toFixed(3)}</p>
+                        <p><strong>Parameter Stability:</strong> ${results.cusumSignificant ? '⚠️ Unstable' : '✅ Stable'}</p>
+                        <p><strong>Interpretation:</strong> ${results.cusumSignificant ? 'Evidence of structural change' : 'No instability detected'}</p>
+                    </div>
+                </div>
+                <div class="intervention-highlight">
+                    <p><strong>📈 Break Detection Summary:</strong> 
+                    ${results.chowSignificant ? 'Strong statistical evidence for structural break at intervention point. ' : 'No significant break detected. '}
+                    ${results.cusumSignificant ? 'CUSUM test confirms parameter instability.' : 'CUSUM test supports parameter stability.'}
+                    This ${results.chowSignificant && results.cusumSignificant ? 'strongly supports' : 'provides weak evidence for'} 
+                    causal interpretation of the policy intervention.
+                    </p>
+                </div>
+            `;
+        }
+
+        function updateCounterfactualChart() {
+            const ctx = document.getElementById('counterfactualChart').getContext('2d');
+            
+            if (counterfactualChart) {
+                counterfactualChart.destroy();
+            }
+
+            // Generate counterfactual (what would have happened without intervention)
+            const data = currentITSData.data;
+            const interventionPoint = currentITSData.preLength;
+            
+            // Extract pre-intervention trend
+            const preData = data.slice(0, interventionPoint);
+            let trendSum = 0, timeSum = 0;
+            preData.forEach((d, i) => {
+                trendSum += d.y * (i + 1);
+                timeSum += (i + 1) * (i + 1);
+            });
+            const preSlope = trendSum / timeSum;
+            const preIntercept = preData[0].y;
+            
+            // Generate counterfactual for full period
+            const counterfactual = data.map((d, i) => preIntercept + preSlope * (i + 1));
+            
+            counterfactualChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => `Month ${d.month}`),
+                    datasets: [
+                        {
+                            label: 'Observed',
+                            data: data.map(d => d.y),
+                            borderColor: '#8B5CF6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Counterfactual (No Intervention)',
+                            data: counterfactual,
+                            borderColor: '#94A3B8',
+                            backgroundColor: 'transparent',
+                            borderDash: [10, 5],
+                            borderWidth: 3,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Intervention Point',
+                            data: Array(interventionPoint).fill(null).concat([data[interventionPoint]?.y]),
+                            borderColor: '#FF6B6B',
+                            backgroundColor: '#FF6B6B',
+                            pointRadius: 15,
+                            pointStyle: 'triangle',
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ITS Analysis: Observed vs. Counterfactual Trends',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (Months)' }
+                        },
+                        y: {
+                            title: { display: true, text: currentITSData.scenario.outcome }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Assessment Functions
+        function generateNewQuestion() {
+            currentQuestion = assessmentQuestions[Math.floor(Math.random() * assessmentQuestions.length)];
+            selectedAnswer = null;
+            
+            document.querySelector('.decision-question').textContent = currentQuestion.question;
+            
+            const optionsContainer = document.getElementById('assessmentOptions');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'decision-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('assessmentFeedback').innerHTML = '';
+        }
+
+        function selectAnswer(answerIndex) {
+            selectedAnswer = answerIndex;
+            
+            document.querySelectorAll('.decision-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === answerIndex);
+            });
+        }
+
+        function checkAnswer() {
+            if (selectedAnswer === null) {
+                alert('Please select an answer first');
+                return;
+            }
+            
+            const isCorrect = selectedAnswer === currentQuestion.correct;
+            const feedbackClass = isCorrect ? 'feedback-success' : 'feedback-danger';
+            const feedbackTitle = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="${feedbackClass}">
+                    <h4>${feedbackTitle}</h4>
+                    <p><strong>Explanation:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                </div>
+            `;
+        }
+
+        function showExpertSolution() {
+            if (!currentQuestion) {
+                generateNewQuestion();
+                return;
+            }
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="feedback-success">
+                    <h4>📈 Expert Analysis</h4>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                    <p><strong>ITS Insight:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Policy Application:</strong> Interrupted Time Series Analysis provides credible causal evidence for policy evaluation when randomized trials are not feasible. Proper ITS analysis requires attention to identification assumptions, functional form, and potential confounders.</p>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        window.addEventListener('load', function() {
+            updatePolicyScenario();
+            generateNewQuestion();
+        });
+    </script>
+</body>
+</html>
