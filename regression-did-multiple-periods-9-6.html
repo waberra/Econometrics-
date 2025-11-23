@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DiD with More Than Two Periods (Wooldridge 9.6)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .multi-card     { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .coeff-card     { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .pattern-card   { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 DiD with More Than Two Periods (Wooldridge 9.6)</h1>
+        <p>Practice multi-period difference-in-differences with several post-policy periods</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Multiple Periods in DiD</h3>
+        <div class="measures-grid">
+            <div class="measure-card multi-card">
+                <h4>Extending DiD Beyond Two Periods</h4>
+                <div class="formula">
+                    Y = β₀ + β₁·Post₁ + β₂·Post₂ + β₃·Treat<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;+ δ₁·(Treat·Post₁) + δ₂·(Treat·Post₂) + u
+                </div>
+                <div class="description">
+                    With three periods (0 = pre, 1 and 2 = post), we can include separate time dummies and separate interactions. Each interaction δₜ is a DiD effect for that period relative to the base period.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Policy effects that evolve over time, or multiple years of pre/post data.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Minimum wage reform in 2010, with data from 2008, 2012, and 2016.
+                </div>
+            </div>
+
+            <div class="measure-card coeff-card">
+                <h4>Interpreting Coefficients</h4>
+                <div class="formula">
+                    β₀: control in period 0<br>
+                    β₁, β₂: control trends<br>
+                    β₃: baseline treat–control gap<br>
+                    δ₁, δ₂: DiD effects over time
+                </div>
+                <div class="description">
+                    β₁ and β₂ capture how the control group changes over time relative to period 0. δ₁ and δ₂ measure the extra change in the treatment group, in each post period, relative to the control group’s change.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Time profile of treatment effects, not just a single before/after average.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> δ₁ small, δ₂ large → the effect grows over time.
+                </div>
+            </div>
+
+            <div class="measure-card pattern-card">
+                <h4>Patterns of Treatment Effects</h4>
+                <div class="formula">
+                    δ₁, δ₂, ... as a sequence
+                </div>
+                <div class="description">
+                    Looking at δ₁, δ₂, ... allows you to see whether policy impacts are immediate, delayed, or fade out. This is the simplest form of an “event study” pattern in pooled cross sections.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Dynamic effects of training, taxes, bans, regulations.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> δ₁ ≈ 0 and δ₂ &lt; 0 → no short-run effect, but a later drop.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    Still needs parallel trends
+                </div>
+                <div class="description">
+                    With more than two periods, it is easier to inspect trends: do treated and control groups look similar before the policy? The identification logic is the same, but we have richer information about dynamics.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Stronger credibility when pre-trends are flat and post-trends diverge.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> If possible, include at least one pre-period before the policy.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Multi-Period DiD</h3>
+            <p>Each scenario has three periods (0 = pre, 1 and 2 = post) and a DiD regression with separate post dummies and interactions. Compute cell means, changes over time, and the DiD effect in each post period.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the regression to compute E[Y] for each group–time combination (treatment/control × periods 0, 1, 2). Then compute changes over time and the DiD effect in each post period.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Cell means</strong><br>Compute E[Y] in each of the 6 cells (2 groups × 3 periods).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Group-specific changes</strong><br>Compute changes over time in control and treatment groups.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 DiD effects over time</strong><br>Compute DiD in each post period and relate them to δ₁ and δ₂.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain what δ₁ and δ₂ mean in context, and what pattern they suggest.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Multi-period DiD (9.6) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Multi-period DiD scenarios
+    // Periods t = 0 (baseline), 1, 2.
+    // Y = β0 + β1*Post1 + β2*Post2 + β3*Treat + δ1*(Treat*Post1) + δ2*(Treat*Post2) + u
+    // Where Post1=1 in period 1, Post2=1 in period 2, and baseline is period 0.
+    var scenarios = [
+        {
+            id: "minWageThreePeriods",
+            title: "Minimum Wage Reform Over Three Periods",
+            description: "State T raises the minimum wage in 2010. You use repeated cross sections from 2006 (period 0, pre), 2012 (period 1, early post), and 2016 (period 2, later post). State C is a comparison state that does not change its minimum wage.",
+            context: "Study how the effect of the minimum wage on teen employment evolves over time.",
+            model: "Y = teen employment rate (percentage points).",
+            treatName: "State T (Treat=1, higher minimum wage)",
+            controlName: "State C (Treat=0, no change)",
+            period0Label: "Period 0: 2006 (pre-policy, Post1=0, Post2=0)",
+            period1Label: "Period 1: 2012 (Post1=1, Post2=0)",
+            period2Label: "Period 2: 2016 (Post1=0, Post2=1)",
+            equation: "Employ = 50 − 3·Post1 − 4·Post2 − 2·Treat − 1·(Treat·Post1) − 5·(Treat·Post2)",
+            beta0: 50,
+            betaPost1: -3,
+            betaPost2: -4,
+            betaTreat: -2,
+            delta1: -1,
+            delta2: -5,
+            yUnits: "percentage points",
+            expertInterpretation:
+                "In the control state, employment falls by 3 points in period 1 and 4 points in period 2 relative to period 0. In the treated state, there is an extra 1-point fall in period 1 (δ₁ = −1) and an extra 5-point fall in period 2 (δ₂ = −5). This suggests the negative impact of the higher minimum wage on teen employment grows larger over time."
+        },
+        {
+            id: "trainingDynamic",
+            title: "Training Program with Short-Run and Long-Run Effects",
+            description: "Some firms adopt a training program in 2018. You observe worker productivity in 2016 (period 0), 2019 (period 1), and 2021 (period 2).",
+            context: "Measure whether the productivity gains from training grow or fade over time.",
+            model: "Y = output per worker (units per week).",
+            treatName: "Treated firms (Treat=1, training)",
+            controlName: "Control firms (Treat=0)",
+            period0Label: "Period 0: 2016 (pre-training)",
+            period1Label: "Period 1: 2019 (early post)",
+            period2Label: "Period 2: 2021 (later post)",
+            equation: "Prod = 100 + 2·Post1 + 4·Post2 + 5·Treat + 6·(Treat·Post1) + 4·(Treat·Post2)",
+            beta0: 100,
+            betaPost1: 2,
+            betaPost2: 4,
+            betaTreat: 5,
+            delta1: 6,
+            delta2: 4,
+            yUnits: "units per worker per week",
+            expertInterpretation:
+                "Control-firm productivity rises by 2 units in period 1 and 4 units in period 2 relative to period 0. Treated firms enjoy an extra 6-unit gain in period 1 and 4-unit gain in period 2. This suggests a strong short-run effect that slightly fades but remains positive in the longer run."
+        },
+        {
+            id: "pollutionRegulation",
+            title: "Pollution Regulation and Emissions Over Time",
+            description: "Region T introduces a strict pollution regulation in 2012; Region C does not. You observe emissions in 2008 (period 0), 2014 (period 1), and 2018 (period 2).",
+            context: "Assess whether emission reductions deepen over time in the regulated region.",
+            model: "Y = emissions per plant (tons per year).",
+            treatName: "Region T (Treat=1, regulation)",
+            controlName: "Region C (Treat=0, no regulation)",
+            period0Label: "Period 0: 2008 (pre-regulation)",
+            period1Label: "Period 1: 2014 (early post)",
+            period2Label: "Period 2: 2018 (later post)",
+            equation: "Emit = 80 − 5·Post1 − 8·Post2 + 3·Treat − 10·(Treat·Post1) − 14·(Treat·Post2)",
+            beta0: 80,
+            betaPost1: -5,
+            betaPost2: -8,
+            betaTreat: 3,
+            delta1: -10,
+            delta2: -14,
+            yUnits: "tons per plant per year",
+            expertInterpretation:
+                "In the control region, emissions fall modestly over time (−5 in period 1, −8 in period 2). In the regulated region, emissions fall an additional 10 tons in period 1 and 14 tons in period 2, relative to the control trend. The increasingly negative δ’s indicate that the regulation’s impact strengthens over time."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Multi-Period DiD Regression</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Outcome:</strong> ' + scenario.model + '</p>';
+
+        html += '<p style="margin-top:6px;"><strong>Treatment group:</strong> ' + scenario.treatName + '<br>';
+        html += '<strong>Control group:</strong> ' + scenario.controlName + '<br>';
+        html += '<strong>Periods:</strong><br>';
+        html += scenario.period0Label + '<br>';
+        html += scenario.period1Label + '<br>';
+        html += scenario.period2Label + '</p>';
+
+        html += '<p style="margin-top:8px;"><strong>Estimated regression (pooled cross sections):</strong></p>';
+        html += '<p style="margin-top:4px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.equation;
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Term</th><th>Coefficient</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td>β₀</td><td>' + scenario.beta0.toFixed(2) +
+                '</td><td>Control group mean in period 0 (baseline)</td></tr>';
+        html += '<tr><td>β₁ (Post₁)</td><td>' + scenario.betaPost1.toFixed(2) +
+                '</td><td>Change in control group from period 0 to period 1</td></tr>';
+        html += '<tr><td>β₂ (Post₂)</td><td>' + scenario.betaPost2.toFixed(2) +
+                '</td><td>Change in control group from period 0 to period 2</td></tr>';
+        html += '<tr><td>β₃ (Treat)</td><td>' + scenario.betaTreat.toFixed(2) +
+                '</td><td>Baseline difference: treated − control in period 0</td></tr>';
+        html += '<tr><td>δ₁ (Treat·Post₁)</td><td>' + scenario.delta1.toFixed(2) +
+                '</td><td>Extra change for treated vs control in period 1 (DiD at t=1)</td></tr>';
+        html += '<tr><td>δ₂ (Treat·Post₂)</td><td>' + scenario.delta2.toFixed(2) +
+                '</td><td>Extra change for treated vs control in period 2 (DiD at t=2)</td></tr>';
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Reminder:</strong> For each period t, the DiD effect is the change in the treated group minus the change in the control group from period 0 to t. In this linear model, that equals δₜ.';
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        // Helper: expected value in a given group and period
+        // Period coding:
+        // t = 0: Post1=0, Post2=0
+        // t = 1: Post1=1, Post2=0
+        // t = 2: Post1=0, Post2=1
+        function EY(treat, t) {
+            var Post1 = (t === 1) ? 1 : 0;
+            var Post2 = (t === 2) ? 1 : 0;
+            return s.beta0
+                 + s.betaPost1 * Post1
+                 + s.betaPost2 * Post2
+                 + s.betaTreat * treat
+                 + s.delta1 * (treat * Post1)
+                 + s.delta2 * (treat * Post2);
+        }
+
+        // Cell means
+        var y_C_0 = EY(0,0);
+        var y_C_1 = EY(0,1);
+        var y_C_2 = EY(0,2);
+        var y_T_0 = EY(1,0);
+        var y_T_1 = EY(1,1);
+        var y_T_2 = EY(1,2);
+
+        // Changes relative to period 0
+        var dC_1 = y_C_1 - y_C_0;
+        var dC_2 = y_C_2 - y_C_0;
+        var dT_1 = y_T_1 - y_T_0;
+        var dT_2 = y_T_2 - y_T_0;
+
+        // DiD effects
+        var did_1 = dT_1 - dC_1; // should equal δ1
+        var did_2 = dT_2 - dC_2; // should equal δ2
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "control0",
+                type: "numeric",
+                title: "🏁 Control group, period 0 mean",
+                prompt: "Compute E[Y|control, period 0].",
+                correctValue: y_C_0,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "control1",
+                type: "numeric",
+                title: "🏁 Control group, period 1 mean",
+                prompt: "Compute E[Y|control, period 1].",
+                correctValue: y_C_1,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "control2",
+                type: "numeric",
+                title: "🏁 Control group, period 2 mean",
+                prompt: "Compute E[Y|control, period 2].",
+                correctValue: y_C_2,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "treat0",
+                type: "numeric",
+                title: "🏁 Treatment group, period 0 mean",
+                prompt: "Compute E[Y|treatment, period 0].",
+                correctValue: y_T_0,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "treat1",
+                type: "numeric",
+                title: "🏁 Treatment group, period 1 mean",
+                prompt: "Compute E[Y|treatment, period 1].",
+                correctValue: y_T_1,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "treat2",
+                type: "numeric",
+                title: "🏁 Treatment group, period 2 mean",
+                prompt: "Compute E[Y|treatment, period 2].",
+                correctValue: y_T_2,
+                unitHint: "(" + s.yUnits + ")"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "dC1",
+                type: "numeric",
+                title: "📊 Control group change: period 0 → 1",
+                prompt: "Compute ΔY_control(1) = E[Y|control,1] − E[Y|control,0].",
+                correctValue: dC_1,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "dT1",
+                type: "numeric",
+                title: "📊 Treatment group change: period 0 → 1",
+                prompt: "Compute ΔY_treat(1) = E[Y|treatment,1] − E[Y|treatment,0].",
+                correctValue: dT_1,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "dC2",
+                type: "numeric",
+                title: "📊 Control group change: period 0 → 2",
+                prompt: "Compute ΔY_control(2) = E[Y|control,2] − E[Y|control,0].",
+                correctValue: dC_2,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "dT2",
+                type: "numeric",
+                title: "📊 Treatment group change: period 0 → 2",
+                prompt: "Compute ΔY_treat(2) = E[Y|treatment,2] − E[Y|treatment,0].",
+                correctValue: dT_2,
+                unitHint: "(" + s.yUnits + ")"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "did1",
+                type: "numeric",
+                title: "📉 DiD effect in period 1",
+                prompt: "Compute DiD(1) = ΔY_treat(1) − ΔY_control(1).",
+                correctValue: did_1,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "did2",
+                type: "numeric",
+                title: "📉 DiD effect in period 2",
+                prompt: "Compute DiD(2) = ΔY_treat(2) − ΔY_control(2).",
+                correctValue: did_2,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "delta1",
+                type: "numeric",
+                title: "📉 Interaction coefficient δ₁",
+                prompt: "What is δ₁ (coefficient on Treat·Post₁) in the regression?",
+                correctValue: s.delta1,
+                unitHint: "(" + s.yUnits + ")"
+            });
+            currentQuestions.push({
+                conceptId: "delta2",
+                type: "numeric",
+                title: "📉 Interaction coefficient δ₂",
+                prompt: "What is δ₂ (coefficient on Treat·Post₂) in the regression?",
+                correctValue: s.delta2,
+                unitHint: "(" + s.yUnits + ")"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation of δ₁ and δ₂",
+                prompt: "Describe in words what δ₁ and δ₂ mean in this context. Comment on whether the treatment effect seems to grow, shrink, or stay constant over time. Then compare with the expert wording below.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Key identity: in each post period t, DiD(t) = [ΔY_treat(t) − ΔY_control(t)] = δₜ.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        function EY(treat, t) {
+            var Post1 = (t === 1) ? 1 : 0;
+            var Post2 = (t === 2) ? 1 : 0;
+            return s.beta0
+                 + s.betaPost1 * Post1
+                 + s.betaPost2 * Post2
+                 + s.betaTreat * treat
+                 + s.delta1 * (treat * Post1)
+                 + s.delta2 * (treat * Post2);
+        }
+
+        var y_C_0 = EY(0,0);
+        var y_C_1 = EY(0,1);
+        var y_C_2 = EY(0,2);
+        var y_T_0 = EY(1,0);
+        var y_T_1 = EY(1,1);
+        var y_T_2 = EY(1,2);
+
+        var dC_1 = y_C_1 - y_C_0;
+        var dC_2 = y_C_2 - y_C_0;
+        var dT_1 = y_T_1 - y_T_0;
+        var dT_2 = y_T_2 - y_T_0;
+
+        var did_1 = dT_1 - dC_1;
+        var did_2 = dT_2 - dC_2;
+
+        if (q.conceptId === "control0") {
+            html += "Control, period 0: all dummies 0 and Treat=0.<br>";
+            html += "E[Y|control,0] = β₀ = " + y_C_0.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "control1") {
+            html += "Control, period 1: Treat=0, Post₁=1, Post₂=0.<br>";
+            html += "E[Y|control,1] = β₀ + β₁ = " + y_C_1.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "control2") {
+            html += "Control, period 2: Treat=0, Post₁=0, Post₂=1.<br>";
+            html += "E[Y|control,2] = β₀ + β₂ = " + y_C_2.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "treat0") {
+            html += "Treatment, period 0: Treat=1, Post₁=0, Post₂=0.<br>";
+            html += "E[Y|treat,0] = β₀ + β₃ = " + y_T_0.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "treat1") {
+            html += "Treatment, period 1: Treat=1, Post₁=1, Post₂=0.<br>";
+            html += "E[Y|treat,1] = β₀ + β₁ + β₃ + δ₁ = " + y_T_1.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "treat2") {
+            html += "Treatment, period 2: Treat=1, Post₁=0, Post₂=1.<br>";
+            html += "E[Y|treat,2] = β₀ + β₂ + β₃ + δ₂ = " + y_T_2.toFixed(2) + " " + s.yUnits + ".";
+        } else if (q.conceptId === "dC1") {
+            html += "Control change from 0 to 1:<br>";
+            html += "ΔY_control(1) = E[Y|control,1] − E[Y|control,0] = "
+                  + y_C_1.toFixed(2) + " − " + y_C_0.toFixed(2)
+                  + " = " + dC_1.toFixed(2) + " " + s.yUnits
+                  + ", which equals β₁.";
+        } else if (q.conceptId === "dT1") {
+            html += "Treatment change from 0 to 1:<br>";
+            html += "ΔY_treat(1) = E[Y|treat,1] − E[Y|treat,0] = "
+                  + y_T_1.toFixed(2) + " − " + y_T_0.toFixed(2)
+                  + " = " + dT_1.toFixed(2) + " " + s.yUnits
+                  + ", which equals β₁ + δ₁.";
+        } else if (q.conceptId === "dC2") {
+            html += "Control change from 0 to 2:<br>";
+            html += "ΔY_control(2) = E[Y|control,2] − E[Y|control,0] = "
+                  + y_C_2.toFixed(2) + " − " + y_C_0.toFixed(2)
+                  + " = " + dC_2.toFixed(2) + " " + s.yUnits
+                  + ", which equals β₂.";
+        } else if (q.conceptId === "dT2") {
+            html += "Treatment change from 0 to 2:<br>";
+            html += "ΔY_treat(2) = E[Y|treat,2] − E[Y|treat,0] = "
+                  + y_T_2.toFixed(2) + " − " + y_T_0.toFixed(2)
+                  + " = " + dT_2.toFixed(2) + " " + s.yUnits
+                  + ", which equals β₂ + δ₂.";
+        } else if (q.conceptId === "did1") {
+            html += "DiD(1) compares changes from 0→1:<br>";
+            html += "DiD(1) = ΔY_treat(1) − ΔY_control(1) = "
+                  + dT_1.toFixed(2) + " − " + dC_1.toFixed(2)
+                  + " = " + did_1.toFixed(2) + " " + s.yUnits + ".<br>";
+            html += "Algebraically, this equals δ₁.";
+        } else if (q.conceptId === "did2") {
+            html += "DiD(2) compares changes from 0→2:<br>";
+            html += "DiD(2) = ΔY_treat(2) − ΔY_control(2) = "
+                  + dT_2.toFixed(2) + " − " + dC_2.toFixed(2)
+                  + " = " + did_2.toFixed(2) + " " + s.yUnits + ".<br>";
+            html += "Algebraically, this equals δ₂.";
+        } else if (q.conceptId === "delta1") {
+            html += "δ₁ is the coefficient on Treat·Post₁. It equals the extra change in Y for treated vs control between period 0 and 1.";
+        } else if (q.conceptId === "delta2") {
+            html += "δ₂ is the coefficient on Treat·Post₂. It equals the extra change in Y for treated vs control between period 0 and 2.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>" + s.expertInterpretation + "</em>";
+            html += "<br><br>Looking at δ₁ and δ₂ jointly tells you whether the treatment effect strengthens, weakens, or stays constant over time.";
+        } else {
+            html += "For each post period, DiD(t) is the treated–control difference in changes from period 0 to t, and equals the corresponding interaction coefficient δₜ.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Multi-period DiD practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
