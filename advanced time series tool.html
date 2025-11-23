@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wooldridge Ch. 11: Advanced Time Series Issues</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Source+Code+Pro:wght@400;500;600&family=Lato:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        :root {
+            --primary-green: #2E8B57;
+            --secondary-red: #DC143C;
+            --academic-navy: #2C3E50;
+            --light-green: #90EE90;
+            --turquoise: #40E0D0;
+            --neutral-lightgray: #F5F5F5;
+            --background-cream: #FAFAFA;
+            --text-primary: #1F2937;
+            --text-secondary: #4B5563;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #DC143C;
+            --deep-blue: #1E3A8A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, var(--background-cream) 0%, #F0F8FF 50%, #F5F5F5 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(46, 139, 87, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(64, 224, 208, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(44, 62, 80, 0.02) 0%, transparent 50%);
+            animation: subtleFlow 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes subtleFlow {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            33% { transform: rotate(120deg) scale(1.05); }
+            66% { transform: rotate(240deg) scale(0.95); }
+        }
+
+        .container {
+            max-width: 1700px;
+            margin: 25px auto;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 80px rgba(44, 62, 80, 0.15);
+            border-radius: 30px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            animation: containerEntry 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes containerEntry {
+            from {
+                opacity: 0;
+                transform: scale(0.94) translateY(40px);
+                filter: blur(8px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        /* Header Design - Navy Background */
+        .header-section {
+            background: linear-gradient(135deg, var(--academic-navy) 0%, #34495e 50%, #2c3e50 100%);
+            color: white;
+            padding: 50px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(64, 224, 208, 0.1) 25%, 
+                transparent 50%, 
+                rgba(46, 139, 87, 0.08) 75%, 
+                transparent 100%);
+            animation: headerFlow 8s ease-in-out infinite;
+        }
+
+        @keyframes headerFlow {
+            0%, 100% { transform: translateX(-100px) scaleX(1); opacity: 0.6; }
+            50% { transform: translateX(100px) scaleX(1.2); opacity: 0.9; }
+        }
+
+        .header-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 3.6em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 4px 8px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(135deg, white 0%, #E2E8F0 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            font-size: 1.6em;
+            font-weight: 300;
+            opacity: 0.92;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Navigation - Green Theme */
+        .nav-tabs {
+            display: flex;
+            background: linear-gradient(90deg, var(--primary-green) 0%, #3CB371 100%);
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-tabs::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 25%;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-100%);
+            animation: navFlow 6s ease-in-out infinite;
+        }
+
+        @keyframes navFlow {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(400%); }
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 25px;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 500;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 4px solid transparent;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tab-button:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .tab-button.active {
+            background: rgba(255,255,255,0.2);
+            border-bottom-color: var(--turquoise);
+            font-weight: 600;
+            box-shadow: inset 0 -4px 0 var(--turquoise);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 50px;
+            animation: contentSlide 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes contentSlide {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Section Titles - RED */
+        .section-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 3em;
+            color: var(--secondary-red);
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 1px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--turquoise) 0%, var(--primary-green) 100%);
+            border-radius: 2px;
+        }
+
+        /* Theory Framework */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 35px;
+            margin-bottom: 45px;
+        }
+
+        .theory-card {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+            padding: 40px;
+            border-radius: 20px;
+            border-left: 6px solid var(--turquoise);
+            box-shadow: 0 12px 32px rgba(44, 62, 80, 0.1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theory-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(64, 224, 208, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: cardPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes cardPulse {
+            0%, 100% { transform: scale(1) translateX(0); opacity: 0.5; }
+            50% { transform: scale(1.2) translateX(20px); opacity: 0.8; }
+        }
+
+        .theory-card:hover {
+            transform: translateY(-12px) rotateX(5deg);
+            box-shadow: 0 20px 50px rgba(44, 62, 80, 0.15);
+            border-left-color: var(--primary-green);
+        }
+
+        .theory-card h3 {
+            font-family: 'Crimson Text', serif;
+            color: var(--secondary-red);
+            margin-bottom: 20px;
+            font-size: 1.7em;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+
+        .theory-card p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Mathematical Equations */
+        .equation-display {
+            background: linear-gradient(135deg, var(--academic-navy) 0%, var(--deep-blue) 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 15px;
+            margin: 25px 0;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.2em;
+            box-shadow: inset 0 2px 15px rgba(0,0,0,0.3), 0 8px 25px rgba(44, 62, 80, 0.2);
+            overflow-x: auto;
+            border: 2px solid rgba(64, 224, 208, 0.3);
+            position: relative;
+        }
+
+        .equation-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--turquoise) 50%, transparent 100%);
+            animation: equationFlow 3s ease-in-out infinite;
+        }
+
+        @keyframes equationFlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Interactive Controls */
+        .control-panel {
+            background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #F8FAFC 100%);
+            padding: 40px;
+            border-radius: 25px;
+            margin: 40px 0;
+            border: 3px solid var(--turquoise);
+            box-shadow: 0 15px 35px rgba(64, 224, 208, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(64, 224, 208, 0.05) 25%, transparent 50%, rgba(46, 139, 87, 0.03) 75%, transparent 100%);
+            animation: controlFlow 12s linear infinite;
+        }
+
+        @keyframes controlFlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .control-header {
+            font-family: 'Crimson Text', serif;
+            color: var(--secondary-red);
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 35px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-size: 1.1em;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 16px;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 1.1em;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--turquoise);
+            box-shadow: 0 0 20px rgba(64, 224, 208, 0.3);
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        /* Action Buttons - Green/Navy Theme */
+        .button-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 35px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn {
+            padding: 18px 36px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green) 0%, #3CB371 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(46, 139, 87, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3CB371 0%, var(--primary-green) 100%);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(46, 139, 87, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-red) 0%, #EF4444 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(220, 20, 60, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #EF4444 0%, var(--secondary-red) 100%);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(220, 20, 60, 0.4);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--academic-navy) 0%, var(--deep-blue) 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3);
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, var(--deep-blue) 0%, var(--academic-navy) 100%);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(44, 62, 80, 0.4);
+        }
+
+        /* Results Display */
+        .results-container {
+            background: white;
+            border: 3px solid var(--primary-green);
+            border-radius: 25px;
+            padding: 40px;
+            margin: 40px 0;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--turquoise) 0%, var(--primary-green) 50%, var(--turquoise) 100%);
+            animation: resultsBorder 2s ease-in-out infinite;
+        }
+
+        @keyframes resultsBorder {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .results-header {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.2em;
+            color: var(--secondary-red);
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 40px 0;
+            background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid var(--light-green);
+        }
+
+        /* Statistics Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 30px;
+            margin: 35px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #E2E8F0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--turquoise) 0%, var(--primary-green) 100%);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.8em;
+            font-weight: 600;
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1em;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Advanced Time Series Elements */
+        .advanced-info {
+            background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 100%);
+            border: 2px solid var(--academic-navy);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .arch-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .arch-term {
+            background: var(--academic-navy);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9em;
+        }
+
+        /* Decision Framework */
+        .decision-panel {
+            background: linear-gradient(135deg, #F0FFF0 0%, var(--light-green) 100%);
+            border: 3px solid var(--primary-green);
+            border-radius: 20px;
+            padding: 35px;
+            margin: 35px 0;
+        }
+
+        .decision-question {
+            font-family: 'Crimson Text', serif;
+            font-weight: 600;
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            color: var(--academic-navy);
+            text-align: center;
+        }
+
+        .decision-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .decision-option {
+            padding: 20px;
+            background: white;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .decision-option:hover {
+            border-color: var(--turquoise);
+            background: #F0FFFF;
+            transform: translateY(-4px);
+        }
+
+        .decision-option.selected {
+            border-color: var(--primary-green);
+            background: #F0FFF0;
+            box-shadow: 0 0 20px rgba(46, 139, 87, 0.2);
+        }
+
+        /* Feedback Messages */
+        .feedback-message {
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+
+        .feedback-success {
+            background: #F0FFF0;
+            border: 2px solid var(--primary-green);
+            color: #0D4A22;
+        }
+
+        .feedback-warning {
+            background: #FFF8E1;
+            border: 2px solid var(--warning);
+            color: #8B4513;
+        }
+
+        .feedback-danger {
+            background: #FFE4E6;
+            border: 2px solid var(--secondary-red);
+            color: #721c24;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 15px;
+                border-radius: 20px;
+            }
+
+            .header-title {
+                font-size: 2.6em;
+            }
+
+            .theory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Wooldridge References */
+        .wooldridge-note {
+            background: #F0F8FF;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border-left: 5px solid var(--primary-green);
+            font-style: italic;
+            position: relative;
+        }
+
+        .wooldridge-note::before {
+            content: '📚';
+            position: absolute;
+            top: 25px;
+            left: 20px;
+            font-size: 1.2em;
+        }
+
+        .wooldridge-note p {
+            margin-left: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="header-title">Wooldridge Ch. 11: Advanced Time Series</h1>
+            <p class="header-subtitle">Serial Correlation, ARCH Effects & Unit Roots</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showSection('theory')">🔬 Advanced Theory</button>
+            <button class="tab-button" onclick="showSection('simulation')">📈 HAC & ARCH Models</button>
+            <button class="tab-button" onclick="showSection('analysis')">⚡ Unit Root Analysis</button>
+            <button class="tab-button" onclick="showSection('assessment')">✅ Assessment Mode</button>
+        </div>
+
+        <!-- Theory Framework Section -->
+        <div id="theory" class="content-section active">
+            <h2 class="section-title">Wooldridge Ch. 11 Advanced Framework</h2>
+            
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <h3>🔧 Serial Correlation & HAC</h3>
+                    <p><strong>Wooldridge Solution:</strong> When errors are serially correlated, OLS is still consistent but standard errors are wrong. Use Heteroskedasticity and Autocorrelation Consistent (HAC) estimators.</p>
+                    <div class="equation-display">
+                        Newey-West: V̂ = (X'X)⁻¹Ŝ(X'X)⁻¹<br>
+                        where Ŝ includes autocovariances up to lag L
+                    </div>
+                    <p><em>L = floor(4(T/100)^(2/9)) for automatic lag selection</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📊 ARCH Effects in Finance</h3>
+                    <p><strong>Wooldridge ARCH Model:</strong> Conditional heteroskedasticity where error variance depends on past squared errors</p>
+                    <div class="equation-display">
+                        ARCH(q): σ²ₜ = α₀ + α₁u²ₜ₋₁ + α₂u²ₜ₋₂ + ... + αᵩu²ₜ₋ᵩ<br>
+                        GARCH(p,q): σ²ₜ = α₀ + Σαᵢu²ₜ₋ᵢ + Σβⱼσ²ₜ₋ⱼ
+                    </div>
+                    <p><strong>Applications:</strong> Stock returns, exchange rates, commodity prices</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📈 Trending Variables & Spurious Regression</h3>
+                    <p><strong>Wooldridge Warning:</strong> Regressing one trending variable on another can produce spurious results even when variables are unrelated</p>
+                    <div class="equation-display">
+                        Spurious: R² → δ > 0 even when true β = 0<br>
+                        Solution: Check for unit roots, difference if necessary
+                    </div>
+                    <p><em>Granger-Newbold simulation shows R² ≈ 0.76 with independent random walks</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>⚡ Unit Roots & Random Walks</h3>
+                    <p><strong>Unit Root Process:</strong> yₜ = yₜ₋₁ + uₜ where shocks have permanent effects</p>
+                    <div class="equation-display">
+                        Dickey-Fuller: Δyₜ = α + ρyₜ₋₁ + uₜ<br>
+                        H₀: ρ = 0 (unit root), H₁: ρ < 0 (stationary)
+                    </div>
+                    <p><strong>Critical insight:</strong> Standard t-distribution doesn't apply under unit root null</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔄 Cointegration Basics</h3>
+                    <p><strong>Wooldridge Definition:</strong> Two I(1) variables are cointegrated if their linear combination is I(0)</p>
+                    <div class="equation-display">
+                        If yₜ ~ I(1) and xₜ ~ I(1), then:<br>
+                        yₜ - βxₜ ~ I(0) ⟹ cointegrated with vector (1,-β)
+                    </div>
+                    <p><strong>Economic meaning:</strong> Long-run equilibrium relationship despite individual trends</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📉 Autoregressive Distributed Lag (ADL)</h3>
+                    <p><strong>Wooldridge ADL(p,q) Model:</strong> Combines autoregressive and distributed lag components</p>
+                    <div class="equation-display">
+                        yₜ = α + Σφᵢyₜ₋ᵢ + Σδⱼxₜ₋ⱼ + uₜ<br>
+                        Long-run multiplier = Σδⱼ/(1-Σφᵢ)
+                    </div>
+                    <p><strong>Applications:</strong> Policy transmission, consumption functions, investment models</p>
+                </div>
+            </div>
+
+            <div class="theory-card" style="grid-column: 1 / -1;">
+                <h3>🇨🇦 Canadian Advanced Time Series Applications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 25px;">
+                    <div>
+                        <h4>🏦 Financial Markets & ARCH:</h4>
+                        <ul>
+                            <li><strong>TSX Returns:</strong> Volatility clustering in daily returns</li>
+                            <li><strong>CAD/USD:</strong> GARCH effects in exchange rate volatility</li>
+                            <li><strong>Bank of Canada:</strong> Interest rate volatility transmission</li>
+                            <li><strong>Oil Futures:</strong> Energy price volatility patterns</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>📊 Macroeconomic Cointegration:</h4>
+                        <ul>
+                            <li><strong>Income-Consumption:</strong> Long-run consumption function</li>
+                            <li><strong>Money Demand:</strong> M1 and nominal GDP relationship</li>
+                            <li><strong>PPP Relationships:</strong> Exchange rates and price levels</li>
+                            <li><strong>Regional Convergence:</strong> Provincial GDP per capita</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wooldridge-note">
+                <p><strong>🎓 Wooldridge Chapter 11 Key Insight:</strong> Real-world time series violate the classical assumptions in systematic ways. Understanding serial correlation, conditional heteroskedasticity, and non-stationarity is essential for valid inference in applied time series econometrics.</p>
+            </div>
+        </div>
+
+        <!-- Interactive Simulation Section -->
+        <div id="simulation" class="content-section">
+            <h2 class="section-title">HAC & ARCH Modeling</h2>
+
+            <div class="control-panel">
+                <h3 class="control-header">🔬 Advanced Time Series Simulation</h3>
+                
+                <div class="control-group">
+                    <div class="form-group">
+                        <label for="advancedSeries">Canadian Financial Series</label>
+                        <select id="advancedSeries" onchange="updateAdvancedSeries()">
+                            <option value="tsx">TSX Daily Returns (ARCH Effects)</option>
+                            <option value="cadusd">CAD/USD Volatility (GARCH)</option>
+                            <option value="oil">Oil Price Volatility</option>
+                            <option value="bonds">Canadian Bond Yields (HAC)</option>
+                            <option value="housing">Housing Price Momentum</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="advancedModel">Model Specification</label>
+                        <select id="advancedModel" onchange="updateAdvancedModel()">
+                            <option value="hac">HAC Standard Errors</option>
+                            <option value="arch">ARCH(q) Model</option>
+                            <option value="garch">GARCH(p,q) Model</option>
+                            <option value="unitroot">Unit Root Testing</option>
+                            <option value="adl">ADL Model</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="seriesLength">Sample Size</label>
+                        <select id="seriesLength">
+                            <option value="252">1 Year Daily (252 obs)</option>
+                            <option value="504">2 Years Daily (504 obs)</option>
+                            <option value="1260" selected>5 Years Daily (1260 obs)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="archOrder">ARCH Order (q)</label>
+                        <input type="range" id="archOrder" min="1" max="8" value="3" onchange="updateArchDisplay()">
+                        <span id="archValue">3 lags</span>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateAdvancedSeries()">🎲 Generate Series</button>
+                    <button class="btn btn-secondary" onclick="estimateAdvancedModel()">🔍 Estimate Model</button>
+                    <button class="btn btn-accent" onclick="runDiagnostics()">⚡ Run Diagnostics</button>
+                </div>
+            </div>
+
+            <!-- Current Model Display -->
+            <div id="advancedDescription" class="advanced-info">
+                <div class="results-header">Current Advanced Model</div>
+                <div id="advancedText"></div>
+                <div id="archStructure" class="arch-display"></div>
+            </div>
+
+            <!-- Advanced Chart -->
+            <div class="chart-container">
+                <canvas id="advancedChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Unit Root Analysis Section -->
+        <div id="analysis" class="content-section">
+            <h2 class="section-title">Unit Root & Cointegration Analysis</h2>
+
+            <div id="unitRootResults" class="results-container">
+                <div class="results-header">Dickey-Fuller Test Results</div>
+                <div id="unitRootTable"></div>
+            </div>
+
+            <div class="stats-grid" id="advancedStats">
+                <!-- Dynamic statistics will be populated here -->
+            </div>
+
+            <div id="cointegration" class="results-container">
+                <div class="results-header">⚡ Cointegration Analysis</div>
+                <div id="cointegrationResults"></div>
+            </div>
+
+            <!-- Unit Root Visualization -->
+            <div class="chart-container">
+                <h3 style="text-align: center; margin-bottom: 25px; color: var(--secondary-red);">📈 Unit Root Visualization</h3>
+                <canvas id="unitRootChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Assessment Mode Section -->
+        <div id="assessment" class="content-section">
+            <h2 class="section-title">Advanced Assessment Challenge</h2>
+
+            <div id="assessmentQuestion" class="decision-panel">
+                <div class="decision-question">Loading advanced time series assessment...</div>
+                <div class="decision-options" id="assessmentOptions">
+                    <!-- Dynamic options will be populated -->
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()" style="margin-top: 30px;">Submit Answer</button>
+            </div>
+
+            <div id="assessmentFeedback"></div>
+
+            <div class="button-group" style="margin-top: 40px;">
+                <button class="btn btn-secondary" onclick="generateNewQuestion()">📝 New Question</button>
+                <button class="btn btn-accent" onclick="showExpertSolution()">🎓 Show Expert Solution</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentAdvancedSeries = null;
+        let currentAdvancedChart = null;
+        let unitRootChart = null;
+        let selectedAnswer = null;
+        let currentQuestion = null;
+
+        // Advanced Time Series Specifications
+        const advancedSeriesDefinitions = {
+            tsx: {
+                title: "TSX Daily Returns Analysis",
+                description: "Wooldridge ARCH modeling of Toronto Stock Exchange daily returns. Demonstrates volatility clustering where high volatility periods cluster together.",
+                variable: "Daily Returns (%)",
+                equation: "rₜ = μ + uₜ, where σ²ₜ = α₀ + α₁u²ₜ₋₁ + α₂u²ₜ₋₂ + ...",
+                baseline: 0.05,
+                volatility: 1.2,
+                archEffect: true,
+                wooldridgeNote: "Financial returns exhibit volatility clustering - perfect for ARCH/GARCH modeling",
+                frequency: "Daily",
+                source: "S&P/TSX Composite Index"
+            },
+            cadusd: {
+                title: "CAD/USD Exchange Rate Volatility",
+                description: "GARCH modeling of Canadian dollar exchange rate volatility. Shows how exchange rate uncertainty varies over time with economic conditions.",
+                variable: "Exchange Rate Change (%)",
+                equation: "Δe_t = μ + uₜ, σ²ₜ = α₀ + α₁u²ₜ₋₁ + β₁σ²ₜ₋₁",
+                baseline: 0.01,
+                volatility: 0.8,
+                archEffect: true,
+                wooldridgeNote: "Exchange rates show GARCH effects - volatility persistence in financial markets",
+                frequency: "Daily",
+                source: "Bank of Canada"
+            },
+            oil: {
+                title: "Oil Price Volatility Analysis", 
+                description: "Canadian oil price volatility modeling with regime changes. Demonstrates how energy price uncertainty affects economic planning.",
+                variable: "Oil Price Change (%)",
+                equation: "Δoil_t = μ + uₜ, with conditional heteroskedasticity",
+                baseline: 0.02,
+                volatility: 2.5,
+                archEffect: true,
+                wooldridgeNote: "Commodity prices show strong ARCH effects and structural breaks",
+                frequency: "Daily",
+                source: "WTI Crude Oil Futures"
+            },
+            bonds: {
+                title: "Canadian Bond Yield HAC Analysis",
+                description: "Government of Canada bond yields with serial correlation. Requires HAC standard errors for valid inference in policy transmission studies.",
+                variable: "10-Year Bond Yield (%)",
+                equation: "yield_t = α + βpolicy_t + uₜ, with serially correlated errors",
+                baseline: 2.5,
+                volatility: 0.3,
+                archEffect: false,
+                wooldridgeNote: "Bond yields show serial correlation requiring Newey-West HAC correction",
+                frequency: "Daily",
+                source: "Bank of Canada"
+            },
+            housing: {
+                title: "Housing Price Momentum",
+                description: "Canadian housing price changes with momentum effects. Shows how real estate markets exhibit both trends and mean reversion.",
+                variable: "Housing Price Change (%)",
+                equation: "Δp_t = α + ρΔp_{t-1} + βX_t + uₜ",
+                baseline: 0.3,
+                volatility: 1.0,
+                archEffect: false,
+                wooldridgeNote: "Housing prices show momentum and potential unit root behavior",
+                frequency: "Monthly",
+                source: "Canadian Real Estate Association"
+            }
+        };
+
+        // Assessment Questions (Wooldridge Ch. 11 focused)
+        const assessmentQuestions = [
+            {
+                question: "According to Wooldridge, why are HAC standard errors necessary when errors are serially correlated?",
+                options: [
+                    "OLS estimates become biased",
+                    "Standard errors are underestimated, making tests invalid",
+                    "The model becomes non-linear",
+                    "R-squared becomes meaningless"
+                ],
+                correct: 1,
+                explanation: "Wooldridge shows that with serial correlation, OLS remains consistent but standard errors are wrong, leading to invalid t-tests and confidence intervals."
+            },
+            {
+                question: "In Wooldridge's ARCH model, what does α₁ > 0 imply about volatility?",
+                options: [
+                    "Constant volatility over time",
+                    "High volatility is followed by high volatility",
+                    "Volatility decreases over time",
+                    "Volatility is unrelated to past shocks"
+                ],
+                correct: 1,
+                explanation: "Positive α₁ in ARCH means large shocks increase next period's conditional variance, creating volatility clustering."
+            },
+            {
+                question: "What is the main danger of spurious regression that Wooldridge emphasizes?",
+                options: [
+                    "Low R-squared values",
+                    "High R-squared with unrelated trending variables",
+                    "Negative coefficient estimates",
+                    "Heteroskedastic errors"
+                ],
+                correct: 1,
+                explanation: "Spurious regression produces high R-squared and significant t-statistics even when trending variables are completely unrelated."
+            },
+            {
+                question: "In the Dickey-Fuller test, why can't we use standard critical values?",
+                options: [
+                    "Sample size is too small",
+                    "Under unit root null, test statistic doesn't follow t-distribution",
+                    "Errors are heteroskedastic",
+                    "The model is non-linear"
+                ],
+                correct: 1,
+                explanation: "Under the unit root null hypothesis, the Dickey-Fuller statistic follows a non-standard distribution, requiring special critical values."
+            },
+            {
+                question: "According to Wooldridge, what does cointegration between two I(1) variables imply?",
+                options: [
+                    "Both variables are stationary",
+                    "No long-run relationship exists",
+                    "A stable long-run equilibrium relationship exists",
+                    "Both variables have unit roots"
+                ],
+                correct: 2,
+                explanation: "Cointegration means that despite both variables being non-stationary, they share a common stochastic trend and maintain a long-run equilibrium relationship."
+            }
+        ];
+
+        // Navigation Functions
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Advanced Series Management
+        function updateAdvancedSeries() {
+            const seriesType = document.getElementById('advancedSeries').value;
+            const series = advancedSeriesDefinitions[seriesType];
+            
+            document.getElementById('advancedText').innerHTML = `
+                <h3 style="color: var(--secondary-red); margin-bottom: 15px;">${series.title}</h3>
+                <p><strong>Economic Context:</strong> ${series.description}</p>
+                <div class="wooldridge-note">
+                    <p><strong>🎓 Wooldridge Advanced Methodology:</strong> ${series.wooldridgeNote}</p>
+                </div>
+                <p><strong>Model Equation:</strong> <code>${series.equation}</code></p>
+                <p><strong>Dependent Variable:</strong> ${series.variable}</p>
+                <p><strong>Data Frequency:</strong> ${series.frequency}</p>
+                <p><strong>Data Source:</strong> ${series.source}</p>
+                <p><strong>ARCH Effects Expected:</strong> ${series.archEffect ? 'Yes' : 'No'}</p>
+            `;
+            
+            updateAdvancedModel();
+        }
+
+        function updateAdvancedModel() {
+            const modelType = document.getElementById('advancedModel').value;
+            const archOrder = parseInt(document.getElementById('archOrder').value);
+            
+            // Update ARCH structure display
+            const archContainer = document.getElementById('archStructure');
+            archContainer.innerHTML = '';
+            
+            if (modelType === 'arch' || modelType === 'garch') {
+                // Show variance equation terms
+                const constantDiv = document.createElement('div');
+                constantDiv.className = 'arch-term';
+                constantDiv.textContent = 'α₀';
+                archContainer.appendChild(constantDiv);
+                
+                for (let i = 1; i <= archOrder; i++) {
+                    const archDiv = document.createElement('div');
+                    archDiv.className = 'arch-term';
+                    archDiv.textContent = `α${i}u²_{t-${i}}`;
+                    archContainer.appendChild(archDiv);
+                }
+                
+                if (modelType === 'garch') {
+                    const garchDiv = document.createElement('div');
+                    garchDiv.className = 'arch-term';
+                    garchDiv.textContent = 'β₁σ²_{t-1}';
+                    archContainer.appendChild(garchDiv);
+                }
+            }
+            
+            if (currentAdvancedSeries) {
+                generateAdvancedSeries();
+            }
+        }
+
+        function updateArchDisplay() {
+            const archOrder = document.getElementById('archOrder').value;
+            document.getElementById('archValue').textContent = `${archOrder} lags`;
+            updateAdvancedModel();
+        }
+
+        // Advanced Data Generation
+        function generateAdvancedSeries() {
+            const seriesType = document.getElementById('advancedSeries').value;
+            const modelType = document.getElementById('advancedModel').value;
+            const periods = parseInt(document.getElementById('seriesLength').value);
+            const archOrder = parseInt(document.getElementById('archOrder').value);
+            
+            const series = advancedSeriesDefinitions[seriesType];
+            
+            // Generate advanced time series data
+            currentAdvancedSeries = {
+                type: seriesType,
+                model: modelType,
+                periods: periods,
+                archOrder: archOrder,
+                series: series,
+                data: []
+            };
+
+            // Generate sophisticated time series with ARCH effects
+            const startDate = new Date('2020-01-01');
+            
+            // Initialize variance for ARCH models
+            let currentVariance = series.volatility * series.volatility;
+            
+            for (let t = 0; t < periods; t++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + t);
+                
+                let innovation = 0;
+                
+                // Generate ARCH/GARCH effects if applicable
+                if (series.archEffect && t > archOrder) {
+                    // Update variance based on past squared errors
+                    let archSum = 0.5; // α₀
+                    for (let j = 1; j <= Math.min(archOrder, t); j++) {
+                        const pastError = currentAdvancedSeries.data[t-j].innovation;
+                        archSum += 0.1 * pastError * pastError; // αⱼ coefficient
+                    }
+                    
+                    if (modelType === 'garch' && t > 0) {
+                        archSum += 0.7 * currentVariance; // β₁ coefficient
+                    }
+                    
+                    currentVariance = Math.max(archSum, 0.01);
+                }
+                
+                // Generate innovation with current variance
+                innovation = Math.sqrt(currentVariance) * (Math.random() - 0.5) * 2;
+                
+                let value = series.baseline + innovation;
+                
+                // Add unit root behavior for some series
+                if (modelType === 'unitroot' && t > 0) {
+                    value = 0.95 * currentAdvancedSeries.data[t-1].value + innovation;
+                }
+                
+                // Add ADL structure
+                if (modelType === 'adl' && t > 1) {
+                    value = 0.3 * currentAdvancedSeries.data[t-1].value + 
+                           0.5 * series.baseline + innovation;
+                }
+                
+                currentAdvancedSeries.data.push({
+                    period: t + 1,
+                    date: date,
+                    value: value,
+                    innovation: innovation,
+                    variance: currentVariance
+                });
+            }
+
+            updateAdvancedChart();
+        }
+
+        // Advanced Chart Updates
+        function updateAdvancedChart() {
+            if (!currentAdvancedSeries) return;
+            
+            const ctx = document.getElementById('advancedChart').getContext('2d');
+            
+            if (currentAdvancedChart) {
+                currentAdvancedChart.destroy();
+            }
+
+            const labels = currentAdvancedSeries.data.map(d => d.date.toISOString().substr(0, 10));
+            const values = currentAdvancedSeries.data.map(d => d.value);
+            const volatility = currentAdvancedSeries.data.map(d => Math.sqrt(d.variance));
+
+            const datasets = [{
+                label: currentAdvancedSeries.series.variable,
+                data: values,
+                borderColor: '#2E8B57',
+                backgroundColor: 'rgba(46, 139, 87, 0.1)',
+                borderWidth: 1,
+                pointRadius: 0,
+                tension: 0.1,
+                yAxisID: 'y'
+            }];
+
+            if (currentAdvancedSeries.series.archEffect) {
+                datasets.push({
+                    label: 'Conditional Volatility',
+                    data: volatility,
+                    borderColor: '#40E0D0',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [3, 3],
+                    pointRadius: 0,
+                    yAxisID: 'y1'
+                });
+            }
+
+            currentAdvancedChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${currentAdvancedSeries.series.title} - ${currentAdvancedSeries.model.toUpperCase()} Analysis`,
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Date' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: currentAdvancedSeries.series.variable }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: currentAdvancedSeries.series.archEffect,
+                            position: 'right',
+                            title: { display: true, text: 'Volatility' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Advanced Model Estimation
+        function estimateAdvancedModel() {
+            if (!currentAdvancedSeries) {
+                alert('Please generate advanced series data first');
+                return;
+            }
+
+            // Simplified advanced estimation
+            const data = currentAdvancedSeries.data;
+            const values = data.map(d => d.value);
+            const n = values.length;
+            
+            // Calculate basic statistics
+            const mean = values.reduce((a,b) => a+b, 0) / n;
+            const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (n-1);
+            
+            // ARCH test (simplified)
+            const squaredResiduals = values.map(v => Math.pow(v - mean, 2));
+            let archLM = 0;
+            for (let i = 1; i < n; i++) {
+                archLM += squaredResiduals[i] * squaredResiduals[i-1];
+            }
+            archLM = archLM / (n-1) / (variance * variance);
+
+            // Unit root test (simplified Dickey-Fuller)
+            let dfStat = 0;
+            let deltaY = [];
+            let laggedY = [];
+            for (let i = 1; i < n; i++) {
+                deltaY.push(values[i] - values[i-1]);
+                laggedY.push(values[i-1]);
+            }
+            
+            if (deltaY.length > 0) {
+                const meanDelta = deltaY.reduce((a,b) => a+b, 0) / deltaY.length;
+                const meanLagged = laggedY.reduce((a,b) => a+b, 0) / laggedY.length;
+                
+                let numerator = 0, denominator = 0;
+                for (let i = 0; i < deltaY.length; i++) {
+                    numerator += (laggedY[i] - meanLagged) * (deltaY[i] - meanDelta);
+                    denominator += Math.pow(laggedY[i] - meanLagged, 2);
+                }
+                
+                if (denominator > 0) {
+                    const rho = numerator / denominator;
+                    const seRho = Math.sqrt(variance / denominator);
+                    dfStat = rho / seRho;
+                }
+            }
+
+            displayAdvancedResults({
+                mean,
+                variance,
+                archLM,
+                dfStat,
+                observations: n,
+                model: currentAdvancedSeries.model
+            });
+        }
+
+        function displayAdvancedResults(results) {
+            // Unit Root Test Table
+            document.getElementById('unitRootTable').innerHTML = `
+                <h4>🔬 Advanced Time Series Test Results</h4>
+                <div style="font-family: 'Source Code Pro', monospace; background: #f8f9fa; padding: 25px; border-radius: 12px; margin: 20px 0;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; font-weight: 600; border-bottom: 2px solid #ddd; padding-bottom: 12px;">
+                        <div>Test</div>
+                        <div>Statistic</div>
+                        <div>Interpretation</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; padding: 12px 0;">
+                        <div>Dickey-Fuller</div>
+                        <div>${results.dfStat.toFixed(3)}</div>
+                        <div>${results.dfStat < -2.86 ? 'Stationary' : 'Unit Root'}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; padding: 12px 0; background: rgba(46, 139, 87, 0.1);">
+                        <div>ARCH LM Test</div>
+                        <div>${results.archLM.toFixed(3)}</div>
+                        <div>${results.archLM > 0.5 ? 'ARCH Effects' : 'Homoskedastic'}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; padding: 12px 0;">
+                        <div>Sample Mean</div>
+                        <div>${results.mean.toFixed(4)}</div>
+                        <div>Central tendency</div>
+                    </div>
+                </div>
+                <div class="wooldridge-note">
+                    <p><strong>🎓 Wooldridge Interpretation:</strong> 
+                    Dickey-Fuller statistic of ${results.dfStat.toFixed(3)} ${results.dfStat < -2.86 ? 
+                        'rejects unit root null - series is stationary.' : 
+                        'fails to reject unit root - series may be non-stationary.'}
+                    ARCH LM test ${results.archLM > 0.5 ? 'suggests conditional heteroskedasticity.' : 'shows no ARCH effects.'}</p>
+                </div>
+            `;
+
+            // Update advanced statistics display
+            document.getElementById('advancedStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${results.dfStat.toFixed(3)}</div>
+                    <div class="stat-label">Dickey-Fuller</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.archLM.toFixed(3)}</div>
+                    <div class="stat-label">ARCH LM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.sqrt(results.variance).toFixed(4)}</div>
+                    <div class="stat-label">Volatility</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.observations}</div>
+                    <div class="stat-label">Observations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.dfStat < -2.86 ? '✅' : '⚠️'}</div>
+                    <div class="stat-label">Stationarity</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.archLM > 0.5 ? '⚡' : '📊'}</div>
+                    <div class="stat-label">ARCH Effects</div>
+                </div>
+            `;
+
+            displayCointegrationResults(results);
+        }
+
+        function displayCointegrationResults(results) {
+            // Cointegration analysis
+            document.getElementById('cointegrationResults').innerHTML = `
+                <h4>⚡ Cointegration & Error Correction</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 25px 0;">
+                    <div class="stat-card">
+                        <h5>Long-run Relationship</h5>
+                        <p><strong>Error Correction:</strong> ${Math.abs(results.dfStat) > 2 ? 'Present' : 'Weak'}</p>
+                        <p><strong>Adjustment Speed:</strong> ${Math.abs(results.dfStat * 0.1).toFixed(3)}</p>
+                        <p><strong>Half-life:</strong> ${(Math.log(0.5) / Math.log(1 - Math.abs(results.dfStat * 0.1))).toFixed(1)} periods</p>
+                    </div>
+                    <div class="stat-card">
+                        <h5>Policy Implications</h5>
+                        <p><strong>Forecast Horizon:</strong> ${results.dfStat < -2.86 ? 'Short-term' : 'Long-term'}</p>
+                        <p><strong>Persistence:</strong> ${results.dfStat < -2.86 ? 'Low' : 'High'}</p>
+                        <p><strong>Policy Effectiveness:</strong> ${Math.abs(results.dfStat) > 2 ? 'High' : 'Moderate'}</p>
+                    </div>
+                </div>
+                <div style="background: #F0F8FF; padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary-green);">
+                    <p><strong>🎓 Wooldridge Policy Insight:</strong> 
+                    ${results.dfStat < -2.86 ? 
+                        'Stationary series suggests temporary deviations from equilibrium, making short-term forecasting reliable.' :
+                        'Unit root behavior indicates permanent effects of shocks, requiring differencing or cointegration analysis.'
+                    }</p>
+                </div>
+            `;
+        }
+
+        // Diagnostics
+        function runDiagnostics() {
+            if (!currentAdvancedSeries) {
+                alert('Please generate and estimate a model first');
+                return;
+            }
+
+            // Update unit root chart
+            updateUnitRootChart();
+        }
+
+        function updateUnitRootChart() {
+            const ctx = document.getElementById('unitRootChart').getContext('2d');
+            
+            if (unitRootChart) {
+                unitRootChart.destroy();
+            }
+
+            // Show original series and differenced series
+            const originalData = currentAdvancedSeries.data.map((d, i) => ({
+                x: i,
+                y: d.value
+            }));
+
+            const diffData = currentAdvancedSeries.data.slice(1).map((d, i) => ({
+                x: i + 1,
+                y: d.value - currentAdvancedSeries.data[i].value
+            }));
+
+            unitRootChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Original Series (Levels)',
+                        data: originalData,
+                        borderColor: '#2E8B57',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'First Differences',
+                        data: diffData,
+                        borderColor: '#40E0D0',
+                        backgroundColor: 'rgba(64, 224, 208, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Unit Root Analysis: Levels vs. First Differences',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: 'Time Period' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Levels' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'First Differences' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Assessment Functions
+        function generateNewQuestion() {
+            currentQuestion = assessmentQuestions[Math.floor(Math.random() * assessmentQuestions.length)];
+            selectedAnswer = null;
+            
+            document.querySelector('.decision-question').textContent = currentQuestion.question;
+            
+            const optionsContainer = document.getElementById('assessmentOptions');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'decision-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('assessmentFeedback').innerHTML = '';
+        }
+
+        function selectAnswer(answerIndex) {
+            selectedAnswer = answerIndex;
+            
+            document.querySelectorAll('.decision-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === answerIndex);
+            });
+        }
+
+        function checkAnswer() {
+            if (selectedAnswer === null) {
+                alert('Please select an answer first');
+                return;
+            }
+            
+            const isCorrect = selectedAnswer === currentQuestion.correct;
+            const feedbackClass = isCorrect ? 'feedback-success' : 'feedback-danger';
+            const feedbackTitle = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="${feedbackClass}">
+                    <h4>${feedbackTitle}</h4>
+                    <p><strong>Explanation:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                </div>
+            `;
+        }
+
+        function showExpertSolution() {
+            if (!currentQuestion) {
+                generateNewQuestion();
+                return;
+            }
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="feedback-success">
+                    <h4>🎓 Expert Solution</h4>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                    <p><strong>Wooldridge Insight:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Advanced Learning:</strong> Chapter 11 represents the frontier of undergraduate time series econometrics, preparing students for graduate-level analysis of financial markets, macroeconomic policy, and applied research.</p>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        window.addEventListener('load', function() {
+            updateAdvancedSeries();
+            generateNewQuestion();
+        });
+    </script>
+</body>
+</html>
