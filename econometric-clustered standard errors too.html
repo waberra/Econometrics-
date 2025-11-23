@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Methods: Clustered Standard Errors & Robust Inference</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        :root {
+            --primary-teal: #0D9488;
+            --secondary-red: #DC143C;
+            --emerald: #10B981;
+            --coral: #FF7F7F;
+            --research-cream: #FDF7F0;
+            --lab-white: #FEFEFE;
+            --text-charcoal: #374151;
+            --text-slate: #64748B;
+            --accent-gold: #F59E0B;
+            --deep-teal: #0F766E;
+            --light-teal: #5EEAD4;
+            --precision-blue: #0EA5E9;
+            --academic-navy: #1E293B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--research-cream) 0%, #FAF7F2 50%, var(--lab-white) 100%);
+            color: var(--text-charcoal);
+            line-height: 1.68;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Research Laboratory Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(13, 148, 136, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 127, 127, 0.025) 0%, transparent 45%),
+                radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.015) 0%, transparent 40%),
+                radial-gradient(circle at 10% 80%, rgba(14, 165, 233, 0.02) 0%, transparent 35%);
+            animation: laboratoryFlow 35s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes laboratoryFlow {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1); 
+                opacity: 0.7; 
+            }
+            25% { 
+                transform: rotate(90deg) scale(1.02); 
+                opacity: 0.9; 
+            }
+            50% { 
+                transform: rotate(180deg) scale(0.98); 
+                opacity: 0.8; 
+            }
+            75% { 
+                transform: rotate(270deg) scale(1.01); 
+                opacity: 0.85; 
+            }
+        }
+
+        /* Laboratory Grid Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(13, 148, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(13, 148, 136, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -1;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        .container {
+            max-width: 1750px;
+            margin: 35px auto;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 
+                0 0 100px rgba(13, 148, 136, 0.08),
+                0 25px 70px rgba(255, 127, 127, 0.06),
+                0 10px 35px rgba(16, 185, 129, 0.04);
+            border-radius: 32px;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            animation: laboratoryEntry 2.2s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(13, 148, 136, 0.15);
+        }
+
+        @keyframes laboratoryEntry {
+            from {
+                opacity: 0;
+                transform: scale(0.93) translateY(50px) rotateX(12deg);
+                filter: blur(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0) rotateX(0deg);
+                filter: blur(0);
+            }
+        }
+
+        /* Scientific Header Design */
+        .header-section {
+            background: linear-gradient(135deg, var(--academic-navy) 0%, #2D3748 40%, var(--deep-teal) 100%);
+            color: white;
+            padding: 55px 45px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(94, 234, 212, 0.08) 25%, 
+                transparent 50%, 
+                rgba(255, 127, 127, 0.06) 75%, 
+                transparent 100%);
+            animation: researchFlow 10s ease-in-out infinite;
+        }
+
+        @keyframes researchFlow {
+            0%, 100% { 
+                transform: translateX(-100px) scaleY(1); 
+                opacity: 0.6; 
+            }
+            50% { 
+                transform: translateX(100px) scaleY(1.1); 
+                opacity: 0.9; 
+            }
+        }
+
+        .header-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 4em;
+            font-weight: 800;
+            margin-bottom: 22px;
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(135deg, white 0%, var(--light-teal) 70%, white 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titlePrecision 3s ease-in-out infinite alternate;
+            letter-spacing: -1px;
+        }
+
+        @keyframes titlePrecision {
+            from { 
+                filter: drop-shadow(0 0 12px rgba(94, 234, 212, 0.4)); 
+            }
+            to { 
+                filter: drop-shadow(0 0 20px rgba(255, 127, 127, 0.5)); 
+            }
+        }
+
+        .header-subtitle {
+            font-size: 1.7em;
+            font-weight: 400;
+            opacity: 0.93;
+            position: relative;
+            z-index: 2;
+            color: var(--light-teal);
+            text-shadow: 1px 2px 6px rgba(0,0,0,0.2);
+            letter-spacing: 0.5px;
+        }
+
+        /* Precision Navigation */
+        .nav-tabs {
+            display: flex;
+            background: linear-gradient(90deg, var(--primary-teal) 0%, var(--emerald) 50%, var(--primary-teal) 100%);
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 0 rgba(94, 234, 212, 0.4);
+        }
+
+        .nav-tabs::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.05) 0%, 
+                rgba(255, 127, 127, 0.12) 50%, 
+                rgba(255,255,255,0.05) 100%);
+            transform: translateX(-100%);
+            animation: precisionNav 7s ease-in-out infinite;
+        }
+
+        @keyframes precisionNav {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(400%); }
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 26px 28px;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 500;
+            font-size: 1.08em;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 4px solid transparent;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.3px;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 127, 127, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            color: var(--research-cream);
+        }
+
+        .tab-button.active {
+            background: rgba(94, 234, 212, 0.2);
+            border-bottom-color: var(--coral);
+            font-weight: 600;
+            color: var(--research-cream);
+            box-shadow: inset 0 -4px 0 var(--coral);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 55px;
+            animation: precisionSlide 1s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes precisionSlide {
+            from {
+                opacity: 0;
+                transform: translateY(35px) scale(0.98);
+                filter: blur(3px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        /* Section Titles - RED (Research Style) */
+        .section-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 3.2em;
+            color: var(--secondary-red);
+            margin-bottom: 45px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 1px 2px 6px rgba(0,0,0,0.08);
+            letter-spacing: -0.8px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                #40E0D0 0%, 
+                var(--coral) 25%, 
+                var(--emerald) 50%, 
+                var(--coral) 75%, 
+                #40E0D0 100%);
+            border-radius: 2px;
+            animation: researchUnderline 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes researchUnderline {
+            from { width: 140px; opacity: 0.8; }
+            to { width: 200px; opacity: 1; }
+        }
+
+        /* Research Framework Cards */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+            gap: 38px;
+            margin-bottom: 55px;
+        }
+
+        .theory-card {
+            background: linear-gradient(135deg, var(--lab-white) 0%, #FEFEFE 50%, #F8FAFC 100%);
+            padding: 42px;
+            border-radius: 22px;
+            border-left: 7px solid #40E0D0;
+            box-shadow: 
+                0 12px 40px rgba(13, 148, 136, 0.06),
+                0 4px 16px rgba(255, 127, 127, 0.08);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theory-card::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, 
+                rgba(94, 234, 212, 0.06) 0%, 
+                rgba(255, 127, 127, 0.04) 50%, 
+                transparent 70%);
+            border-radius: 50%;
+            animation: cardResearch 7s ease-in-out infinite;
+        }
+
+        @keyframes cardResearch {
+            0%, 100% { 
+                transform: scale(1) translateX(0) translateY(0) rotate(0deg); 
+                opacity: 0.7; 
+            }
+            33% { 
+                transform: scale(1.1) translateX(15px) translateY(-15px) rotate(120deg); 
+                opacity: 0.9; 
+            }
+            66% { 
+                transform: scale(0.95) translateX(-8px) translateY(8px) rotate(240deg); 
+                opacity: 0.8; 
+            }
+        }
+
+        .theory-card:hover {
+            transform: translateY(-12px) rotateX(6deg) rotateY(1deg);
+            box-shadow: 
+                0 20px 55px rgba(13, 148, 136, 0.1),
+                0 8px 25px rgba(255, 127, 127, 0.12);
+            border-left-color: var(--coral);
+        }
+
+        .theory-card h3 {
+            font-family: 'EB Garamond', serif;
+            color: var(--secondary-red);
+            margin-bottom: 22px;
+            font-size: 1.85em;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.4px;
+        }
+
+        .theory-card p {
+            font-size: 1.12em;
+            line-height: 1.75;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+            font-weight: 400;
+        }
+
+        /* Mathematical Equations - Laboratory Style */
+        .equation-display {
+            background: linear-gradient(135deg, var(--academic-navy) 0%, var(--deep-teal) 100%);
+            color: white;
+            padding: 35px;
+            border-radius: 18px;
+            margin: 28px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.22em;
+            box-shadow: 
+                inset 0 2px 15px rgba(0,0,0,0.3), 
+                0 10px 30px rgba(13, 148, 136, 0.2);
+            overflow-x: auto;
+            border: 2px solid rgba(94, 234, 212, 0.3);
+            position: relative;
+        }
+
+        .equation-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--light-teal) 30%, 
+                var(--coral) 70%, 
+                transparent 100%);
+            animation: equationPrecision 3s ease-in-out infinite;
+        }
+
+        @keyframes equationPrecision {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1.2); }
+        }
+
+        /* Interactive Controls - Laboratory Design */
+        .control-panel {
+            background: linear-gradient(135deg, var(--research-cream) 0%, #F9F7F4 50%, var(--lab-white) 100%);
+            padding: 48px;
+            border-radius: 28px;
+            margin: 48px 0;
+            border: 3px solid #40E0D0;
+            box-shadow: 
+                0 15px 45px rgba(64, 224, 208, 0.12),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: -70%;
+            left: -70%;
+            width: 240%;
+            height: 240%;
+            background: conic-gradient(from 30deg at 50% 50%, 
+                transparent 0%, 
+                rgba(94, 234, 212, 0.02) 15%, 
+                transparent 30%, 
+                rgba(255, 127, 127, 0.015) 45%, 
+                transparent 60%, 
+                rgba(16, 185, 129, 0.02) 75%, 
+                transparent 90%);
+            animation: controlResearch 18s linear infinite;
+        }
+
+        @keyframes controlResearch {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .control-header {
+            font-family: 'EB Garamond', serif;
+            color: var(--secondary-red);
+            font-size: 2.3em;
+            margin-bottom: 32px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.4px;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 32px;
+            margin-bottom: 38px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: var(--text-charcoal);
+            font-size: 1.12em;
+            letter-spacing: 0.2px;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 18px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 1.08em;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.97);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #40E0D0;
+            box-shadow: 
+                0 0 25px rgba(64, 224, 208, 0.2),
+                0 0 0 4px rgba(64, 224, 208, 0.1);
+            transform: translateY(-3px) scale(1.01);
+        }
+
+        /* Precision Action Buttons */
+        .button-group {
+            display: flex;
+            gap: 22px;
+            margin-top: 38px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn {
+            padding: 20px 40px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1.12em;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.4) 50%, 
+                transparent 100%);
+            transition: left 0.7s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-teal) 0%, var(--emerald) 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(13, 148, 136, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--emerald) 0%, var(--primary-teal) 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(13, 148, 136, 0.35);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--coral) 0%, #FF6B6B 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(255, 127, 127, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #FF6B6B 0%, var(--coral) 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(255, 127, 127, 0.35);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--precision-blue) 0%, #0284C7 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #0284C7 0%, var(--precision-blue) 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(14, 165, 233, 0.35);
+        }
+
+        /* Results Display - Research Quality */
+        .results-container {
+            background: linear-gradient(135deg, var(--lab-white) 0%, #FEFEFE 100%);
+            border: 3px solid #40E0D0;
+            border-radius: 26px;
+            padding: 45px;
+            margin: 45px 0;
+            box-shadow: 
+                0 16px 50px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.95);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                #40E0D0 0%, 
+                var(--coral) 25%, 
+                #40E0D0 50%, 
+                var(--coral) 75%, 
+                #40E0D0 100%);
+            animation: researchFlow 3s ease-in-out infinite;
+        }
+
+        @keyframes researchFlow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .results-header {
+            font-family: 'EB Garamond', serif;
+            font-size: 2.4em;
+            color: var(--secondary-red);
+            margin-bottom: 32px;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+        }
+
+        /* Chart Container - Laboratory Style */
+        .chart-container {
+            position: relative;
+            height: 520px;
+            margin: 45px 0;
+            background: linear-gradient(135deg, var(--lab-white) 0%, var(--research-cream) 100%);
+            border-radius: 18px;
+            padding: 35px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+            border: 2px solid #40E0D0;
+        }
+
+        /* Statistics Grid - Precision Layout */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 32px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--research-cream) 0%, var(--lab-white) 100%);
+            padding: 32px;
+            border-radius: 18px;
+            text-align: center;
+            border: 2px solid #E5E7EB;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #40E0D0 0%, var(--coral) 50%, var(--emerald) 100%);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.9em;
+            font-weight: 600;
+            color: #40E0D0;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.05em;
+            color: var(--text-slate);
+            font-weight: 500;
+        }
+
+        /* Clustering Specific Elements */
+        .clustering-info {
+            background: linear-gradient(135deg, #F0FFFF 0%, #E0F7FA 100%);
+            border: 2px solid #40E0D0;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .cluster-visualization {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .cluster-group {
+            background: #40E0D0;
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92em;
+        }
+
+        /* Decision Framework */
+        .decision-panel {
+            background: linear-gradient(135deg, #F0FFFF 0%, rgba(64, 224, 208, 0.15) 100%);
+            border: 3px solid #40E0D0;
+            border-radius: 22px;
+            padding: 38px;
+            margin: 38px 0;
+        }
+
+        .decision-question {
+            font-family: 'EB Garamond', serif;
+            font-weight: 600;
+            font-size: 1.45em;
+            margin-bottom: 28px;
+            color: var(--text-charcoal);
+            text-align: center;
+            letter-spacing: -0.2px;
+        }
+
+        .decision-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 22px;
+        }
+
+        .decision-option {
+            padding: 22px;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1.05em;
+        }
+
+        .decision-option:hover {
+            border-color: var(--coral);
+            background: #FFF5F5;
+            transform: translateY(-4px);
+        }
+
+        .decision-option.selected {
+            border-color: #40E0D0;
+            background: #F0FFFF;
+            box-shadow: 0 0 20px rgba(64, 224, 208, 0.3);
+        }
+
+        /* Feedback Messages */
+        .feedback-message {
+            padding: 32px;
+            border-radius: 18px;
+            margin: 32px 0;
+            font-weight: 500;
+            font-size: 1.12em;
+        }
+
+        .feedback-success {
+            background: #F0FFFF;
+            border: 2px solid #40E0D0;
+            color: #0F766E;
+        }
+
+        .feedback-warning {
+            background: #FFF7ED;
+            border: 2px solid var(--accent-gold);
+            color: #92400E;
+        }
+
+        .feedback-danger {
+            background: #FFF5F5;
+            border: 2px solid var(--secondary-red);
+            color: #991B1B;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 18px;
+                border-radius: 24px;
+            }
+
+            .header-title {
+                font-size: 2.8em;
+            }
+
+            .theory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Research References */
+        .research-note {
+            background: linear-gradient(135deg, #F0FFFF 0%, #E0F7FA 100%);
+            padding: 28px;
+            border-radius: 14px;
+            margin: 28px 0;
+            border-left: 5px solid #40E0D0;
+            font-style: italic;
+            position: relative;
+        }
+
+        .research-note::before {
+            content: '🔬';
+            position: absolute;
+            top: 28px;
+            left: 22px;
+            font-size: 1.3em;
+        }
+
+        .research-note p {
+            margin-left: 35px;
+            line-height: 1.75;
+        }
+
+        /* Advanced Visual Effects */
+        .bootstrap-highlight {
+            background: rgba(255, 127, 127, 0.1);
+            border-left: 4px solid var(--coral);
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 8px;
+        }
+
+        .se-comparison {
+            display: inline-block;
+            background: linear-gradient(135deg, #40E0D0 0%, #20B2AA 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            margin: 0 8px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="header-title">Clustered Standard Errors & Robust Inference</h1>
+            <p class="header-subtitle">Modern Methods for Realistic Statistical Inference</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showSection('theory')">🔬 Clustering Theory</button>
+            <button class="tab-button" onclick="showSection('simulation')">📊 One-Way Clustering</button>
+            <button class="tab-button" onclick="showSection('analysis')">⚡ Multi-Way & Bootstrap</button>
+            <button class="tab-button" onclick="showSection('assessment')">✅ Assessment Mode</button>
+        </div>
+
+        <!-- Theory Framework Section -->
+        <div id="theory" class="content-section active">
+            <h2 class="section-title">Modern Clustering Framework</h2>
+            
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <h3>🎯 The Clustering Problem</h3>
+                    <p><strong>Core Issue:</strong> Standard OLS assumes independence across observations, but real data often exhibits within-group correlation that violates this assumption.</p>
+                    <div class="equation-display">
+                        Problem: E[uᵢuⱼ|X] ≠ 0 for i,j in same cluster<br>
+                        Solution: Cluster-robust variance estimator<br>
+                        V̂ᶜᴸ = (X'X)⁻¹[ΣᵍₐΣⁱⁿᵍXᵍᵢuᵍᵢuᵍᵢ'Xᵍᵢ'](X'X)⁻¹
+                    </div>
+                    <p><em>Without clustering: standard errors too small → over-rejection of null hypotheses</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔗 One-Way Clustering</h3>
+                    <p><strong>Standard Approach:</strong> Cluster by natural groupings where observations within groups may be correlated</p>
+                    <div class="equation-display">
+                        Cameron-Miller-Gelbach Formula:<br>
+                        V̂ᶜᴸ = (X'X)⁻¹[Σᵍ₌₁ᴳ X'ᵍûᵍû'ᵍXᵍ](X'X)⁻¹<br>
+                        where G = number of clusters
+                    </div>
+                    <p><strong>Rule of thumb:</strong> Need at least 30-50 clusters for asymptotic theory to work well</p>
+                    <div class="bootstrap-highlight">
+                        <strong>Key insight:</strong> Clustering accounts for unknown correlation structure within groups
+                    </div>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔄 Multi-Way Clustering</h3>
+                    <p><strong>Advanced Method:</strong> When observations can be clustered along multiple dimensions simultaneously</p>
+                    <div class="equation-display">
+                        Two-Way Formula (Cameron-Gelbach-Miller):<br>
+                        V̂ᶜᴸ = V̂₁ + V̂₂ - V̂₁₂<br>
+                        where V̂ₖ = cluster by dimension k
+                    </div>
+                    <p><strong>Applications:</strong> Panel data (individual + time), geographic + industry clustering</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🎲 Wild Bootstrap</h3>
+                    <p><strong>Small Cluster Solution:</strong> When number of clusters is small (<30), use wild bootstrap for better finite-sample performance</p>
+                    <div class="equation-display">
+                        Wild Bootstrap Procedure:<br>
+                        1. Impose H₀: β = β₀<br>
+                        2. Generate: ũᵍ* = ωᵍûᵍ where ωᵍ ~ Rademacher<br>
+                        3. Create: y* = Xβ₀ + ũ*<br>
+                        4. Test statistic from OLS on (y*, X)
+                    </div>
+                    <p><strong>Advantage:</strong> Valid inference even with few clusters</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📊 Practical Guidance</h3>
+                    <p><strong>When to Cluster:</strong> Economic theory and data structure should guide clustering decisions</p>
+                    <div class="equation-display">
+                        Decision Framework:<br>
+                        • Natural groupings? → One-way clustering<br>
+                        • Multiple dimensions? → Multi-way clustering<br>
+                        • Few clusters? → Wild bootstrap<br>
+                        • Spatial correlation? → Spatial clustering
+                    </div>
+                    <p><strong>Common mistakes:</strong> Over-clustering, arbitrary cluster choice, ignoring finite-sample issues</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>⚖️ Robust vs. Clustered</h3>
+                    <p><strong>Key Distinction:</strong> Robust SE handles heteroskedasticity, clustered SE handles within-group correlation</p>
+                    <div class="equation-display">
+                        White Robust: E[uᵢ²|Xᵢ] ≠ σ² (heteroskedasticity)<br>
+                        Clustered: E[uᵢuⱼ|X] ≠ 0 for i,j in group (correlation)<br>
+                        Combination: Both heteroskedasticity AND clustering
+                    </div>
+                    <p><strong>Modern practice:</strong> Almost always use clustered SE in applied work</p>
+                </div>
+            </div>
+
+            <div class="theory-card" style="grid-column: 1 / -1;">
+                <h3>🇨🇦 Canadian Clustering Applications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-top: 25px;">
+                    <div>
+                        <h4>🏛️ Provincial Policy Analysis:</h4>
+                        <ul>
+                            <li><strong>Education Policy:</strong> Cluster by school district and province</li>
+                            <li><strong>Healthcare Reforms:</strong> Cluster by health region</li>
+                            <li><strong>Labor Market:</strong> Cluster by CMA (Census Metropolitan Area)</li>
+                            <li><strong>Environmental Policy:</strong> Cluster by watershed or ecosystem</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>💼 Corporate & Financial:</h4>
+                        <ul>
+                            <li><strong>Banking Analysis:</strong> Cluster by bank and time</li>
+                            <li><strong>Resource Firms:</strong> Cluster by commodity sector</li>
+                            <li><strong>Regional Economics:</strong> Multi-way cluster (province + industry)</li>
+                            <li><strong>Panel Studies:</strong> Cluster by individual and year</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="research-note">
+                <p><strong>🔬 Modern Research Standard:</strong> Clustered standard errors are now the default in applied microeconomics. The key insight is that economic units often share unobserved characteristics within natural groupings, making independence assumptions unrealistic. Proper clustering is essential for valid statistical inference in policy evaluation and causal analysis.</p>
+            </div>
+        </div>
+
+        <!-- One-Way Clustering Simulation Section -->
+        <div id="simulation" class="content-section">
+            <h2 class="section-title">One-Way Clustering Analysis</h2>
+
+            <div class="control-panel">
+                <h3 class="control-header">🔬 Clustering Simulation Laboratory</h3>
+                
+                <div class="control-group">
+                    <div class="form-group">
+                        <label for="clusteringScenario">Canadian Application</label>
+                        <select id="clusteringScenario" onchange="updateClusteringScenario()">
+                            <option value="education">School District Education Policy</option>
+                            <option value="healthcare">Provincial Healthcare Reform</option>
+                            <option value="labor">Regional Labor Market Analysis</option>
+                            <option value="environmental">Environmental Policy Impact</option>
+                            <option value="banking">Banking Sector Analysis</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numClusters">Number of Clusters</label>
+                        <select id="numClusters" onchange="updateClusters()">
+                            <option value="10">10 clusters (Small)</option>
+                            <option value="25">25 clusters (Medium)</option>
+                            <option value="50" selected>50 clusters (Standard)</option>
+                            <option value="100">100 clusters (Large)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clusterSize">Average Cluster Size</label>
+                        <select id="clusterSize">
+                            <option value="20">20 observations/cluster</option>
+                            <option value="50" selected>50 observations/cluster</option>
+                            <option value="100">100 observations/cluster</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="intraCorrelation">Within-Cluster Correlation (ρ)</label>
+                        <input type="range" id="intraCorrelation" min="0" max="0.8" step="0.1" value="0.3" onchange="updateCorrelationDisplay()">
+                        <span id="correlationValue">0.3</span>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateClusteredData()">🎲 Generate Data</button>
+                    <button class="btn btn-secondary" onclick="estimateWithClustering()">🔍 Compare Standard Errors</button>
+                    <button class="btn btn-accent" onclick="runBootstrap()">⚡ Wild Bootstrap</button>
+                </div>
+            </div>
+
+            <!-- Clustering Description -->
+            <div id="clusteringDescription" class="clustering-info">
+                <div class="results-header">Current Clustering Application</div>
+                <div id="clusteringText"></div>
+                <div id="clusterVisualization" class="cluster-visualization"></div>
+            </div>
+
+            <!-- Clustering Chart -->
+            <div class="chart-container">
+                <canvas id="clusteringChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Multi-Way & Bootstrap Analysis Section -->
+        <div id="analysis" class="content-section">
+            <h2 class="section-title">Advanced Clustering Methods</h2>
+
+            <div id="seComparisonResults" class="results-container">
+                <div class="results-header">Standard Error Comparison</div>
+                <div id="seComparisonTable"></div>
+            </div>
+
+            <div class="stats-grid" id="clusteringStats">
+                <!-- Dynamic statistics will be populated here -->
+            </div>
+
+            <div id="bootstrapResults" class="results-container">
+                <div class="results-header">🎲 Wild Bootstrap Analysis</div>
+                <div id="bootstrapTable"></div>
+            </div>
+
+            <!-- Bootstrap Distribution Chart -->
+            <div class="chart-container">
+                <h3 style="text-align: center; margin-bottom: 25px; color: var(--secondary-red);">📈 Bootstrap vs. Asymptotic Distribution</h3>
+                <canvas id="bootstrapChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Assessment Mode Section -->
+        <div id="assessment" class="content-section">
+            <h2 class="section-title">Clustering Assessment Challenge</h2>
+
+            <div id="assessmentQuestion" class="decision-panel">
+                <div class="decision-question">Loading clustering assessment...</div>
+                <div class="decision-options" id="assessmentOptions">
+                    <!-- Dynamic options will be populated -->
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()" style="margin-top: 32px;">Submit Answer</button>
+            </div>
+
+            <div id="assessmentFeedback"></div>
+
+            <div class="button-group" style="margin-top: 40px;">
+                <button class="btn btn-secondary" onclick="generateNewQuestion()">📝 New Question</button>
+                <button class="btn btn-accent" onclick="showExpertSolution()">🎓 Show Expert Solution</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentClusteringData = null;
+        let currentClusteringChart = null;
+        let bootstrapChart = null;
+        let selectedAnswer = null;
+        let currentQuestion = null;
+
+        // Clustering Scenario Definitions
+        const clusteringScenarios = {
+            education: {
+                title: "School District Education Policy Analysis",
+                description: "Analyzing the impact of a new mathematics curriculum implemented across Canadian school districts. Students within the same district share teachers, resources, and administrative policies.",
+                unit: "Students",
+                cluster: "School Districts",
+                variable: "Math Test Scores",
+                correlation_source: "Shared teachers, district policies, peer effects",
+                example: "Alberta implements new math curriculum across 60 school districts",
+                why_cluster: "Students in same district face common shocks (teacher quality, district funding, local policies)"
+            },
+            healthcare: {
+                title: "Provincial Healthcare Reform Evaluation",
+                description: "Evaluating patient outcomes following healthcare delivery reforms. Patients within the same health region share hospitals, specialist networks, and administrative systems.",
+                unit: "Patients",
+                cluster: "Health Regions",
+                variable: "Treatment Outcomes",
+                correlation_source: "Shared facilities, medical staff, regional policies",
+                example: "Ontario health region consolidation affecting patient care quality",
+                why_cluster: "Patients in same region share healthcare infrastructure and management"
+            },
+            labor: {
+                title: "Regional Labor Market Dynamics",
+                description: "Studying employment effects of industrial policy across Canadian Census Metropolitan Areas (CMAs). Workers within the same region face similar local economic conditions.",
+                unit: "Workers", 
+                cluster: "Census Metropolitan Areas",
+                variable: "Employment Probability",
+                correlation_source: "Local economic conditions, industry concentration, regional policy",
+                example: "Manufacturing incentives affecting employment in 35 Canadian CMAs",
+                why_cluster: "Workers in same CMA face common labor demand shocks and regional policies"
+            },
+            environmental: {
+                title: "Environmental Policy Impact Assessment",
+                description: "Measuring environmental regulation effects on firm pollution levels. Firms within the same watershed face similar environmental conditions and regulatory enforcement.",
+                unit: "Manufacturing Firms",
+                cluster: "Watersheds",
+                variable: "Pollution Levels",
+                correlation_source: "Shared environmental conditions, local enforcement, ecosystem effects",
+                example: "Carbon tax implementation across Canadian watersheds",
+                why_cluster: "Firms in same watershed share environmental regulators and ecosystem impacts"
+            },
+            banking: {
+                title: "Banking Sector Risk Analysis",
+                description: "Analyzing bank lending behavior across Canadian regions. Banks operating in the same province face similar regulatory oversight and economic conditions.",
+                unit: "Bank-Quarter Observations",
+                cluster: "Banks",
+                variable: "Lending Growth",
+                correlation_source: "Bank-specific policies, management, risk culture",
+                example: "Mortgage lending standards across major Canadian banks",
+                why_cluster: "Observations from same bank share management decisions and internal policies"
+            }
+        };
+
+        // Assessment Questions (Clustering focused)
+        const assessmentQuestions = [
+            {
+                question: "When should you use clustered standard errors instead of robust standard errors?",
+                options: [
+                    "When you suspect heteroskedasticity",
+                    "When observations within groups may be correlated",
+                    "When you have a small sample size",
+                    "When variables are measured with error"
+                ],
+                correct: 1,
+                explanation: "Clustered standard errors are necessary when observations within natural groups (clusters) may be correlated due to shared unobserved characteristics, while robust SE only handles heteroskedasticity."
+            },
+            {
+                question: "What is the main risk of using too few clusters in your analysis?",
+                options: [
+                    "Standard errors will be too large",
+                    "Estimates will be biased",
+                    "Asymptotic approximation may be poor, leading to over-rejection",
+                    "The model will be misspecified"
+                ],
+                correct: 2,
+                explanation: "With few clusters (<30), the asymptotic theory underlying clustered standard errors breaks down, often leading to standard errors that are too small and over-rejection of null hypotheses."
+            },
+            {
+                question: "In the Cameron-Gelbach-Miller two-way clustering formula V̂ = V̂₁ + V̂₂ - V̂₁₂, what does V̂₁₂ represent?",
+                options: [
+                    "The average of the two one-way cluster variance estimates",
+                    "The variance estimate clustering by the intersection of both dimensions",
+                    "The correlation between the two clustering dimensions",
+                    "The difference between the two one-way estimates"
+                ],
+                correct: 1,
+                explanation: "V̂₁₂ is the variance estimate when clustering by the intersection of both dimensions (e.g., if clustering by firm and time, V̂₁₂ clusters by firm-time pairs). This corrects for double-counting."
+            },
+            {
+                question: "Why might wild bootstrap be preferred when you have few clusters?",
+                options: [
+                    "It's computationally faster",
+                    "It provides exact finite-sample inference",
+                    "It handles heteroskedasticity better",
+                    "It increases the effective sample size"
+                ],
+                correct: 1,
+                explanation: "Wild bootstrap provides better finite-sample performance than asymptotic cluster-robust standard errors when the number of clusters is small, giving more accurate hypothesis test sizes."
+            },
+            {
+                question: "What is the key insight behind the clustering adjustment to standard errors?",
+                options: [
+                    "It accounts for measurement error in variables",
+                    "It corrects for violations of the independence assumption",
+                    "It handles non-linear relationships better",
+                    "It improves efficiency of parameter estimates"
+                ],
+                correct: 1,
+                explanation: "Clustering adjusts standard errors to account for the fact that observations within groups are not independent due to shared unobserved factors, violating a key OLS assumption."
+            }
+        ];
+
+        // Navigation Functions
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Clustering Scenario Management
+        function updateClusteringScenario() {
+            const scenarioType = document.getElementById('clusteringScenario').value;
+            const scenario = clusteringScenarios[scenarioType];
+            
+            document.getElementById('clusteringText').innerHTML = `
+                <h3 style="color: var(--secondary-red); margin-bottom: 18px;">${scenario.title}</h3>
+                <p><strong>Research Context:</strong> ${scenario.description}</p>
+                <div class="research-note">
+                    <p><strong>🔬 Why Cluster:</strong> ${scenario.why_cluster}</p>
+                </div>
+                <p><strong>Unit of Analysis:</strong> ${scenario.unit}</p>
+                <p><strong>Clustering Dimension:</strong> ${scenario.cluster}</p>
+                <p><strong>Outcome Variable:</strong> ${scenario.variable}</p>
+                <p><strong>Correlation Source:</strong> ${scenario.correlation_source}</p>
+                <p><strong>Example Application:</strong> ${scenario.example}</p>
+            `;
+            
+            updateClusterVisualization();
+        }
+
+        function updateClusterVisualization() {
+            const numClusters = parseInt(document.getElementById('numClusters').value);
+            const container = document.getElementById('clusterVisualization');
+            container.innerHTML = '';
+            
+            // Show first 8 clusters as examples
+            const displayClusters = Math.min(8, numClusters);
+            for (let i = 1; i <= displayClusters; i++) {
+                const clusterDiv = document.createElement('div');
+                clusterDiv.className = 'cluster-group';
+                clusterDiv.textContent = `Cluster ${i}`;
+                container.appendChild(clusterDiv);
+            }
+            
+            if (numClusters > 8) {
+                const moreDiv = document.createElement('div');
+                moreDiv.className = 'cluster-group';
+                moreDiv.style.background = '#6B7280';
+                moreDiv.textContent = `... ${numClusters - 8} more`;
+                container.appendChild(moreDiv);
+            }
+        }
+
+        function updateClusters() {
+            updateClusterVisualization();
+        }
+
+        function updateCorrelationDisplay() {
+            const correlation = document.getElementById('intraCorrelation').value;
+            document.getElementById('correlationValue').textContent = correlation;
+        }
+
+        // Data Generation with Clustering
+        function generateClusteredData() {
+            const scenarioType = document.getElementById('clusteringScenario').value;
+            const numClusters = parseInt(document.getElementById('numClusters').value);
+            const clusterSize = parseInt(document.getElementById('clusterSize').value);
+            const rho = parseFloat(document.getElementById('intraCorrelation').value);
+            
+            const scenario = clusteringScenarios[scenarioType];
+            
+            currentClusteringData = {
+                scenario: scenario,
+                numClusters: numClusters,
+                clusterSize: clusterSize,
+                rho: rho,
+                data: []
+            };
+
+            // Generate clustered data
+            for (let c = 1; c <= numClusters; c++) {
+                // Cluster-specific random effect
+                const clusterEffect = (Math.random() - 0.5) * 2 * Math.sqrt(rho);
+                
+                for (let i = 1; i <= clusterSize; i++) {
+                    const x = Math.random() * 4 + 1; // Treatment/policy variable
+                    const individualEffect = (Math.random() - 0.5) * 2 * Math.sqrt(1 - rho);
+                    const error = clusterEffect + individualEffect;
+                    
+                    // Generate outcome with treatment effect
+                    const y = 50 + 2.5 * x + error * 5; // Base + treatment effect + clustered error
+                    
+                    currentClusteringData.data.push({
+                        cluster: c,
+                        individual: i,
+                        x: x,
+                        y: y,
+                        clusterEffect: clusterEffect,
+                        error: error
+                    });
+                }
+            }
+
+            updateClusteringChart();
+        }
+
+        function updateClusteringChart() {
+            if (!currentClusteringData) return;
+            
+            const ctx = document.getElementById('clusteringChart').getContext('2d');
+            
+            if (currentClusteringChart) {
+                currentClusteringChart.destroy();
+            }
+
+            // Create scatter plot colored by cluster
+            const colors = ['#0D9488', '#DC143C', '#10B981', '#FF7F7F', '#0EA5E9', '#F59E0B', '#8B5CF6', '#06B6D4'];
+            
+            const datasets = [];
+            for (let c = 1; c <= Math.min(8, currentClusteringData.numClusters); c++) {
+                const clusterData = currentClusteringData.data.filter(d => d.cluster === c);
+                datasets.push({
+                    label: `Cluster ${c}`,
+                    data: clusterData.map(d => ({x: d.x, y: d.y})),
+                    backgroundColor: colors[(c-1) % colors.length] + '80',
+                    borderColor: colors[(c-1) % colors.length],
+                    borderWidth: 1,
+                    pointRadius: 3
+                });
+            }
+
+            // Add remaining clusters as gray if more than 8
+            if (currentClusteringData.numClusters > 8) {
+                const remainingData = currentClusteringData.data.filter(d => d.cluster > 8);
+                datasets.push({
+                    label: `Other Clusters`,
+                    data: remainingData.map(d => ({x: d.x, y: d.y})),
+                    backgroundColor: '#6B728080',
+                    borderColor: '#6B7280',
+                    borderWidth: 1,
+                    pointRadius: 2
+                });
+            }
+
+            currentClusteringChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${currentClusteringData.scenario.title} - Clustered Data (ρ = ${currentClusteringData.rho})`,
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { 
+                            position: 'right',
+                            labels: { usePointStyle: true }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Treatment/Policy Variable' }
+                        },
+                        y: {
+                            title: { display: true, text: currentClusteringData.scenario.variable }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Standard Error Comparison
+        function estimateWithClustering() {
+            if (!currentClusteringData) {
+                alert('Please generate clustered data first');
+                return;
+            }
+
+            // Simplified comparison of standard errors
+            const data = currentClusteringData.data;
+            const n = data.length;
+            
+            // OLS estimation
+            const meanX = data.reduce((sum, d) => sum + d.x, 0) / n;
+            const meanY = data.reduce((sum, d) => sum + d.y, 0) / n;
+            
+            let numerator = 0, denominator = 0;
+            for (let i = 0; i < n; i++) {
+                numerator += (data[i].x - meanX) * (data[i].y - meanY);
+                denominator += (data[i].x - meanX) * (data[i].x - meanX);
+            }
+            
+            const beta = numerator / denominator;
+            const alpha = meanY - beta * meanX;
+            
+            // Calculate residuals
+            const residuals = data.map(d => d.y - (alpha + beta * d.x));
+            
+            // Standard error calculations (simplified)
+            const rss = residuals.reduce((sum, r) => sum + r*r, 0);
+            const standardSE = Math.sqrt(rss / (n-2) / denominator);
+            
+            // Robust SE (simplified heteroskedasticity-robust)
+            let robustVar = 0;
+            for (let i = 0; i < n; i++) {
+                const xi_demean = data[i].x - meanX;
+                robustVar += xi_demean * xi_demean * residuals[i] * residuals[i];
+            }
+            const robustSE = Math.sqrt(robustVar / (denominator * denominator));
+            
+            // Clustered SE (simplified)
+            const clusterVar = calculateClusteredVariance(data, residuals, meanX);
+            const clusteredSE = Math.sqrt(clusterVar / (denominator * denominator));
+
+            displaySEComparison({
+                standardSE,
+                robustSE, 
+                clusteredSE,
+                beta,
+                numClusters: currentClusteringData.numClusters,
+                rho: currentClusteringData.rho
+            });
+        }
+
+        function calculateClusteredVariance(data, residuals, meanX) {
+            // Simplified cluster variance calculation
+            const clusters = {};
+            
+            // Group by cluster
+            data.forEach((d, i) => {
+                if (!clusters[d.cluster]) clusters[d.cluster] = [];
+                clusters[d.cluster].push({
+                    x_demean: d.x - meanX,
+                    residual: residuals[i]
+                });
+            });
+            
+            // Calculate cluster contributions
+            let clusterVar = 0;
+            Object.values(clusters).forEach(cluster => {
+                let clusterSum = 0;
+                cluster.forEach(obs => {
+                    clusterSum += obs.x_demean * obs.residual;
+                });
+                clusterVar += clusterSum * clusterSum;
+            });
+            
+            return clusterVar;
+        }
+
+        function displaySEComparison(results) {
+            document.getElementById('seComparisonTable').innerHTML = `
+                <h4>🔬 Standard Error Comparison</h4>
+                <div style="font-family: 'JetBrains Mono', monospace; background: var(--research-cream); padding: 25px; border-radius: 12px; margin: 20px 0;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 20px; font-weight: 600; border-bottom: 2px solid #ddd; padding-bottom: 12px;">
+                        <div>Method</div>
+                        <div>Standard Error</div>
+                        <div>t-statistic</div>
+                        <div>Assessment</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 20px; padding: 12px 0;">
+                        <div>Standard OLS</div>
+                        <div class="se-comparison">${results.standardSE.toFixed(4)}</div>
+                        <div>${(results.beta / results.standardSE).toFixed(2)}</div>
+                        <div>❌ Too small</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 20px; padding: 12px 0; background: rgba(255, 127, 127, 0.1);">
+                        <div>Heteroskedasticity-Robust</div>
+                        <div class="se-comparison">${results.robustSE.toFixed(4)}</div>
+                        <div>${(results.beta / results.robustSE).toFixed(2)}</div>
+                        <div>⚠️ Still wrong</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 20px; padding: 12px 0; background: rgba(13, 148, 136, 0.1);">
+                        <div>Cluster-Robust</div>
+                        <div class="se-comparison">${results.clusteredSE.toFixed(4)}</div>
+                        <div>${(results.beta / results.clusteredSE).toFixed(2)}</div>
+                        <div>✅ Correct</div>
+                    </div>
+                </div>
+                <div class="bootstrap-highlight">
+                    <p><strong>🔬 Key Insight:</strong> With ρ = ${results.rho} and ${results.numClusters} clusters, clustered standard errors are 
+                    ${((results.clusteredSE / results.standardSE - 1) * 100).toFixed(1)}% larger than standard OLS standard errors. 
+                    Ignoring clustering leads to ${results.standardSE < results.clusteredSE ? 'over-rejection' : 'under-rejection'} of null hypotheses.</p>
+                </div>
+            `;
+
+            // Update statistics display  
+            document.getElementById('clusteringStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${results.clusteredSE.toFixed(4)}</div>
+                    <div class="stat-label">Clustered SE</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.standardSE.toFixed(4)}</div>
+                    <div class="stat-label">Standard SE</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${((results.clusteredSE / results.standardSE - 1) * 100).toFixed(1)}%</div>
+                    <div class="stat-label">SE Inflation</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${currentClusteringData.numClusters}</div>
+                    <div class="stat-label">Clusters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${currentClusteringData.rho}</div>
+                    <div class="stat-label">Intra-cluster ρ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${(results.beta / results.clusteredSE).toFixed(2)}</div>
+                    <div class="stat-label">Robust t-stat</div>
+                </div>
+            `;
+        }
+
+        // Wild Bootstrap Implementation
+        function runBootstrap() {
+            if (!currentClusteringData) {
+                alert('Please estimate with clustering first');
+                return;
+            }
+
+            // Simplified wild bootstrap demonstration
+            const numBootstraps = 1000;
+            const bootstrapStats = [];
+            
+            // Original data
+            const data = currentClusteringData.data;
+            const n = data.length;
+            
+            // Get original coefficient
+            const meanX = data.reduce((sum, d) => sum + d.x, 0) / n;
+            const meanY = data.reduce((sum, d) => sum + d.y, 0) / n;
+            
+            let numerator = 0, denominator = 0;
+            for (let i = 0; i < n; i++) {
+                numerator += (data[i].x - meanX) * (data[i].y - meanY);
+                denominator += (data[i].x - meanX) * (data[i].x - meanX);
+            }
+            const originalBeta = numerator / denominator;
+            
+            // Wild bootstrap iterations
+            for (let b = 0; b < numBootstraps; b++) {
+                // Generate Rademacher weights by cluster
+                const clusterWeights = {};
+                for (let c = 1; c <= currentClusteringData.numClusters; c++) {
+                    clusterWeights[c] = Math.random() < 0.5 ? -1 : 1;
+                }
+                
+                // Create bootstrap sample
+                const bootstrapData = data.map(d => ({
+                    ...d,
+                    y_boot: d.y * clusterWeights[d.cluster]
+                }));
+                
+                // Estimate on bootstrap sample
+                const meanY_boot = bootstrapData.reduce((sum, d) => sum + d.y_boot, 0) / n;
+                let num_boot = 0;
+                for (let i = 0; i < n; i++) {
+                    num_boot += (bootstrapData[i].x - meanX) * (bootstrapData[i].y_boot - meanY_boot);
+                }
+                const betaBoot = num_boot / denominator;
+                bootstrapStats.push(betaBoot);
+            }
+
+            displayBootstrapResults(bootstrapStats, originalBeta);
+            updateBootstrapChart(bootstrapStats, originalBeta);
+        }
+
+        function displayBootstrapResults(bootstrapStats, originalBeta) {
+            // Calculate bootstrap statistics
+            const bootstrapMean = bootstrapStats.reduce((sum, stat) => sum + stat, 0) / bootstrapStats.length;
+            const bootstrapVar = bootstrapStats.reduce((sum, stat) => sum + Math.pow(stat - bootstrapMean, 2), 0) / (bootstrapStats.length - 1);
+            const bootstrapSE = Math.sqrt(bootstrapVar);
+            
+            // Critical values
+            bootstrapStats.sort((a, b) => a - b);
+            const cv025 = bootstrapStats[Math.floor(0.025 * bootstrapStats.length)];
+            const cv975 = bootstrapStats[Math.floor(0.975 * bootstrapStats.length)];
+            
+            document.getElementById('bootstrapTable').innerHTML = `
+                <h4>🎲 Wild Bootstrap Results (1000 iterations)</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 25px 0;">
+                    <div class="stat-card">
+                        <h5>Bootstrap Statistics</h5>
+                        <p><strong>Bootstrap SE:</strong> ${bootstrapSE.toFixed(4)}</p>
+                        <p><strong>Bootstrap Mean:</strong> ${bootstrapMean.toFixed(4)}</p>
+                        <p><strong>Original Estimate:</strong> ${originalBeta.toFixed(4)}</p>
+                        <p><strong>Bias:</strong> ${(bootstrapMean - originalBeta).toFixed(4)}</p>
+                    </div>
+                    <div class="stat-card">
+                        <h5>Confidence Intervals</h5>
+                        <p><strong>95% Bootstrap CI:</strong></p>
+                        <p>[${cv025.toFixed(4)}, ${cv975.toFixed(4)}]</p>
+                        <p><strong>Asymptotic CI:</strong></p>
+                        <p>[${(originalBeta - 1.96 * bootstrapSE).toFixed(4)}, ${(originalBeta + 1.96 * bootstrapSE).toFixed(4)}]</p>
+                    </div>
+                </div>
+                <div class="bootstrap-highlight">
+                    <p><strong>🎲 Bootstrap Insight:</strong> Wild bootstrap is especially valuable with ${currentClusteringData.numClusters} clusters. 
+                    The bootstrap distribution accounts for the discrete nature of cluster sampling, providing more accurate inference than asymptotic approximations.</p>
+                </div>
+            `;
+        }
+
+        function updateBootstrapChart(bootstrapStats, originalBeta) {
+            const ctx = document.getElementById('bootstrapChart').getContext('2d');
+            
+            if (bootstrapChart) {
+                bootstrapChart.destroy();
+            }
+
+            // Create histogram of bootstrap statistics
+            const bins = 50;
+            const min = Math.min(...bootstrapStats);
+            const max = Math.max(...bootstrapStats);
+            const binWidth = (max - min) / bins;
+            
+            const histogram = Array(bins).fill(0);
+            bootstrapStats.forEach(stat => {
+                const bin = Math.min(Math.floor((stat - min) / binWidth), bins - 1);
+                histogram[bin]++;
+            });
+
+            const labels = histogram.map((_, i) => (min + i * binWidth + binWidth/2).toFixed(3));
+
+            bootstrapChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Bootstrap Distribution',
+                        data: histogram,
+                        backgroundColor: 'rgba(13, 148, 136, 0.6)',
+                        borderColor: '#0D9488',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Wild Bootstrap Distribution vs. Normal Approximation',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Coefficient Estimate' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Frequency' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Assessment Functions
+        function generateNewQuestion() {
+            currentQuestion = assessmentQuestions[Math.floor(Math.random() * assessmentQuestions.length)];
+            selectedAnswer = null;
+            
+            document.querySelector('.decision-question').textContent = currentQuestion.question;
+            
+            const optionsContainer = document.getElementById('assessmentOptions');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'decision-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('assessmentFeedback').innerHTML = '';
+        }
+
+        function selectAnswer(answerIndex) {
+            selectedAnswer = answerIndex;
+            
+            document.querySelectorAll('.decision-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === answerIndex);
+            });
+        }
+
+        function checkAnswer() {
+            if (selectedAnswer === null) {
+                alert('Please select an answer first');
+                return;
+            }
+            
+            const isCorrect = selectedAnswer === currentQuestion.correct;
+            const feedbackClass = isCorrect ? 'feedback-success' : 'feedback-danger';
+            const feedbackTitle = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="${feedbackClass}">
+                    <h4>${feedbackTitle}</h4>
+                    <p><strong>Explanation:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                </div>
+            `;
+        }
+
+        function showExpertSolution() {
+            if (!currentQuestion) {
+                generateNewQuestion();
+                return;
+            }
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="feedback-success">
+                    <h4>🔬 Expert Solution</h4>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                    <p><strong>Research Insight:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Modern Standard:</strong> Clustered standard errors are now essential for valid inference in applied econometrics. Understanding when and how to cluster is crucial for credible empirical research.</p>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        window.addEventListener('load', function() {
+            updateClusteringScenario();
+            generateNewQuestion();
+        });
+    </script>
+</body>
+</html>
