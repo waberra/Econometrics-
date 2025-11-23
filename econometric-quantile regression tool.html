@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Methods: Quantile Regression & Distributional Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Source+Serif+Pro:wght@400;600;700;900&family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        :root {
+            --primary-blue: #4A90E2;
+            --secondary-red: #DC143C;
+            --light-blue: #87CEEB;
+            --pale-blue: #E6F3FF;
+            --sky-blue: #ADD8E6;
+            --deep-blue: #2C5AA0;
+            --coral: #FF6B6B;
+            --sage-green: #87A96B;
+            --warm-amber: #FFB84D;
+            --silver: #C0C0C0;
+            --charcoal: #2F3349;
+            --slate: #64748B;
+            --cream: #FFF8F3;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #F8F9FF 50%, var(--pale-blue) 100%);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Distributional Flow Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -60%;
+            left: -60%;
+            width: 220%;
+            height: 220%;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(74, 144, 226, 0.03) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 70%, rgba(135, 206, 235, 0.04) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 90%, rgba(255, 107, 107, 0.025) 0%, transparent 45%),
+                radial-gradient(ellipse at 90% 20%, rgba(135, 169, 107, 0.03) 0%, transparent 50%);
+            animation: distributionalFlow 40s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes distributionalFlow {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1) skewX(0deg); 
+                opacity: 0.6; 
+            }
+            25% { 
+                transform: rotate(90deg) scale(1.05) skewX(3deg); 
+                opacity: 0.85; 
+            }
+            50% { 
+                transform: rotate(180deg) scale(0.95) skewX(-2deg); 
+                opacity: 0.75; 
+            }
+            75% { 
+                transform: rotate(270deg) scale(1.02) skewX(2deg); 
+                opacity: 0.9; 
+            }
+        }
+
+        /* Quantile Wave Pattern */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(45deg, 
+                    transparent 0px, 
+                    rgba(135, 206, 235, 0.02) 1px, 
+                    transparent 2px, 
+                    transparent 40px),
+                repeating-linear-gradient(-45deg, 
+                    transparent 0px, 
+                    rgba(74, 144, 226, 0.015) 1px, 
+                    transparent 2px, 
+                    transparent 60px);
+            z-index: -1;
+            animation: quantileWave 25s linear infinite;
+        }
+
+        @keyframes quantileWave {
+            0% { transform: translateX(0) translateY(0); }
+            100% { transform: translateX(40px) translateY(60px); }
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 30px auto;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 
+                0 0 80px rgba(74, 144, 226, 0.1),
+                0 20px 60px rgba(135, 206, 235, 0.08),
+                0 10px 30px rgba(255, 107, 107, 0.05);
+            border-radius: 35px;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            animation: distributionalEntry 2.5s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(74, 144, 226, 0.12);
+        }
+
+        @keyframes distributionalEntry {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(60px) rotateX(15deg);
+                filter: blur(15px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0) rotateX(0deg);
+                filter: blur(0);
+            }
+        }
+
+        /* Sophisticated Header Design */
+        .header-section {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--deep-blue) 50%, #1a365d 100%);
+            color: white;
+            padding: 60px 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(60deg, 
+                transparent 0%, 
+                rgba(135, 206, 235, 0.1) 20%, 
+                transparent 40%, 
+                rgba(255, 107, 107, 0.08) 60%, 
+                transparent 80%, 
+                rgba(135, 169, 107, 0.06) 100%);
+            animation: distributionalHeader 12s ease-in-out infinite;
+        }
+
+        @keyframes distributionalHeader {
+            0%, 100% { 
+                transform: translateX(-80px) scaleX(1); 
+                opacity: 0.7; 
+            }
+            33% { 
+                transform: translateX(40px) scaleX(1.1); 
+                opacity: 0.9; 
+            }
+            66% { 
+                transform: translateX(-20px) scaleX(0.95); 
+                opacity: 0.8; 
+            }
+        }
+
+        .header-title {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 4.2em;
+            font-weight: 900;
+            margin-bottom: 25px;
+            text-shadow: 2px 4px 12px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(135deg, white 0%, var(--light-blue) 60%, #B0E0E6 90%, white 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleDistribution 4s ease-in-out infinite alternate;
+            letter-spacing: -2px;
+        }
+
+        @keyframes titleDistribution {
+            from { 
+                filter: drop-shadow(0 0 15px rgba(135, 206, 235, 0.5)); 
+                text-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+            }
+            to { 
+                filter: drop-shadow(0 0 25px rgba(74, 144, 226, 0.6)); 
+                text-shadow: 0 0 40px rgba(135, 169, 107, 0.4);
+            }
+        }
+
+        .header-subtitle {
+            font-size: 1.8em;
+            font-weight: 400;
+            opacity: 0.92;
+            position: relative;
+            z-index: 2;
+            color: var(--sky-blue);
+            text-shadow: 1px 2px 8px rgba(0,0,0,0.3);
+            letter-spacing: 0.8px;
+            font-style: italic;
+        }
+
+        /* Distributional Navigation */
+        .nav-tabs {
+            display: flex;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--sage-green) 33%, var(--warm-amber) 66%, var(--primary-blue) 100%);
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 3px 0 rgba(135, 206, 235, 0.5);
+        }
+
+        .nav-tabs::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.08) 0%, 
+                rgba(135, 206, 235, 0.15) 50%, 
+                rgba(255,255,255,0.08) 100%);
+            transform: translateX(-120%);
+            animation: distributionalNav 8s ease-in-out infinite;
+        }
+
+        @keyframes distributionalNav {
+            0%, 100% { transform: translateX(-120%); }
+            50% { transform: translateX(400%); }
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 30px 32px;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 500;
+            font-size: 1.12em;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 5px solid transparent;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-button:hover {
+            background: rgba(135, 206, 235, 0.18);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            color: var(--cream);
+        }
+
+        .tab-button.active {
+            background: rgba(135, 206, 235, 0.25);
+            border-bottom-color: var(--coral);
+            font-weight: 600;
+            color: var(--cream);
+            box-shadow: inset 0 -5px 0 var(--coral);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 60px;
+            animation: distributionalSlide 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes distributionalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.97);
+                filter: blur(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        /* Section Titles - RED (Consistency) */
+        .section-title {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 3.4em;
+            color: var(--secondary-red);
+            margin-bottom: 50px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 1px 2px 8px rgba(0,0,0,0.1);
+            letter-spacing: -1px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                var(--light-blue) 0%, 
+                var(--coral) 25%, 
+                var(--sage-green) 50%, 
+                var(--warm-amber) 75%, 
+                var(--light-blue) 100%);
+            border-radius: 3px;
+            animation: distributionalUnderline 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes distributionalUnderline {
+            from { width: 160px; opacity: 0.8; }
+            to { width: 220px; opacity: 1; }
+        }
+
+        /* Light Blue Boxes - Theory Framework */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 42px;
+            margin-bottom: 60px;
+        }
+
+        .theory-card {
+            background: linear-gradient(135deg, var(--pale-blue) 0%, #F0F8FF 50%, var(--white) 100%);
+            padding: 45px;
+            border-radius: 25px;
+            border: 3px solid var(--light-blue);
+            box-shadow: 
+                0 15px 45px rgba(74, 144, 226, 0.08),
+                0 5px 20px rgba(135, 206, 235, 0.1);
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theory-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle, 
+                rgba(135, 206, 235, 0.08) 0%, 
+                rgba(74, 144, 226, 0.06) 40%, 
+                transparent 70%);
+            border-radius: 50%;
+            animation: cardDistribution 8s ease-in-out infinite;
+        }
+
+        @keyframes cardDistribution {
+            0%, 100% { 
+                transform: scale(1) translateX(0) translateY(0) rotate(0deg); 
+                opacity: 0.8; 
+            }
+            25% { 
+                transform: scale(1.15) translateX(20px) translateY(-20px) rotate(90deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(0.9) translateX(-10px) translateY(10px) rotate(180deg); 
+                opacity: 0.85; 
+            }
+            75% { 
+                transform: scale(1.05) translateX(10px) translateY(-5px) rotate(270deg); 
+                opacity: 0.9; 
+            }
+        }
+
+        .theory-card:hover {
+            transform: translateY(-15px) rotateX(8deg) rotateY(2deg);
+            box-shadow: 
+                0 25px 70px rgba(74, 144, 226, 0.12),
+                0 10px 30px rgba(135, 206, 235, 0.15);
+            border-color: var(--primary-blue);
+        }
+
+        .theory-card h3 {
+            font-family: 'Crimson Text', serif;
+            color: var(--secondary-red);
+            margin-bottom: 25px;
+            font-size: 1.9em;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .theory-card p {
+            font-size: 1.15em;
+            line-height: 1.8;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 2;
+            font-weight: 400;
+        }
+
+        /* Mathematical Equations - Distributional Style */
+        .equation-display {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--deep-blue) 100%);
+            color: white;
+            padding: 38px;
+            border-radius: 20px;
+            margin: 32px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 1.25em;
+            box-shadow: 
+                inset 0 3px 20px rgba(0,0,0,0.4), 
+                0 12px 35px rgba(44, 67, 157, 0.25);
+            overflow-x: auto;
+            border: 3px solid rgba(135, 206, 235, 0.4);
+            position: relative;
+        }
+
+        .equation-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--light-blue) 25%, 
+                var(--coral) 50%, 
+                var(--sage-green) 75%, 
+                transparent 100%);
+            animation: equationDistribution 4s ease-in-out infinite;
+        }
+
+        @keyframes equationDistribution {
+            0%, 100% { opacity: 0.6; transform: scaleX(0.7); }
+            50% { opacity: 1; transform: scaleX(1.3); }
+        }
+
+        /* Light Blue Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, var(--pale-blue) 0%, #F8FCFF 50%, var(--white) 100%);
+            padding: 50px;
+            border-radius: 30px;
+            margin: 50px 0;
+            border: 4px solid var(--sky-blue);
+            box-shadow: 
+                0 18px 50px rgba(135, 206, 235, 0.15),
+                inset 0 1px 0 rgba(255,255,255,0.95);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: -80%;
+            left: -80%;
+            width: 260%;
+            height: 260%;
+            background: conic-gradient(from 45deg at 50% 50%, 
+                transparent 0%, 
+                rgba(135, 206, 235, 0.03) 18%, 
+                transparent 36%, 
+                rgba(74, 144, 226, 0.02) 54%, 
+                transparent 72%, 
+                rgba(135, 169, 107, 0.025) 90%, 
+                transparent 100%);
+            animation: controlDistribution 20s linear infinite;
+        }
+
+        @keyframes controlDistribution {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .control-header {
+            font-family: 'Crimson Text', serif;
+            color: var(--secondary-red);
+            font-size: 2.5em;
+            margin-bottom: 35px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 35px;
+            margin-bottom: 42px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--charcoal);
+            font-size: 1.15em;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 20px;
+            border: 2px solid #E5E7EB;
+            border-radius: 14px;
+            font-size: 1.1em;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 
+                0 0 30px rgba(74, 144, 226, 0.25),
+                0 0 0 4px rgba(135, 206, 235, 0.15);
+            transform: translateY(-4px) scale(1.02);
+        }
+
+        /* Distributional Action Buttons */
+        .button-group {
+            display: flex;
+            gap: 25px;
+            margin-top: 42px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn {
+            padding: 22px 45px;
+            border: none;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1.15em;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.5) 50%, 
+                transparent 100%);
+            transition: left 0.8s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--deep-blue) 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.35);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--deep-blue) 0%, var(--primary-blue) 100%);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--coral) 0%, #FF5252 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.35);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #FF5252 0%, var(--coral) 100%);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--sage-green) 0%, #6B8E5A 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(135, 169, 107, 0.35);
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #6B8E5A 0%, var(--sage-green) 100%);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(135, 169, 107, 0.4);
+        }
+
+        /* Light Blue Results Container */
+        .results-container {
+            background: linear-gradient(135deg, var(--pale-blue) 0%, #F8FCFF 100%);
+            border: 4px solid var(--light-blue);
+            border-radius: 28px;
+            padding: 50px;
+            margin: 50px 0;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.97);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, 
+                var(--light-blue) 0%, 
+                var(--coral) 20%, 
+                var(--sage-green) 40%, 
+                var(--warm-amber) 60%, 
+                var(--primary-blue) 80%, 
+                var(--light-blue) 100%);
+            animation: distributionalFlow 4s ease-in-out infinite;
+        }
+
+        @keyframes distributionalFlow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .results-header {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.6em;
+            color: var(--secondary-red);
+            margin-bottom: 35px;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Light Blue Chart Container */
+        .chart-container {
+            position: relative;
+            height: 560px;
+            margin: 50px 0;
+            background: linear-gradient(135deg, var(--pale-blue) 0%, var(--white) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            border: 3px solid var(--sky-blue);
+        }
+
+        /* Statistics Grid - Light Blue Theme */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 35px;
+            margin: 45px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--pale-blue) 0%, var(--white) 100%);
+            padding: 35px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid var(--sky-blue);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--light-blue) 0%, var(--primary-blue) 50%, var(--sage-green) 100%);
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.04);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 2em;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+        }
+
+        .stat-label {
+            font-size: 1.08em;
+            color: var(--slate);
+            font-weight: 500;
+        }
+
+        /* Quantile-Specific Elements */
+        .quantile-info {
+            background: linear-gradient(135deg, var(--pale-blue) 0%, #F0F8FF 100%);
+            border: 3px solid var(--light-blue);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .quantile-visualization {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .quantile-band {
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px 8px;
+            border-radius: 12px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+
+        .quantile-band:nth-child(1) { background: #FF6B6B; }
+        .quantile-band:nth-child(2) { background: #FFB84D; }
+        .quantile-band:nth-child(3) { background: var(--primary-blue); }
+        .quantile-band:nth-child(4) { background: var(--sage-green); }
+        .quantile-band:nth-child(5) { background: #8E44AD; }
+
+        /* Decision Framework - Light Blue */
+        .decision-panel {
+            background: linear-gradient(135deg, var(--pale-blue) 0%, rgba(135, 206, 235, 0.2) 100%);
+            border: 4px solid var(--sky-blue);
+            border-radius: 25px;
+            padding: 42px;
+            margin: 42px 0;
+        }
+
+        .decision-question {
+            font-family: 'Crimson Text', serif;
+            font-weight: 600;
+            font-size: 1.5em;
+            margin-bottom: 32px;
+            color: var(--charcoal);
+            text-align: center;
+            letter-spacing: -0.3px;
+        }
+
+        .decision-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .decision-option {
+            padding: 25px;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1.08em;
+        }
+
+        .decision-option:hover {
+            border-color: var(--coral);
+            background: #FFF5F5;
+            transform: translateY(-5px);
+        }
+
+        .decision-option.selected {
+            border-color: var(--primary-blue);
+            background: var(--pale-blue);
+            box-shadow: 0 0 25px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Feedback Messages */
+        .feedback-message {
+            padding: 35px;
+            border-radius: 20px;
+            margin: 35px 0;
+            font-weight: 500;
+            font-size: 1.15em;
+        }
+
+        .feedback-success {
+            background: var(--pale-blue);
+            border: 3px solid var(--light-blue);
+            color: var(--deep-blue);
+        }
+
+        .feedback-warning {
+            background: #FFF8E1;
+            border: 3px solid var(--warm-amber);
+            color: #8F6300;
+        }
+
+        .feedback-danger {
+            background: #FFEBEE;
+            border: 3px solid var(--coral);
+            color: #8B0000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                border-radius: 28px;
+            }
+
+            .header-title {
+                font-size: 3em;
+            }
+
+            .theory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Research References - Light Blue */
+        .research-note {
+            background: linear-gradient(135deg, var(--pale-blue) 0%, #F0F8FF 100%);
+            padding: 32px;
+            border-radius: 16px;
+            margin: 32px 0;
+            border-left: 6px solid var(--primary-blue);
+            font-style: italic;
+            position: relative;
+        }
+
+        .research-note::before {
+            content: '📊';
+            position: absolute;
+            top: 32px;
+            left: 26px;
+            font-size: 1.4em;
+        }
+
+        .research-note p {
+            margin-left: 40px;
+            line-height: 1.8;
+        }
+
+        /* Advanced Visual Effects */
+        .quantile-highlight {
+            background: rgba(74, 144, 226, 0.1);
+            border-left: 5px solid var(--primary-blue);
+            padding: 18px;
+            margin: 18px 0;
+            border-radius: 10px;
+        }
+
+        .coefficient-display {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            margin: 0 10px;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="header-title">Quantile Regression & Distributional Analysis</h1>
+            <p class="header-subtitle">Beyond the Mean: Comprehensive Distributional Effects</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showSection('theory')">📊 Quantile Theory</button>
+            <button class="tab-button" onclick="showSection('simulation')">📈 Canadian Applications</button>
+            <button class="tab-button" onclick="showSection('analysis')">⚡ Distributional Analysis</button>
+            <button class="tab-button" onclick="showSection('assessment')">✅ Assessment Mode</button>
+        </div>
+
+        <!-- Theory Framework Section -->
+        <div id="theory" class="content-section active">
+            <h2 class="section-title">Quantile Regression Framework</h2>
+            
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <h3>🎯 Beyond the Mean</h3>
+                    <p><strong>Core Innovation:</strong> While OLS estimates conditional means E[Y|X], quantile regression estimates any conditional quantile Q_τ(Y|X), providing complete distributional analysis.</p>
+                    <div class="equation-display">
+                        Conditional Quantile: Q_τ(Y|X) = X'β_τ<br>
+                        where τ ∈ (0,1) is the quantile of interest<br>
+                        Estimation: min Σ ρ_τ(y_i - x_i'β_τ)<br>
+                        ρ_τ(u) = u(τ - I(u < 0)) [Check function]
+                    </div>
+                    <p><em>Key insight: Different quantiles can have different covariate effects, revealing treatment heterogeneity</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📊 The Check Function</h3>
+                    <p><strong>Asymmetric Loss:</strong> Quantile regression uses an asymmetric loss function that penalizes over- and under-prediction differently based on the target quantile.</p>
+                    <div class="equation-display">
+                        Check Function Properties:<br>
+                        ρ_τ(u) = { τ·u if u ≥ 0<br>
+                                  (τ-1)·u if u < 0<br>
+                        Minimizes: E[ρ_τ(Y - Q_τ(Y|X))]
+                    </div>
+                    <p><strong>Interpretation:</strong> τ = 0.5 gives median regression (symmetric loss), τ = 0.9 emphasizes upper tail effects</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔍 Treatment Heterogeneity</h3>
+                    <p><strong>Policy Applications:</strong> Quantile regression reveals how policy effects vary across the outcome distribution - critical for inequality analysis.</p>
+                    <div class="equation-display">
+                        Distributional Treatment Effect:<br>
+                        QTE_τ = β_τ^Treatment - β_τ^Control<br>
+                        Full Distribution: {QTE_τ : τ ∈ [0.1, 0.9]}<br>
+                        Inequality Impact: QTE_0.9 - QTE_0.1
+                    </div>
+                    <p><strong>Example:</strong> Minimum wage increases may help low-wage workers (τ = 0.1) but have no effect at high wages (τ = 0.9)</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📈 Simultaneous Quantile Bands</h3>
+                    <p><strong>Complete Picture:</strong> Estimate multiple quantiles simultaneously to understand the full distributional impact of covariates.</p>
+                    <div class="equation-display">
+                        Quantile Process: Q_τ(Y|X) = X'β(τ)<br>
+                        Inference: Joint confidence bands across τ<br>
+                        H₀: β_τ₁ = β_τ₂ = ... = β_τₖ (constant effects)<br>
+                        vs H₁: Effects vary across quantiles
+                    </div>
+                    <p><strong>Advantage:</strong> Reveals whether treatment effects are uniform across the distribution or heterogeneous</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>⚖️ Robustness Properties</h3>
+                    <p><strong>Distributional Robustness:</strong> Median regression (τ = 0.5) is robust to outliers, unlike OLS which can be heavily influenced by extreme values.</p>
+                    <div class="equation-display">
+                        Breakdown Point:<br>
+                        • OLS: 0% (any outlier can shift estimates)<br>
+                        • Median: 50% (robust to outliers)<br>
+                        • General τ: min(τ, 1-τ) breakdown point
+                    </div>
+                    <p><strong>Application:</strong> Income/wage analysis where outliers (very high earners) can distort OLS results</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🇨🇦 Canadian Inequality Applications</h3>
+                    <p><strong>Policy Evaluation:</strong> Quantile regression is essential for understanding distributional impacts of Canadian social and economic policies.</p>
+                    <div class="equation-display">
+                        Income Distribution Analysis:<br>
+                        log(Income_τ) = α_τ + β_τ·Policy + γ_τ·X + ε_τ<br>
+                        Inequality Measure: Q_0.9 - Q_0.1<br>
+                        Mobility: Changes in quantile ranks over time
+                    </div>
+                    <p><strong>Key insight:</strong> Policies may reduce inequality even if mean effects appear small</p>
+                </div>
+            </div>
+
+            <div class="theory-card" style="grid-column: 1 / -1;">
+                <h3>🇨🇦 Canadian Distributional Policy Analysis</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px;">
+                    <div>
+                        <h4>💰 Income & Wage Studies:</h4>
+                        <ul>
+                            <li><strong>Minimum Wage Effects:</strong> Quantile analysis across wage distribution</li>
+                            <li><strong>Gender Pay Gap:</strong> Different effects at different income levels</li>
+                            <li><strong>Regional Disparities:</strong> Provincial income distribution comparisons</li>
+                            <li><strong>Education Returns:</strong> Varying benefits across income quantiles</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>📊 Policy Evaluation:</h4>
+                        <ul>
+                            <li><strong>Child Benefits:</strong> Distributional impact of CCB on family incomes</li>
+                            <li><strong>Healthcare Access:</strong> Wait time distributions across regions</li>
+                            <li><strong>Housing Policy:</strong> Price effects across market segments</li>
+                            <li><strong>Innovation Policy:</strong> R&D effects across firm performance distribution</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="research-note">
+                <p><strong>📊 Modern Standard:</strong> Quantile regression has become essential for policy evaluation and inequality research. By examining effects across the entire outcome distribution rather than just the mean, researchers can understand who benefits from policies and by how much. This is crucial for evidence-based policy design in an era of growing inequality concerns.</p>
+            </div>
+        </div>
+
+        <!-- Canadian Applications Section -->
+        <div id="simulation" class="content-section">
+            <h2 class="section-title">Canadian Distributional Applications</h2>
+
+            <div class="control-panel">
+                <h3 class="control-header">📊 Quantile Analysis Laboratory</h3>
+                
+                <div class="control-group">
+                    <div class="form-group">
+                        <label for="quantileScenario">Canadian Application</label>
+                        <select id="quantileScenario" onchange="updateQuantileScenario()">
+                            <option value="wages">Provincial Minimum Wage Analysis</option>
+                            <option value="education">Education Returns Across Income Distribution</option>
+                            <option value="housing">Housing Policy Distributional Effects</option>
+                            <option value="benefits">Child Benefit Program Evaluation</option>
+                            <option value="innovation">R&D Innovation Policy Impact</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="targetQuantiles">Quantiles to Analyze</label>
+                        <select id="targetQuantiles" onchange="updateQuantiles()">
+                            <option value="full">Full Distribution (0.1, 0.25, 0.5, 0.75, 0.9)</option>
+                            <option value="tails">Focus on Tails (0.1, 0.5, 0.9)</option>
+                            <option value="inequality">Inequality Analysis (0.1, 0.25, 0.75, 0.9)</option>
+                            <option value="median">Robust Median (0.5 only)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sampleSize">Sample Size</label>
+                        <select id="sampleSize">
+                            <option value="500">500 observations (Small)</option>
+                            <option value="2000" selected>2,000 observations (Medium)</option>
+                            <option value="5000">5,000 observations (Large)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="treatmentIntensity">Policy Treatment Effect</label>
+                        <input type="range" id="treatmentIntensity" min="0.1" max="2.0" step="0.1" value="0.8" onchange="updateIntensityDisplay()">
+                        <span id="intensityValue">0.8</span> standard deviations
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateQuantileData()">📊 Generate Data</button>
+                    <button class="btn btn-secondary" onclick="estimateQuantiles()">📈 Estimate Quantiles</button>
+                    <button class="btn btn-accent" onclick="analyzeDistribution()">⚡ Full Distribution</button>
+                </div>
+            </div>
+
+            <!-- Application Description -->
+            <div id="quantileDescription" class="quantile-info">
+                <div class="results-header">Current Quantile Analysis Application</div>
+                <div id="quantileText"></div>
+                <div id="quantileVisualization" class="quantile-visualization"></div>
+            </div>
+
+            <!-- Quantile Chart -->
+            <div class="chart-container">
+                <canvas id="quantileChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Distributional Analysis Section -->
+        <div id="analysis" class="content-section">
+            <h2 class="section-title">Distributional Effect Analysis</h2>
+
+            <div id="quantileResults" class="results-container">
+                <div class="results-header">Quantile Regression Results</div>
+                <div id="quantileTable"></div>
+            </div>
+
+            <div class="stats-grid" id="distributionalStats">
+                <!-- Dynamic statistics will be populated here -->
+            </div>
+
+            <div id="inequalityResults" class="results-container">
+                <div class="results-header">📊 Inequality & Treatment Heterogeneity Analysis</div>
+                <div id="inequalityTable"></div>
+            </div>
+
+            <!-- Distribution Comparison Chart -->
+            <div class="chart-container">
+                <h3 style="text-align: center; margin-bottom: 30px; color: var(--secondary-red);">📈 Treatment Effects Across Distribution</h3>
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Assessment Mode Section -->
+        <div id="assessment" class="content-section">
+            <h2 class="section-title">Quantile Regression Assessment</h2>
+
+            <div id="assessmentQuestion" class="decision-panel">
+                <div class="decision-question">Loading quantile regression assessment...</div>
+                <div class="decision-options" id="assessmentOptions">
+                    <!-- Dynamic options will be populated -->
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()" style="margin-top: 35px;">Submit Answer</button>
+            </div>
+
+            <div id="assessmentFeedback"></div>
+
+            <div class="button-group" style="margin-top: 45px;">
+                <button class="btn btn-secondary" onclick="generateNewQuestion()">📝 New Question</button>
+                <button class="btn btn-accent" onclick="showExpertSolution()">🎓 Show Expert Analysis</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentQuantileData = null;
+        let currentQuantileChart = null;
+        let distributionChart = null;
+        let selectedAnswer = null;
+        let currentQuestion = null;
+
+        // Quantile Scenario Definitions
+        const quantileScenarios = {
+            wages: {
+                title: "Provincial Minimum Wage Distributional Analysis",
+                description: "Analyzing how minimum wage increases affect workers across the wage distribution. Higher quantiles may show zero effects while lower quantiles benefit significantly.",
+                outcome: "Hourly Wages (CAD)",
+                treatment: "Minimum Wage Increase",
+                unit: "Workers",
+                heterogeneity: "Low-wage workers benefit most; high-wage workers unaffected",
+                example: "Alberta's minimum wage increase from $10.20 to $15.00",
+                policy_insight: "Distributional analysis reveals which workers benefit and potential spillover effects"
+            },
+            education: {
+                title: "Education Returns Across Income Distribution",
+                description: "Examining how education premiums vary across the income distribution. Returns may be higher at upper quantiles due to complementarities with ability.",
+                outcome: "Annual Income (CAD)",
+                treatment: "University Education",
+                unit: "Workers",
+                heterogeneity: "Higher returns at upper quantiles due to ability sorting",
+                example: "University degree premium across Canadian income distribution",
+                policy_insight: "Education policy effects depend on position in income distribution"
+            },
+            housing: {
+                title: "Housing Policy Distributional Effects",
+                description: "Analyzing how housing policies affect different segments of the housing market. First-time buyer programs may primarily affect lower quantiles.",
+                outcome: "House Prices (CAD)",
+                treatment: "First-Time Buyer Program",
+                unit: "Housing Transactions",
+                heterogeneity: "Stronger effects in lower-priced housing segments",
+                example: "First-Time Home Buyer Incentive distributional impact",
+                policy_insight: "Housing policies have heterogeneous effects across market segments"
+            },
+            benefits: {
+                title: "Child Benefit Program Evaluation",
+                description: "Evaluating how child benefit programs affect family incomes across the distribution. Progressive benefits should show stronger effects at lower quantiles.",
+                outcome: "Family After-Tax Income (CAD)",
+                treatment: "Canada Child Benefit",
+                unit: "Families with Children",
+                heterogeneity: "Progressive design targets lower-income families",
+                example: "CCB replacing previous universal and targeted programs",
+                policy_insight: "Quantile analysis reveals program progressivity and targeting effectiveness"
+            },
+            innovation: {
+                title: "R&D Innovation Policy Distributional Impact",
+                description: "Examining how R&D tax credits affect firm performance across the productivity distribution. Effects may be concentrated among high-performing firms.",
+                outcome: "Firm Productivity Growth (%)",
+                treatment: "R&D Tax Credit",
+                unit: "Manufacturing Firms",
+                heterogeneity: "Stronger effects among high-productivity firms",
+                example: "Scientific Research and Experimental Development (SR&ED) program",
+                policy_insight: "Innovation policies may increase or decrease firm productivity dispersion"
+            }
+        };
+
+        // Assessment Questions (Quantile Regression focused)
+        const assessmentQuestions = [
+            {
+                question: "What is the key advantage of quantile regression over OLS for policy evaluation?",
+                options: [
+                    "It provides unbiased estimates when OLS is biased",
+                    "It reveals how treatment effects vary across the outcome distribution",
+                    "It automatically corrects for endogeneity problems",
+                    "It requires fewer assumptions about error terms"
+                ],
+                correct: 1,
+                explanation: "Quantile regression's key advantage is revealing treatment heterogeneity - showing how policy effects vary across different parts of the outcome distribution, which OLS (focusing only on means) cannot capture."
+            },
+            {
+                question: "In the check function ρ_τ(u) = u(τ - I(u < 0)), what happens when τ = 0.1?",
+                options: [
+                    "Over-predictions are penalized more heavily than under-predictions",
+                    "Under-predictions are penalized more heavily than over-predictions", 
+                    "Over- and under-predictions are penalized equally",
+                    "Only positive residuals are penalized"
+                ],
+                correct: 1,
+                explanation: "When τ = 0.1, under-predictions (negative residuals) get weight 0.9 while over-predictions get weight 0.1, so under-predictions are penalized more heavily. This asymmetry targets the 10th percentile."
+            },
+            {
+                question: "Why might a minimum wage increase show different quantile regression coefficients across τ?",
+                options: [
+                    "Due to measurement error in wages",
+                    "Because the policy affects workers differently across the wage distribution",
+                    "Due to heteroskedasticity in the error term",
+                    "Because of sample selection bias"
+                ],
+                correct: 1,
+                explanation: "Minimum wage increases primarily affect workers in lower quantiles of the wage distribution (those near minimum wage) while having little to no effect on high-wage workers, creating treatment heterogeneity."
+            },
+            {
+                question: "What does it mean if β_0.1 > β_0.5 > β_0.9 for an education treatment effect?",
+                options: [
+                    "Education has stronger effects for high-ability individuals",
+                    "Education has stronger effects for low-income individuals",
+                    "There is positive selection into education",
+                    "The education variable is mismeasured"
+                ],
+                correct: 1,
+                explanation: "When lower quantiles show larger education effects (β_0.1 > β_0.5 > β_0.9), education is particularly beneficial for those at the bottom of the outcome distribution, suggesting it helps reduce inequality."
+            },
+            {
+                question: "What is the breakdown point of median regression (τ = 0.5)?",
+                options: [
+                    "0% - any outlier can affect estimates",
+                    "25% - up to 25% outliers can be tolerated",
+                    "50% - up to 50% outliers can be tolerated", 
+                    "100% - completely robust to all outliers"
+                ],
+                correct: 2,
+                explanation: "Median regression has a 50% breakdown point, meaning it remains reliable even when up to 50% of the data are outliers. This robustness is why median regression is preferred for datasets with extreme values."
+            }
+        ];
+
+        // Navigation Functions
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Quantile Scenario Management
+        function updateQuantileScenario() {
+            const scenarioType = document.getElementById('quantileScenario').value;
+            const scenario = quantileScenarios[scenarioType];
+            
+            document.getElementById('quantileText').innerHTML = `
+                <h3 style="color: var(--secondary-red); margin-bottom: 20px;">${scenario.title}</h3>
+                <p><strong>Research Context:</strong> ${scenario.description}</p>
+                <div class="research-note">
+                    <p><strong>📊 Distributional Insight:</strong> ${scenario.policy_insight}</p>
+                </div>
+                <p><strong>Unit of Analysis:</strong> ${scenario.unit}</p>
+                <p><strong>Outcome Variable:</strong> ${scenario.outcome}</p>
+                <p><strong>Treatment:</strong> ${scenario.treatment}</p>
+                <p><strong>Expected Heterogeneity:</strong> ${scenario.heterogeneity}</p>
+                <p><strong>Canadian Example:</strong> ${scenario.example}</p>
+            `;
+            
+            updateQuantileVisualization();
+        }
+
+        function updateQuantileVisualization() {
+            const quantileType = document.getElementById('targetQuantiles').value;
+            const container = document.getElementById('quantileVisualization');
+            container.innerHTML = '';
+            
+            let quantiles = [];
+            switch(quantileType) {
+                case 'full': quantiles = ['τ=0.10', 'τ=0.25', 'τ=0.50', 'τ=0.75', 'τ=0.90']; break;
+                case 'tails': quantiles = ['τ=0.10', 'τ=0.50', 'τ=0.90']; break;
+                case 'inequality': quantiles = ['τ=0.10', 'τ=0.25', 'τ=0.75', 'τ=0.90']; break;
+                case 'median': quantiles = ['τ=0.50']; break;
+            }
+            
+            quantiles.forEach((q, index) => {
+                const quantileDiv = document.createElement('div');
+                quantileDiv.className = 'quantile-band';
+                quantileDiv.textContent = q;
+                container.appendChild(quantileDiv);
+            });
+        }
+
+        function updateQuantiles() {
+            updateQuantileVisualization();
+        }
+
+        function updateIntensityDisplay() {
+            const intensity = document.getElementById('treatmentIntensity').value;
+            document.getElementById('intensityValue').textContent = intensity;
+        }
+
+        // Data Generation for Quantile Analysis
+        function generateQuantileData() {
+            const scenarioType = document.getElementById('quantileScenario').value;
+            const sampleSize = parseInt(document.getElementById('sampleSize').value);
+            const intensity = parseFloat(document.getElementById('treatmentIntensity').value);
+            
+            const scenario = quantileScenarios[scenarioType];
+            
+            currentQuantileData = {
+                scenario: scenario,
+                sampleSize: sampleSize,
+                intensity: intensity,
+                data: []
+            };
+
+            // Generate heterogeneous treatment effect data
+            for (let i = 0; i < sampleSize; i++) {
+                const treatment = Math.random() < 0.5 ? 1 : 0;
+                const x_continuous = Math.random() * 4 + 1; // Additional covariate
+                
+                // Generate errors with different treatment effects across quantiles
+                const u = Math.random(); // Uniform for inverse transform
+                const error_quantile = quantileFromUniform(u); // Transform to desired distribution
+                
+                // Heterogeneous treatment effects - stronger at lower quantiles for most scenarios
+                let treatment_effect;
+                if (scenarioType === 'education' || scenarioType === 'innovation') {
+                    // Higher effects at upper quantiles
+                    treatment_effect = intensity * (0.5 + 0.8 * u);
+                } else {
+                    // Higher effects at lower quantiles (progressive policies)
+                    treatment_effect = intensity * (1.5 - 0.8 * u);
+                }
+                
+                // Generate outcome with quantile-dependent treatment effects
+                const y = 50 + treatment_effect * treatment + 2 * x_continuous + error_quantile * 8;
+                
+                currentQuantileData.data.push({
+                    id: i,
+                    treatment: treatment,
+                    x: x_continuous,
+                    y: y,
+                    error: error_quantile,
+                    u: u
+                });
+            }
+
+            updateQuantileChart();
+        }
+
+        function quantileFromUniform(u) {
+            // Simple transformation to create some distributional variation
+            return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+        }
+
+        function updateQuantileChart() {
+            if (!currentQuantileData) return;
+            
+            const ctx = document.getElementById('quantileChart').getContext('2d');
+            
+            if (currentQuantileChart) {
+                currentQuantileChart.destroy();
+            }
+
+            // Create scatter plot by treatment status
+            const treatedData = currentQuantileData.data.filter(d => d.treatment === 1);
+            const controlData = currentQuantileData.data.filter(d => d.treatment === 0);
+
+            currentQuantileChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Treatment Group',
+                            data: treatedData.map(d => ({x: d.x, y: d.y})),
+                            backgroundColor: '#4A90E280',
+                            borderColor: '#4A90E2',
+                            borderWidth: 2,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Control Group',
+                            data: controlData.map(d => ({x: d.x, y: d.y})),
+                            backgroundColor: '#FF6B6B80',
+                            borderColor: '#FF6B6B',
+                            borderWidth: 2,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${currentQuantileData.scenario.title} - Treatment vs Control`,
+                            font: { size: 18, weight: 'bold' }
+                        },
+                        legend: { 
+                            position: 'top',
+                            labels: { usePointStyle: true }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Covariate (X)' }
+                        },
+                        y: {
+                            title: { display: true, text: currentQuantileData.scenario.outcome }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Quantile Regression Estimation
+        function estimateQuantiles() {
+            if (!currentQuantileData) {
+                alert('Please generate data first');
+                return;
+            }
+
+            const quantileType = document.getElementById('targetQuantiles').value;
+            let targetQuantiles = [];
+            
+            switch(quantileType) {
+                case 'full': targetQuantiles = [0.1, 0.25, 0.5, 0.75, 0.9]; break;
+                case 'tails': targetQuantiles = [0.1, 0.5, 0.9]; break;
+                case 'inequality': targetQuantiles = [0.1, 0.25, 0.75, 0.9]; break;
+                case 'median': targetQuantiles = [0.5]; break;
+            }
+
+            // Simplified quantile estimation (in practice would use linear programming)
+            const results = estimateQuantileRegression(currentQuantileData.data, targetQuantiles);
+            displayQuantileResults(results);
+        }
+
+        function estimateQuantileRegression(data, quantiles) {
+            const results = {};
+            
+            // Simple approximation of quantile regression
+            quantiles.forEach(tau => {
+                const treated = data.filter(d => d.treatment === 1).map(d => d.y);
+                const control = data.filter(d => d.treatment === 0).map(d => d.y);
+                
+                treated.sort((a, b) => a - b);
+                control.sort((a, b) => a - b);
+                
+                const quantile_treated = treated[Math.floor(tau * treated.length)];
+                const quantile_control = control[Math.floor(tau * control.length)];
+                
+                results[tau] = {
+                    tau: tau,
+                    treatment_effect: quantile_treated - quantile_control,
+                    quantile_treated: quantile_treated,
+                    quantile_control: quantile_control,
+                    se: Math.sqrt(1.57 * tau * (1-tau) / data.length) * 3 // Simplified SE
+                };
+            });
+            
+            return results;
+        }
+
+        function displayQuantileResults(results) {
+            let tableHTML = `
+                <h4>📊 Quantile Treatment Effects</h4>
+                <div style="font-family: 'Fira Code', monospace; background: var(--pale-blue); padding: 30px; border-radius: 15px; margin: 25px 0;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 20px; font-weight: 600; border-bottom: 2px solid #ccc; padding-bottom: 15px;">
+                        <div>Quantile (τ)</div>
+                        <div>Treatment Effect</div>
+                        <div>Standard Error</div>
+                        <div>t-statistic</div>
+                        <div>Significance</div>
+                    </div>`;
+
+            Object.values(results).forEach(result => {
+                const tstat = result.treatment_effect / result.se;
+                const significant = Math.abs(tstat) > 1.96;
+                
+                tableHTML += `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 20px; padding: 15px 0; ${significant ? 'background: rgba(74, 144, 226, 0.1);' : ''}">
+                        <div>τ = ${result.tau.toFixed(2)}</div>
+                        <div class="coefficient-display">${result.treatment_effect.toFixed(3)}</div>
+                        <div>${result.se.toFixed(3)}</div>
+                        <div>${tstat.toFixed(2)}</div>
+                        <div>${significant ? '✅ Sig' : '❌ NS'}</div>
+                    </div>`;
+            });
+
+            tableHTML += `</div>`;
+            
+            document.getElementById('quantileTable').innerHTML = tableHTML;
+
+            // Update statistics display
+            const allEffects = Object.values(results).map(r => r.treatment_effect);
+            const maxEffect = Math.max(...allEffects);
+            const minEffect = Math.min(...allEffects);
+            const inequality_impact = maxEffect - minEffect;
+
+            document.getElementById('distributionalStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${maxEffect.toFixed(3)}</div>
+                    <div class="stat-label">Max Effect</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${minEffect.toFixed(3)}</div>
+                    <div class="stat-label">Min Effect</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${inequality_impact.toFixed(3)}</div>
+                    <div class="stat-label">Inequality Impact</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Object.keys(results).length}</div>
+                    <div class="stat-label">Quantiles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${currentQuantileData.sampleSize}</div>
+                    <div class="stat-label">Sample Size</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${(allEffects.reduce((a,b) => a+b, 0) / allEffects.length).toFixed(3)}</div>
+                    <div class="stat-label">Mean Effect</div>
+                </div>
+            `;
+        }
+
+        // Full Distributional Analysis
+        function analyzeDistribution() {
+            if (!currentQuantileData) {
+                alert('Please estimate quantiles first');
+                return;
+            }
+
+            // Generate comprehensive distributional analysis
+            const fullQuantiles = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95];
+            const fullResults = estimateQuantileRegression(currentQuantileData.data, fullQuantiles);
+            
+            displayInequalityAnalysis(fullResults);
+            updateDistributionChart(fullResults);
+        }
+
+        function displayInequalityAnalysis(results) {
+            const effects = Object.values(results).map(r => r.treatment_effect);
+            const quantiles = Object.keys(results).map(q => parseFloat(q));
+            
+            // Calculate inequality metrics
+            const gini_change = calculateGiniChange(results);
+            const p90_p10 = results[0.9].treatment_effect - results[0.1].treatment_effect;
+            const progressive_index = effects[0] - effects[effects.length - 1]; // First - last quantile
+            
+            document.getElementById('inequalityTable').innerHTML = `
+                <h4>📊 Inequality & Distributional Impact Analysis</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+                    <div class="stat-card" style="padding: 25px;">
+                        <h5>Inequality Measures</h5>
+                        <p><strong>P90-P10 Difference:</strong> <span class="coefficient-display">${p90_p10.toFixed(3)}</span></p>
+                        <p><strong>Progressive Index:</strong> <span class="coefficient-display">${progressive_index.toFixed(3)}</span></p>
+                        <p><strong>Effect Range:</strong> <span class="coefficient-display">${(Math.max(...effects) - Math.min(...effects)).toFixed(3)}</span></p>
+                    </div>
+                    <div class="stat-card" style="padding: 25px;">
+                        <h5>Policy Assessment</h5>
+                        <p><strong>Inequality Impact:</strong> ${progressive_index > 0 ? '📉 Reduces' : '📈 Increases'} inequality</p>
+                        <p><strong>Target Effectiveness:</strong> ${Math.abs(effects[0]) > Math.abs(effects[effects.length-1]) ? '🎯 Well-targeted' : '⚠️ Broad-based'}</p>
+                        <p><strong>Robustness:</strong> ${Math.abs(results[0.5].treatment_effect / results[0.5].se) > 1.96 ? '✅ Robust median effect' : '❌ Weak median effect'}</p>
+                    </div>
+                </div>
+                <div class="quantile-highlight">
+                    <p><strong>📊 Policy Insight:</strong> ${generatePolicyInsight(results, currentQuantileData.scenario)}</p>
+                </div>
+            `;
+        }
+
+        function calculateGiniChange(results) {
+            // Simplified Gini coefficient approximation
+            return Math.random() * 0.05 - 0.025; // Placeholder
+        }
+
+        function generatePolicyInsight(results, scenario) {
+            const firstQuantile = results[0.1].treatment_effect;
+            const lastQuantile = results[0.9].treatment_effect;
+            const progressive = firstQuantile > lastQuantile;
+            
+            if (progressive) {
+                return `This ${scenario.treatment.toLowerCase()} shows progressive effects, benefiting lower-income groups more than higher-income groups. This suggests the policy effectively targets inequality reduction and provides stronger support where it's most needed.`;
+            } else {
+                return `This ${scenario.treatment.toLowerCase()} shows regressive effects, with larger benefits for higher-income groups. While the policy may be effective overall, it could potentially increase inequality if not paired with progressive transfer mechanisms.`;
+            }
+        }
+
+        function updateDistributionChart(results) {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            
+            if (distributionChart) {
+                distributionChart.destroy();
+            }
+
+            const quantiles = Object.keys(results).map(q => parseFloat(q));
+            const effects = Object.values(results).map(r => r.treatment_effect);
+            const upperCI = Object.values(results).map(r => r.treatment_effect + 1.96 * r.se);
+            const lowerCI = Object.values(results).map(r => r.treatment_effect - 1.96 * r.se);
+
+            distributionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: quantiles.map(q => `τ=${q.toFixed(2)}`),
+                    datasets: [
+                        {
+                            label: 'Treatment Effect',
+                            data: effects,
+                            borderColor: '#4A90E2',
+                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#4A90E2'
+                        },
+                        {
+                            label: '95% CI Upper',
+                            data: upperCI,
+                            borderColor: 'rgba(74, 144, 226, 0.3)',
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '95% CI Lower', 
+                            data: lowerCI,
+                            borderColor: 'rgba(74, 144, 226, 0.3)',
+                            borderDash: [5, 5],
+                            fill: '-1',
+                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Treatment Effects Across Quantiles with Confidence Intervals',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Quantile (τ)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Treatment Effect Size' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Assessment Functions
+        function generateNewQuestion() {
+            currentQuestion = assessmentQuestions[Math.floor(Math.random() * assessmentQuestions.length)];
+            selectedAnswer = null;
+            
+            document.querySelector('.decision-question').textContent = currentQuestion.question;
+            
+            const optionsContainer = document.getElementById('assessmentOptions');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'decision-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('assessmentFeedback').innerHTML = '';
+        }
+
+        function selectAnswer(answerIndex) {
+            selectedAnswer = answerIndex;
+            
+            document.querySelectorAll('.decision-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === answerIndex);
+            });
+        }
+
+        function checkAnswer() {
+            if (selectedAnswer === null) {
+                alert('Please select an answer first');
+                return;
+            }
+            
+            const isCorrect = selectedAnswer === currentQuestion.correct;
+            const feedbackClass = isCorrect ? 'feedback-success' : 'feedback-danger';
+            const feedbackTitle = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="${feedbackClass}">
+                    <h4>${feedbackTitle}</h4>
+                    <p><strong>Explanation:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                </div>
+            `;
+        }
+
+        function showExpertSolution() {
+            if (!currentQuestion) {
+                generateNewQuestion();
+                return;
+            }
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="feedback-success">
+                    <h4>📊 Expert Analysis</h4>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                    <p><strong>Distributional Insight:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Research Application:</strong> Quantile regression is essential for understanding policy heterogeneity and designing evidence-based interventions that account for distributional effects across different population segments.</p>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        window.addEventListener('load', function() {
+            updateQuantileScenario();
+            generateNewQuestion();
+        });
+    </script>
+</body>
+</html>
