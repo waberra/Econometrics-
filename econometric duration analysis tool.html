@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Methods: Econometric Duration Analysis & Survival Modeling</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Work+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        :root {
+            --primary-coral: #FF6B47;
+            --secondary-red: #DC143C;
+            --light-coral: #FFB5A3;
+            --pale-coral: #FFF2EF;
+            --deep-coral: #E63946;
+            --warm-amber: #F77F00;
+            --forest-green: #2D5016;
+            --sage-green: #52796F;
+            --warm-brown: #A0522D;
+            --silver: #C4C4C4;
+            --charcoal: #2C3E50;
+            --slate: #64748B;
+            --cream: #FFFCF7;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #FFF8F5 50%, var(--pale-coral) 100%);
+            color: var(--charcoal);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Organic Time Flow Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -80%;
+            left: -80%;
+            width: 260%;
+            height: 260%;
+            background: 
+                radial-gradient(ellipse at 25% 25%, rgba(255, 107, 71, 0.04) 0%, transparent 65%),
+                radial-gradient(ellipse at 75% 75%, rgba(255, 181, 163, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 90% 10%, rgba(247, 127, 0, 0.03) 0%, transparent 55%),
+                radial-gradient(ellipse at 10% 90%, rgba(82, 121, 111, 0.035) 0%, transparent 50%);
+            animation: organicFlow 50s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes organicFlow {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1) skewX(0deg) skewY(0deg); 
+                opacity: 0.6; 
+            }
+            25% { 
+                transform: rotate(90deg) scale(1.1) skewX(5deg) skewY(2deg); 
+                opacity: 0.9; 
+            }
+            50% { 
+                transform: rotate(180deg) scale(0.9) skewX(-3deg) skewY(-4deg); 
+                opacity: 0.75; 
+            }
+            75% { 
+                transform: rotate(270deg) scale(1.05) skewX(2deg) skewY(-2deg); 
+                opacity: 0.85; 
+            }
+        }
+
+        /* Survival Curve Flow Pattern */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-radial-gradient(circle at 20% 30%, 
+                    transparent 0px, 
+                    rgba(255, 107, 71, 0.015) 40px, 
+                    transparent 80px, 
+                    transparent 160px),
+                repeating-radial-gradient(circle at 80% 70%, 
+                    transparent 0px, 
+                    rgba(247, 127, 0, 0.012) 60px, 
+                    transparent 120px, 
+                    transparent 240px);
+            z-index: -1;
+            animation: survivalFlow 35s linear infinite;
+        }
+
+        @keyframes survivalFlow {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(360deg) scale(1.02); }
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 
+                0 0 100px rgba(255, 107, 71, 0.15),
+                0 30px 80px rgba(255, 181, 163, 0.12),
+                0 20px 40px rgba(247, 127, 0, 0.08);
+            border-radius: 45px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            animation: durationEntry 3s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(255, 107, 71, 0.18);
+        }
+
+        @keyframes durationEntry {
+            from {
+                opacity: 0;
+                transform: scale(0.85) translateY(100px) rotateX(25deg);
+                filter: blur(25px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0) rotateX(0deg);
+                filter: blur(0);
+            }
+        }
+
+        /* Duration Analysis Header Design */
+        .header-section {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--deep-coral) 30%, var(--warm-brown) 70%, #8B4513 100%);
+            color: white;
+            padding: 70px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(80deg, 
+                transparent 0%, 
+                rgba(255, 181, 163, 0.15) 10%, 
+                transparent 25%, 
+                rgba(247, 127, 0, 0.12) 40%, 
+                transparent 55%, 
+                rgba(82, 121, 111, 0.1) 70%, 
+                transparent 85%);
+            animation: durationHeader 16s ease-in-out infinite;
+        }
+
+        @keyframes durationHeader {
+            0%, 100% { 
+                transform: translateX(-120px) scaleY(1) rotate(0deg); 
+                opacity: 0.8; 
+            }
+            25% { 
+                transform: translateX(80px) scaleY(1.3) rotate(2deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: translateX(-40px) scaleY(0.8) rotate(-1deg); 
+                opacity: 0.9; 
+            }
+            75% { 
+                transform: translateX(40px) scaleY(1.1) rotate(1deg); 
+                opacity: 0.95; 
+            }
+        }
+
+        .header-title {
+            font-family: 'Merriweather', serif;
+            font-size: 4.8em;
+            font-weight: 900;
+            margin-bottom: 30px;
+            text-shadow: 4px 6px 18px rgba(0,0,0,0.6);
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(135deg, white 0%, var(--light-coral) 40%, #FFE4D6 70%, white 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleSurvival 5s ease-in-out infinite alternate;
+            letter-spacing: -3px;
+        }
+
+        @keyframes titleSurvival {
+            from { 
+                filter: drop-shadow(0 0 20px rgba(255, 181, 163, 0.7)); 
+                text-shadow: 0 0 40px rgba(247, 127, 0, 0.5);
+            }
+            to { 
+                filter: drop-shadow(0 0 32px rgba(255, 107, 71, 0.8)); 
+                text-shadow: 0 0 55px rgba(82, 121, 111, 0.6);
+            }
+        }
+
+        .header-subtitle {
+            font-size: 2em;
+            font-weight: 400;
+            opacity: 0.95;
+            position: relative;
+            z-index: 2;
+            color: var(--light-coral);
+            text-shadow: 2px 4px 12px rgba(0,0,0,0.5);
+            letter-spacing: 1.2px;
+            font-style: italic;
+        }
+
+        /* Survival Analysis Navigation */
+        .nav-tabs {
+            display: flex;
+            background: linear-gradient(90deg, var(--primary-coral) 0%, var(--warm-amber) 20%, var(--sage-green) 40%, var(--forest-green) 60%, var(--deep-coral) 80%, var(--primary-coral) 100%);
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 5px 0 rgba(255, 181, 163, 0.7);
+        }
+
+        .nav-tabs::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.12) 0%, 
+                rgba(255, 181, 163, 0.2) 50%, 
+                rgba(255,255,255,0.12) 100%);
+            transform: translateX(-160%);
+            animation: survivalNav 10s ease-in-out infinite;
+        }
+
+        @keyframes survivalNav {
+            0%, 100% { transform: translateX(-160%); }
+            50% { transform: translateX(400%); }
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 35px 40px;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 500;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 7px solid transparent;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.8px;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 181, 163, 0.25);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+            color: var(--cream);
+        }
+
+        .tab-button.active {
+            background: rgba(255, 181, 163, 0.35);
+            border-bottom-color: var(--warm-amber);
+            font-weight: 600;
+            color: var(--cream);
+            box-shadow: inset 0 -7px 0 var(--warm-amber);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 70px;
+            animation: survivalSlide 1.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes survivalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(60px) scale(0.95);
+                filter: blur(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        /* Section Titles - RED (Consistency) */
+        .section-title {
+            font-family: 'Merriweather', serif;
+            font-size: 3.8em;
+            color: var(--secondary-red);
+            margin-bottom: 60px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 2px 4px 12px rgba(0,0,0,0.15);
+            letter-spacing: -2px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 6px;
+            background: linear-gradient(90deg, 
+                var(--light-coral) 0%, 
+                var(--warm-amber) 16%, 
+                var(--sage-green) 32%, 
+                var(--forest-green) 48%, 
+                var(--deep-coral) 64%, 
+                var(--primary-coral) 80%, 
+                var(--light-coral) 100%);
+            border-radius: 5px;
+            animation: survivalUnderline 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes survivalUnderline {
+            from { width: 200px; opacity: 0.8; }
+            to { width: 280px; opacity: 1; }
+        }
+
+        /* Coral/Salmon Boxes - Theory Framework */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+            gap: 50px;
+            margin-bottom: 70px;
+        }
+
+        .theory-card {
+            background: linear-gradient(135deg, var(--pale-coral) 0%, #FFF8F5 50%, var(--white) 100%);
+            padding: 55px;
+            border-radius: 32px;
+            border: 5px solid var(--light-coral);
+            box-shadow: 
+                0 22px 65px rgba(255, 107, 71, 0.12),
+                0 10px 30px rgba(255, 181, 163, 0.15);
+            transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theory-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, 
+                rgba(255, 181, 163, 0.12) 0%, 
+                rgba(255, 107, 71, 0.1) 40%, 
+                transparent 70%);
+            border-radius: 50%;
+            animation: cardSurvival 10s ease-in-out infinite;
+        }
+
+        @keyframes cardSurvival {
+            0%, 100% { 
+                transform: scale(1) translateX(0) translateY(0) rotate(0deg); 
+                opacity: 0.9; 
+            }
+            25% { 
+                transform: scale(1.25) translateX(30px) translateY(-30px) rotate(90deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(0.8) translateX(-20px) translateY(20px) rotate(180deg); 
+                opacity: 0.85; 
+            }
+            75% { 
+                transform: scale(1.15) translateX(20px) translateY(-10px) rotate(270deg); 
+                opacity: 0.95; 
+            }
+        }
+
+        .theory-card:hover {
+            transform: translateY(-20px) rotateX(12deg) rotateY(4deg);
+            box-shadow: 
+                0 35px 90px rgba(255, 107, 71, 0.18),
+                0 15px 40px rgba(255, 181, 163, 0.22);
+            border-color: var(--primary-coral);
+        }
+
+        .theory-card h3 {
+            font-family: 'Merriweather', serif;
+            color: var(--secondary-red);
+            margin-bottom: 30px;
+            font-size: 2.1em;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.8px;
+        }
+
+        .theory-card p {
+            font-size: 1.2em;
+            line-height: 1.9;
+            margin-bottom: 22px;
+            position: relative;
+            z-index: 2;
+            font-weight: 400;
+        }
+
+        /* Mathematical Equations - Duration Style */
+        .equation-display {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--deep-coral) 50%, var(--warm-brown) 100%);
+            color: white;
+            padding: 45px;
+            border-radius: 25px;
+            margin: 38px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3em;
+            box-shadow: 
+                inset 0 5px 30px rgba(0,0,0,0.6), 
+                0 18px 50px rgba(229, 57, 70, 0.35);
+            overflow-x: auto;
+            border: 5px solid rgba(255, 181, 163, 0.6);
+            position: relative;
+        }
+
+        .equation-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--light-coral) 15%, 
+                var(--warm-amber) 30%, 
+                var(--sage-green) 45%, 
+                var(--forest-green) 60%, 
+                var(--deep-coral) 75%, 
+                var(--primary-coral) 90%, 
+                transparent 100%);
+            animation: equationSurvival 5s ease-in-out infinite;
+        }
+
+        @keyframes equationSurvival {
+            0%, 100% { opacity: 0.7; transform: scaleX(0.5); }
+            50% { opacity: 1; transform: scaleX(1.5); }
+        }
+
+        /* Coral Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, var(--pale-coral) 0%, #FFF8F5 50%, var(--white) 100%);
+            padding: 60px;
+            border-radius: 35px;
+            margin: 60px 0;
+            border: 6px solid var(--light-coral);
+            box-shadow: 
+                0 25px 80px rgba(255, 181, 163, 0.2),
+                inset 0 1px 0 rgba(255,255,255,1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: conic-gradient(from 75deg at 50% 50%, 
+                transparent 0%, 
+                rgba(255, 181, 163, 0.05) 25%, 
+                transparent 50%, 
+                rgba(255, 107, 71, 0.04) 75%, 
+                transparent 100%);
+            animation: controlSurvival 24s linear infinite;
+        }
+
+        @keyframes controlSurvival {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .control-header {
+            font-family: 'Merriweather', serif;
+            color: var(--secondary-red);
+            font-size: 2.9em;
+            margin-bottom: 45px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.8px;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 42px;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--charcoal);
+            font-size: 1.2em;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 25px;
+            border: 2px solid #E5E7EB;
+            border-radius: 18px;
+            font-size: 1.15em;
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-coral);
+            box-shadow: 
+                0 0 40px rgba(255, 107, 71, 0.35),
+                0 0 0 4px rgba(255, 181, 163, 0.2);
+            transform: translateY(-6px) scale(1.03);
+        }
+
+        /* Duration Action Buttons */
+        .button-group {
+            display: flex;
+            gap: 30px;
+            margin-top: 50px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn {
+            padding: 28px 55px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.7) 50%, 
+                transparent 100%);
+            transition: left 1s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-coral) 0%, var(--deep-coral) 100%);
+            color: white;
+            box-shadow: 0 12px 35px rgba(255, 107, 71, 0.45);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--deep-coral) 0%, var(--primary-coral) 100%);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(255, 107, 71, 0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--warm-amber) 0%, #FF8C00 100%);
+            color: white;
+            box-shadow: 0 12px 35px rgba(247, 127, 0, 0.45);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #FF8C00 0%, var(--warm-amber) 100%);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(247, 127, 0, 0.5);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--sage-green) 0%, var(--forest-green) 100%);
+            color: white;
+            box-shadow: 0 12px 35px rgba(82, 121, 111, 0.45);
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(135deg, var(--forest-green) 0%, var(--sage-green) 100%);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(82, 121, 111, 0.5);
+        }
+
+        /* Coral Results Container */
+        .results-container {
+            background: linear-gradient(135deg, var(--pale-coral) 0%, #FFF8F5 100%);
+            border: 6px solid var(--light-coral);
+            border-radius: 32px;
+            padding: 60px;
+            margin: 60px 0;
+            box-shadow: 
+                0 30px 90px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(255,255,255,1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 7px;
+            background: linear-gradient(90deg, 
+                var(--light-coral) 0%, 
+                var(--warm-amber) 14%, 
+                var(--sage-green) 28%, 
+                var(--forest-green) 42%, 
+                var(--deep-coral) 56%, 
+                var(--primary-coral) 70%, 
+                var(--warm-amber) 84%, 
+                var(--light-coral) 100%);
+            animation: survivalResults 5s ease-in-out infinite;
+        }
+
+        @keyframes survivalResults {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .results-header {
+            font-family: 'Merriweather', serif;
+            font-size: 3em;
+            color: var(--secondary-red);
+            margin-bottom: 45px;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: -0.8px;
+        }
+
+        /* Coral Chart Container */
+        .chart-container {
+            position: relative;
+            height: 650px;
+            margin: 60px 0;
+            background: linear-gradient(135deg, var(--pale-coral) 0%, var(--white) 100%);
+            border-radius: 25px;
+            padding: 50px;
+            box-shadow: 0 22px 60px rgba(0,0,0,0.15);
+            border: 5px solid var(--light-coral);
+        }
+
+        /* Statistics Grid - Coral Theme */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 42px;
+            margin: 55px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--pale-coral) 0%, var(--white) 100%);
+            padding: 42px;
+            border-radius: 25px;
+            text-align: center;
+            border: 4px solid var(--light-coral);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--light-coral) 0%, var(--primary-coral) 50%, var(--warm-amber) 100%);
+            transform: scaleX(0);
+            transition: transform 0.7s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-15px) scale(1.06);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.2);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.2em;
+            font-weight: 700;
+            color: var(--primary-coral);
+            margin-bottom: 18px;
+        }
+
+        .stat-label {
+            font-size: 1.12em;
+            color: var(--slate);
+            font-weight: 500;
+        }
+
+        /* Duration-Specific Elements */
+        .duration-info {
+            background: linear-gradient(135deg, var(--pale-coral) 0%, #FFF2EF 100%);
+            border: 5px solid var(--light-coral);
+            border-radius: 22px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .survival-curve-viz {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 35px 0;
+        }
+
+        .survival-segment {
+            background: var(--primary-coral);
+            color: white;
+            padding: 20px 12px;
+            border-radius: 15px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .survival-segment:nth-child(1) { background: var(--sage-green); }
+        .survival-segment:nth-child(2) { background: var(--warm-amber); }
+        .survival-segment:nth-child(3) { background: var(--primary-coral); }
+        .survival-segment:nth-child(4) { background: var(--deep-coral); }
+
+        /* Decision Framework - Coral */
+        .decision-panel {
+            background: linear-gradient(135deg, var(--pale-coral) 0%, rgba(255, 181, 163, 0.3) 100%);
+            border: 6px solid var(--light-coral);
+            border-radius: 30px;
+            padding: 50px;
+            margin: 50px 0;
+        }
+
+        .decision-question {
+            font-family: 'Merriweather', serif;
+            font-weight: 600;
+            font-size: 1.6em;
+            margin-bottom: 40px;
+            color: var(--charcoal);
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .decision-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 32px;
+        }
+
+        .decision-option {
+            padding: 32px;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.7s ease;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1.12em;
+        }
+
+        .decision-option:hover {
+            border-color: var(--warm-amber);
+            background: #FFF8E1;
+            transform: translateY(-8px);
+        }
+
+        .decision-option.selected {
+            border-color: var(--primary-coral);
+            background: var(--pale-coral);
+            box-shadow: 0 0 35px rgba(255, 107, 71, 0.4);
+        }
+
+        /* Feedback Messages */
+        .feedback-message {
+            padding: 42px;
+            border-radius: 25px;
+            margin: 42px 0;
+            font-weight: 500;
+            font-size: 1.2em;
+        }
+
+        .feedback-success {
+            background: var(--pale-coral);
+            border: 5px solid var(--light-coral);
+            color: var(--deep-coral);
+        }
+
+        .feedback-warning {
+            background: #FFF8E1;
+            border: 5px solid var(--warm-amber);
+            color: #8F6300;
+        }
+
+        .feedback-danger {
+            background: #FFEBEE;
+            border: 5px solid var(--deep-coral);
+            color: #8B0000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 25px;
+                border-radius: 35px;
+            }
+
+            .header-title {
+                font-size: 3.5em;
+            }
+
+            .theory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .survival-curve-viz {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Research References - Coral */
+        .research-note {
+            background: linear-gradient(135deg, var(--pale-coral) 0%, #FFF2EF 100%);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+            border-left: 10px solid var(--primary-coral);
+            font-style: italic;
+            position: relative;
+        }
+
+        .research-note::before {
+            content: '⏱️';
+            position: absolute;
+            top: 40px;
+            left: 35px;
+            font-size: 1.6em;
+        }
+
+        .research-note p {
+            margin-left: 50px;
+            line-height: 2;
+        }
+
+        /* Advanced Visual Effects */
+        .duration-highlight {
+            background: rgba(255, 107, 71, 0.15);
+            border-left: 8px solid var(--primary-coral);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 15px;
+        }
+
+        .hazard-display {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--light-coral) 0%, var(--primary-coral) 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            margin: 0 15px;
+            font-size: 1.05em;
+        }
+
+        /* Censoring Visualization */
+        .censoring-viz {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--pale-coral);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .censored-obs {
+            background: var(--warm-amber);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .observed-obs {
+            background: var(--sage-green);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="header-title">Econometric Duration Analysis & Survival Modeling</h1>
+            <p class="header-subtitle">Time-to-Event Econometrics for Economic Duration Data</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showSection('theory')">⏱️ Duration Theory</button>
+            <button class="tab-button" onclick="showSection('simulation')">🇨🇦 Economic Applications</button>
+            <button class="tab-button" onclick="showSection('analysis')">📊 Survival Analysis</button>
+            <button class="tab-button" onclick="showSection('assessment')">✅ Assessment Mode</button>
+        </div>
+
+        <!-- Theory Framework Section -->
+        <div id="theory" class="content-section active">
+            <h2 class="section-title">Econometric Duration Analysis Framework</h2>
+            
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <h3>⏱️ Economic Duration Models</h3>
+                    <p><strong>Core Framework:</strong> Duration analysis models the time until economic events occur - unemployment spells, firm survival, patent duration, welfare participation - with explicit economic theory.</p>
+                    <div class="equation-display">
+                        Survival Function: S(t) = P(T > t)<br>
+                        Hazard Function: h(t) = f(t)/S(t)<br>
+                        Relationship: S(t) = exp(-∫₀ᵗ h(u)du)<br><br>
+                        Economic Interpretation: h(t) = instantaneous exit rate
+                    </div>
+                    <p><em>Key insight: Hazard rates reveal economic incentives and constraints affecting duration decisions</em></p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📊 Cox Proportional Hazards</h3>
+                    <p><strong>Econometric Workhorse:</strong> Cox regression models hazard rates as functions of economic covariates without requiring distributional assumptions about baseline hazard.</p>
+                    <div class="equation-display">
+                        Cox Model: h(t|X) = h₀(t)·exp(X'β)<br><br>
+                        Partial Likelihood: L = ∏ᵢ [exp(Xᵢ'β)/Σⱼ∈R(tᵢ)exp(Xⱼ'β)]<br><br>
+                        Hazard Ratio: HR = exp(β) = h(t|X₁)/h(t|X₀)
+                    </div>
+                    <p><strong>Advantage:</strong> Semi-parametric approach robust to baseline hazard specification</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔍 Accelerated Failure Time</h3>
+                    <p><strong>Regression Approach:</strong> AFT models directly specify duration as regression function, providing intuitive interpretation for economic analysis.</p>
+                    <div class="equation-display">
+                        AFT Model: log(T) = X'β + σε<br><br>
+                        Where ε follows standard distribution<br>
+                        (Weibull, log-normal, log-logistic)<br><br>
+                        Time Ratio: TR = exp(β) = median ratio
+                    </div>
+                    <p><strong>Interpretation:</strong> β represents proportional change in expected duration</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>⚖️ Econometric Challenges</h3>
+                    <p><strong>Selection & Endogeneity:</strong> Economic duration data often suffers from sample selection bias and endogenous covariates requiring specialized econometric treatment.</p>
+                    <div class="equation-display">
+                        Selection Model: T = X'β + u, observed if Z'γ + v > 0<br><br>
+                        Endogeneity: X correlated with unobservables<br>
+                        Solution: IV estimation, control functions<br><br>
+                        Unobserved Heterogeneity: Frailty models
+                    </div>
+                    <p><strong>Applications:</strong> Non-random job loss, selective firm exit, endogenous policy timing</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>🔄 Competing Risks Models</h3>
+                    <p><strong>Multiple Exit States:</strong> Economic agents often face multiple exit routes (quit vs. fired, merger vs. bankruptcy) requiring competing risks framework.</p>
+                    <div class="equation-display">
+                        Competing Risks: h(t) = Σⱼ hⱼ(t)<br><br>
+                        Cause-Specific Hazard: hⱼ(t|X)<br>
+                        Cumulative Incidence: Fⱼ(t) = ∫₀ᵗ hⱼ(u)S(u)du<br><br>
+                        Fine-Gray Model: subdistribution hazards
+                    </div>
+                    <p><strong>Economic Applications:</strong> Labor market transitions, firm exit modes, policy participation</p>
+                </div>
+
+                <div class="theory-card">
+                    <h3>📈 Discrete Time Models</h3>
+                    <p><strong>Econometric Implementation:</strong> When duration is measured in discrete intervals (quarters, years), use discrete choice models for hazard estimation.</p>
+                    <div class="equation-display">
+                        Discrete Hazard: h(t) = P(T = t|T ≥ t, X)<br><br>
+                        Logit Model: h(t) = exp(α(t) + X'β)/(1 + exp(α(t) + X'β))<br><br>
+                        Complementary Log-Log: log(-log(1-h(t))) = α(t) + X'β
+                    </div>
+                    <p><strong>Advantages:</strong> Standard econometric software, easy interaction terms, time-varying effects</p>
+                </div>
+            </div>
+
+            <div class="theory-card" style="grid-column: 1 / -1;">
+                <h3>🇨🇦 Canadian Economic Duration Applications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 40px;">
+                    <div>
+                        <h4>💼 Labor Market Duration:</h4>
+                        <ul>
+                            <li><strong>Unemployment Spells:</strong> EI benefit generosity effects on job search duration</li>
+                            <li><strong>Job Tenure Analysis:</strong> Firm-specific training and employment stability</li>
+                            <li><strong>Welfare Duration:</strong> Social assistance participation and exit patterns</li>
+                            <li><strong>Career Mobility:</strong> Time to promotion, occupation switching duration</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🏢 Industrial Organization:</h4>
+                        <ul>
+                            <li><strong>Firm Survival:</strong> Market competition effects on business duration</li>
+                            <li><strong>Patent Duration:</strong> Innovation incentives and IP policy evaluation</li>
+                            <li><strong>Regulatory Compliance:</strong> Time to regulatory approval processes</li>
+                            <li><strong>Market Entry/Exit:</strong> Competitive dynamics and sunk costs analysis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="research-note">
+                <p><strong>⏱️ Econometric Foundation:</strong> Duration analysis provides a rigorous framework for analyzing economic decision-making over time. By modeling the hazard rate - the instantaneous probability of event occurrence - economists can test theories about search behavior, option values, and dynamic optimization. The method is particularly valuable for policy evaluation where treatment timing varies and outcomes are measured as time-to-event.</p>
+            </div>
+        </div>
+
+        <!-- Canadian Economic Applications Section -->
+        <div id="simulation" class="content-section">
+            <h2 class="section-title">Canadian Economic Duration Analysis</h2>
+
+            <div class="control-panel">
+                <h3 class="control-header">⏱️ Duration Modeling Laboratory</h3>
+                
+                <div class="control-group">
+                    <div class="form-group">
+                        <label for="durationScenario">Economic Duration Application</label>
+                        <select id="durationScenario" onchange="updateDurationScenario()">
+                            <option value="unemployment">Employment Insurance & Job Search Duration</option>
+                            <option value="firm_survival">Canadian Firm Survival Analysis</option>
+                            <option value="healthcare">Healthcare Wait Time Duration</option>
+                            <option value="welfare">Social Assistance Spell Duration</option>
+                            <option value="patent">Patent Duration & Innovation Policy</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modelType">Duration Model Type</label>
+                        <select id="modelType" onchange="updateModel()">
+                            <option value="kaplan_meier">Kaplan-Meier (Non-parametric)</option>
+                            <option value="cox" selected>Cox Proportional Hazards</option>
+                            <option value="weibull">Weibull AFT Model</option>
+                            <option value="discrete">Discrete Time Logit</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sampleSize">Sample Size</label>
+                        <select id="sampleSize">
+                            <option value="1000">1,000 observations</option>
+                            <option value="2500" selected>2,500 observations</option>
+                            <option value="5000">5,000 observations</option>
+                            <option value="10000">10,000 observations</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="censoringRate">Censoring Rate</label>
+                        <input type="range" id="censoringRate" min="0.1" max="0.6" step="0.05" value="0.25" onchange="updateCensoringDisplay()">
+                        <span id="censoringValue">25%</span> censored observations
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateDurationData()">⏱️ Generate Data</button>
+                    <button class="btn btn-secondary" onclick="estimateSurvival()">📊 Estimate Model</button>
+                    <button class="btn btn-accent" onclick="analyzeHazards()">📈 Hazard Analysis</button>
+                </div>
+            </div>
+
+            <!-- Duration Description -->
+            <div id="durationDescription" class="duration-info">
+                <div class="results-header">Current Duration Analysis Application</div>
+                <div id="durationText"></div>
+                <div id="survivalVisualization" class="survival-curve-viz"></div>
+            </div>
+
+            <!-- Duration Chart -->
+            <div class="chart-container">
+                <canvas id="durationChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Survival Analysis Section -->
+        <div id="analysis" class="content-section">
+            <h2 class="section-title">Survival & Hazard Analysis</h2>
+
+            <div id="durationResults" class="results-container">
+                <div class="results-header">Duration Model Results</div>
+                <div id="durationTable"></div>
+            </div>
+
+            <div class="stats-grid" id="durationStats">
+                <!-- Dynamic statistics will be populated here -->
+            </div>
+
+            <div id="hazardResults" class="results-container">
+                <div class="results-header">⏱️ Hazard Rate & Economic Interpretation</div>
+                <div id="hazardTable"></div>
+            </div>
+
+            <!-- Survival Curves Chart -->
+            <div class="chart-container">
+                <h3 style="text-align: center; margin-bottom: 40px; color: var(--secondary-red);">📈 Survival Curves & Hazard Functions</h3>
+                <canvas id="survivalChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Assessment Mode Section -->
+        <div id="assessment" class="content-section">
+            <h2 class="section-title">Duration Analysis Assessment</h2>
+
+            <div id="assessmentQuestion" class="decision-panel">
+                <div class="decision-question">Loading duration analysis assessment...</div>
+                <div class="decision-options" id="assessmentOptions">
+                    <!-- Dynamic options will be populated -->
+                </div>
+                <button class="btn btn-primary" onclick="checkAnswer()" style="margin-top: 45px;">Submit Answer</button>
+            </div>
+
+            <div id="assessmentFeedback"></div>
+
+            <div class="button-group" style="margin-top: 55px;">
+                <button class="btn btn-secondary" onclick="generateNewQuestion()">📝 New Question</button>
+                <button class="btn btn-accent" onclick="showExpertSolution()">🎓 Show Expert Analysis</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentDurationData = null;
+        let currentDurationChart = null;
+        let survivalChart = null;
+        let selectedAnswer = null;
+        let currentQuestion = null;
+
+        // Duration Scenario Definitions
+        const durationScenarios = {
+            unemployment: {
+                title: "Employment Insurance & Job Search Duration Analysis",
+                description: "Analyzing unemployment spell duration using EI administrative data to understand how benefit generosity affects job search behavior and re-employment hazards.",
+                outcome: "Unemployment Spell Duration (weeks)",
+                treatment: "EI Benefit Generosity",
+                unit: "Individual unemployment spells",
+                economic_theory: "Job search theory with reservation wages and benefit effects",
+                policy_context: "EI benefit reform evaluation and optimal unemployment insurance design",
+                covariates: "Age, education, region, industry, previous wages, benefit level",
+                censoring: "End of observation period, leaving labor force, administrative censoring",
+                expected_effects: "Higher benefits → longer duration, older workers → longer spells"
+            },
+            firm_survival: {
+                title: "Canadian Firm Survival & Market Competition",
+                description: "Examining business survival duration using longitudinal firm data to analyze effects of market competition, regulation, and economic shocks on firm exit hazards.",
+                outcome: "Firm Survival Duration (years)",
+                treatment: "Market Competition Intensity",
+                unit: "Business establishments",
+                economic_theory: "Industrial organization with sunk costs and competitive dynamics",
+                policy_context: "Competition policy evaluation and regulatory impact assessment",
+                covariates: "Firm size, age, industry, location, capital intensity, market share",
+                censoring: "End of observation period, mergers, data collection limits",
+                expected_effects: "Higher competition → higher exit hazard, larger firms → longer survival"
+            },
+            healthcare: {
+                title: "Healthcare Wait Time Duration Analysis",
+                description: "Modeling wait time duration for elective surgeries to evaluate healthcare system efficiency and wait time reduction policies using patient administrative data.",
+                outcome: "Wait Time Duration (days)",
+                treatment: "Wait Time Reduction Policy",
+                unit: "Patient episodes",
+                economic_theory: "Healthcare queuing theory and resource allocation",
+                policy_context: "Healthcare system optimization and wait time guarantee policies",
+                covariates: "Patient severity, age, procedure type, hospital capacity, region",
+                censoring: "Emergency procedures, patient withdrawal, administrative censoring",
+                expected_effects: "Policy intervention → shorter wait times, severity → priority treatment"
+            },
+            welfare: {
+                title: "Social Assistance Spell Duration Modeling",
+                description: "Analyzing welfare participation duration to understand factors affecting benefit dependency and the effectiveness of activation policies using social assistance records.",
+                outcome: "Welfare Spell Duration (months)",
+                treatment: "Activation Program Participation",
+                unit: "Welfare episodes",
+                economic_theory: "Labor supply with social assistance and reservation utility",
+                policy_context: "Social assistance reform and activation policy evaluation",
+                covariates: "Education, work history, family size, local unemployment, benefit level",
+                censoring: "End of eligibility, moving jurisdictions, data collection end",
+                expected_effects: "Activation programs → shorter spells, local unemployment → longer duration"
+            },
+            patent: {
+                title: "Patent Duration & Innovation Policy Analysis",
+                description: "Examining patent maintenance duration to understand innovation incentives and the effects of patent policy changes on intellectual property investment decisions.",
+                outcome: "Patent Maintenance Duration (years)",
+                treatment: "Patent Policy Reform",
+                unit: "Patent applications",
+                economic_theory: "Innovation economics with patent value and maintenance costs",
+                policy_context: "Intellectual property policy evaluation and innovation incentives",
+                covariates: "Technology field, firm size, patent scope, market value, maintenance fees",
+                censoring: "Maximum patent term, policy changes, administrative limits",
+                expected_effects: "Higher value patents → longer maintenance, policy reform → changed incentives"
+            }
+        };
+
+        // Assessment Questions (Duration Analysis focused)
+        const assessmentQuestions = [
+            {
+                question: "What is the economic interpretation of a hazard ratio of 1.5 in a job search duration model?",
+                options: [
+                    "Job-finding probability increases by 150%",
+                    "Unemployment duration is 1.5 times longer on average",
+                    "The instantaneous re-employment rate is 50% higher",
+                    "Expected unemployment spell increases by 50%"
+                ],
+                correct: 2,
+                explanation: "A hazard ratio of 1.5 means the instantaneous rate of event occurrence (re-employment) is 50% higher for the treatment group, indicating they exit unemployment 50% faster at any given time point."
+            },
+            {
+                question: "Why is censoring particularly problematic in economic duration analysis?",
+                options: [
+                    "It reduces the sample size and statistical power",
+                    "It can be systematically related to unobserved economic factors", 
+                    "It makes graphical analysis more difficult",
+                    "It requires more complex software to handle"
+                ],
+                correct: 1,
+                explanation: "Censoring in economic data is often non-random and related to unobserved factors (e.g., motivation, ability), which can bias estimates if not properly accounted for in the model specification."
+            },
+            {
+                question: "In a Cox proportional hazards model for firm survival, what does the proportional hazards assumption require?",
+                options: [
+                    "All firms face the same baseline hazard function",
+                    "Hazard ratios between groups remain constant over time",
+                    "The hazard function must follow a specific distribution",
+                    "Covariates must be time-invariant"
+                ],
+                correct: 1,
+                explanation: "The proportional hazards assumption requires that hazard ratios between different covariate values remain constant over time, meaning the relative risk doesn't change as duration increases."
+            },
+            {
+                question: "What is the key advantage of AFT models over proportional hazards models for economic analysis?",
+                options: [
+                    "AFT models are always more statistically efficient",
+                    "AFT models provide direct interpretation of covariate effects on duration",
+                    "AFT models handle censoring better",
+                    "AFT models don't require distributional assumptions"
+                ],
+                correct: 1,
+                explanation: "AFT models directly estimate the effect of covariates on duration (survival time), providing intuitive economic interpretation like 'a 10% increase in benefits leads to 15% longer unemployment spells.'"
+            },
+            {
+                question: "In competing risks analysis of firm exit, why can't you simply estimate separate Cox models for each exit type?",
+                options: [
+                    "The sample sizes would be too small",
+                    "It ignores the dependence between different exit modes",
+                    "Cox models can't handle multiple outcomes",
+                    "It requires different censoring assumptions"
+                ],
+                correct: 1,
+                explanation: "Separate Cox models ignore that firms can only exit once and that the different exit modes compete with each other. Proper competing risks models account for this dependence and provide correct cumulative incidence estimates."
+            }
+        ];
+
+        // Navigation Functions
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Duration Scenario Management
+        function updateDurationScenario() {
+            const scenarioType = document.getElementById('durationScenario').value;
+            const scenario = durationScenarios[scenarioType];
+            
+            document.getElementById('durationText').innerHTML = `
+                <h3 style="color: var(--secondary-red); margin-bottom: 25px;">${scenario.title}</h3>
+                <p><strong>Research Context:</strong> ${scenario.description}</p>
+                <div class="research-note">
+                    <p><strong>⏱️ Economic Theory:</strong> ${scenario.economic_theory}</p>
+                </div>
+                <p><strong>Duration Variable:</strong> ${scenario.outcome}</p>
+                <p><strong>Key Treatment:</strong> ${scenario.treatment}</p>
+                <p><strong>Unit of Analysis:</strong> ${scenario.unit}</p>
+                <p><strong>Policy Context:</strong> ${scenario.policy_context}</p>
+                <p><strong>Covariates:</strong> ${scenario.covariates}</p>
+                <p><strong>Censoring Sources:</strong> ${scenario.censoring}</p>
+                <p><strong>Expected Effects:</strong> ${scenario.expected_effects}</p>
+            `;
+            
+            updateSurvivalVisualization();
+        }
+
+        function updateSurvivalVisualization() {
+            const modelType = document.getElementById('modelType').value;
+            const container = document.getElementById('survivalVisualization');
+            container.innerHTML = '';
+            
+            let segments = [];
+            switch(modelType) {
+                case 'kaplan_meier': segments = ['S(t) = 1.0', 'S(t) = 0.8', 'S(t) = 0.5', 'S(t) = 0.2']; break;
+                case 'cox': segments = ['Baseline h₀(t)', 'Treatment h(t)', 'High Risk', 'Low Risk']; break;
+                case 'weibull': segments = ['λ = 0.5', 'λ = 1.0', 'λ = 2.0', 'λ = 3.0']; break;
+                case 'discrete': segments = ['Period 1', 'Period 2', 'Period 3', 'Period 4']; break;
+            }
+            
+            segments.forEach((segment, index) => {
+                const segmentDiv = document.createElement('div');
+                segmentDiv.className = 'survival-segment';
+                segmentDiv.textContent = segment;
+                container.appendChild(segmentDiv);
+            });
+        }
+
+        function updateModel() {
+            updateSurvivalVisualization();
+        }
+
+        function updateCensoringDisplay() {
+            const censoring = document.getElementById('censoringRate').value;
+            document.getElementById('censoringValue').textContent = Math.round(censoring * 100) + '%';
+        }
+
+        // Duration Data Generation
+        function generateDurationData() {
+            const scenarioType = document.getElementById('durationScenario').value;
+            const sampleSize = parseInt(document.getElementById('sampleSize').value);
+            const censoringRate = parseFloat(document.getElementById('censoringRate').value);
+            
+            const scenario = durationScenarios[scenarioType];
+            
+            currentDurationData = {
+                scenario: scenario,
+                sampleSize: sampleSize,
+                censoringRate: censoringRate,
+                data: []
+            };
+
+            // Generate duration data with economic covariates
+            for (let i = 0; i < sampleSize; i++) {
+                const treatment = Math.random() < 0.5 ? 1 : 0;
+                const age = 25 + Math.random() * 40; // Age 25-65
+                const education = Math.random() < 0.3 ? 1 : 0; // 30% high education
+                const region_urban = Math.random() < 0.7 ? 1 : 0; // 70% urban
+                
+                // Generate baseline hazard with Weibull distribution
+                const shape = 1.2;
+                const scale = 50 + treatment * 20 + age * 0.5 + education * 15 + region_urban * 10;
+                
+                // Generate duration using inverse transform
+                const u = Math.random();
+                let duration = scale * Math.pow(-Math.log(1 - u), 1/shape);
+                
+                // Add some realistic bounds
+                duration = Math.max(1, Math.min(duration, 500));
+                
+                // Generate censoring
+                const isCensored = Math.random() < censoringRate;
+                const censorTime = Math.random() * duration * 2;
+                
+                if (isCensored && censorTime < duration) {
+                    duration = censorTime;
+                }
+                
+                currentDurationData.data.push({
+                    id: i,
+                    treatment: treatment,
+                    age: age,
+                    education: education,
+                    region_urban: region_urban,
+                    duration: duration,
+                    censored: isCensored && censorTime < duration ? 1 : 0
+                });
+            }
+
+            updateDurationChart();
+        }
+
+        function updateDurationChart() {
+            if (!currentDurationData) return;
+            
+            const ctx = document.getElementById('durationChart').getContext('2d');
+            
+            if (currentDurationChart) {
+                currentDurationChart.destroy();
+            }
+
+            // Create histogram of duration by treatment status
+            const treatedData = currentDurationData.data.filter(d => d.treatment === 1);
+            const controlData = currentDurationData.data.filter(d => d.treatment === 0);
+
+            // Create bins for histogram
+            const maxDuration = Math.max(...currentDurationData.data.map(d => d.duration));
+            const numBins = 20;
+            const binWidth = maxDuration / numBins;
+            
+            const treatedHist = Array(numBins).fill(0);
+            const controlHist = Array(numBins).fill(0);
+            
+            treatedData.forEach(d => {
+                const bin = Math.min(Math.floor(d.duration / binWidth), numBins - 1);
+                treatedHist[bin]++;
+            });
+            
+            controlData.forEach(d => {
+                const bin = Math.min(Math.floor(d.duration / binWidth), numBins - 1);
+                controlHist[bin]++;
+            });
+
+            const labels = Array(numBins).fill(0).map((_, i) => (i * binWidth).toFixed(0));
+
+            currentDurationChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Treatment Group',
+                            data: treatedHist,
+                            backgroundColor: 'rgba(255, 107, 71, 0.7)',
+                            borderColor: '#FF6B47',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Control Group',
+                            data: controlHist,
+                            backgroundColor: 'rgba(82, 121, 111, 0.7)',
+                            borderColor: '#52796F',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${currentDurationData.scenario.title} - Duration Distribution`,
+                            font: { size: 18, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Duration (time units)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Frequency' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Survival Model Estimation
+        function estimateSurvival() {
+            if (!currentDurationData) {
+                alert('Please generate duration data first');
+                return;
+            }
+
+            const modelType = document.getElementById('modelType').value;
+            
+            // Simplified survival analysis (in practice would use proper survival regression)
+            const data = currentDurationData.data;
+            const treated = data.filter(d => d.treatment === 1);
+            const control = data.filter(d => d.treatment === 0);
+            
+            // Calculate basic survival statistics
+            const treatedMedian = calculateMedianSurvival(treated.map(d => d.duration));
+            const controlMedian = calculateMedianSurvival(control.map(d => d.duration));
+            
+            // Simplified hazard ratio calculation
+            const hazardRatio = controlMedian / treatedMedian;
+            
+            // Calculate standard errors (simplified)
+            const seTreatment = Math.sqrt(1.57 / treated.length) * 2;
+            const seControl = Math.sqrt(1.57 / control.length) * 2;
+            
+            displaySurvivalResults({
+                treatedMedian,
+                controlMedian,
+                hazardRatio,
+                seTreatment,
+                seControl,
+                modelType,
+                censored: data.filter(d => d.censored === 1).length,
+                total: data.length
+            });
+        }
+
+        function calculateMedianSurvival(durations) {
+            durations.sort((a, b) => a - b);
+            const mid = Math.floor(durations.length / 2);
+            return durations.length % 2 === 0 ? 
+                (durations[mid - 1] + durations[mid]) / 2 : 
+                durations[mid];
+        }
+
+        function displaySurvivalResults(results) {
+            const logHR = Math.log(results.hazardRatio);
+            const zStat = logHR / (Math.sqrt(results.seTreatment**2 + results.seControl**2));
+            const pValue = 2 * (1 - standardNormalCDF(Math.abs(zStat)));
+            
+            document.getElementById('durationTable').innerHTML = `
+                <h4>⏱️ ${results.modelType.toUpperCase()} Survival Analysis Results</h4>
+                <div style="font-family: 'JetBrains Mono', monospace; background: var(--pale-coral); padding: 40px; border-radius: 20px; margin: 35px 0;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 30px; font-weight: 600; border-bottom: 2px solid #ccc; padding-bottom: 20px;">
+                        <div>Statistic</div>
+                        <div>Treatment</div>
+                        <div>Control</div>
+                        <div>Effect</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 30px; padding: 20px 0;">
+                        <div>Median Duration</div>
+                        <div class="hazard-display">${results.treatedMedian.toFixed(1)}</div>
+                        <div class="hazard-display">${results.controlMedian.toFixed(1)}</div>
+                        <div>-</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 30px; padding: 20px 0; background: rgba(255, 107, 71, 0.1);">
+                        <div>Hazard Ratio</div>
+                        <div>-</div>
+                        <div>1.00 (ref)</div>
+                        <div class="hazard-display">${results.hazardRatio.toFixed(3)}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 30px; padding: 20px 0;">
+                        <div>Z-statistic</div>
+                        <div>-</div>
+                        <div>-</div>
+                        <div>${zStat.toFixed(2)}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 30px; padding: 20px 0;">
+                        <div>P-value</div>
+                        <div>-</div>
+                        <div>-</div>
+                        <div>${pValue < 0.001 ? '<0.001' : pValue.toFixed(3)}</div>
+                    </div>
+                </div>
+                <div class="duration-highlight">
+                    <p><strong>⏱️ Economic Interpretation:</strong> 
+                    ${results.hazardRatio > 1 ? 
+                        `Treatment increases the hazard rate by ${((results.hazardRatio - 1) * 100).toFixed(1)}%, meaning shorter duration/faster exit` : 
+                        `Treatment decreases the hazard rate by ${((1 - results.hazardRatio) * 100).toFixed(1)}%, meaning longer duration/slower exit`}.
+                    ${Math.abs(zStat) > 1.96 ? 'This effect is statistically significant at 5% level.' : 'This effect is not statistically significant.'}
+                    </p>
+                </div>
+            `;
+
+            // Update statistics display
+            document.getElementById('durationStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${results.hazardRatio.toFixed(3)}</div>
+                    <div class="stat-label">Hazard Ratio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.treatedMedian.toFixed(1)}</div>
+                    <div class="stat-label">Treated Median</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.controlMedian.toFixed(1)}</div>
+                    <div class="stat-label">Control Median</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.censored}</div>
+                    <div class="stat-label">Censored Obs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${((results.censored / results.total) * 100).toFixed(1)}%</div>
+                    <div class="stat-label">Censoring Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${results.total}</div>
+                    <div class="stat-label">Total Sample</div>
+                </div>
+            `;
+        }
+
+        function standardNormalCDF(x) {
+            // Approximation for standard normal CDF
+            return 0.5 * (1 + Math.sign(x) * Math.sqrt(1 - Math.exp(-2 * x * x / Math.PI)));
+        }
+
+        // Hazard Analysis
+        function analyzeHazards() {
+            if (!currentDurationData) {
+                alert('Please estimate survival model first');
+                return;
+            }
+
+            // Generate hazard analysis with economic interpretation
+            const data = currentDurationData.data;
+            const scenario = currentDurationData.scenario;
+            
+            // Calculate survival curves for visualization
+            generateSurvivalCurves(data);
+            displayHazardAnalysis(scenario);
+        }
+
+        function generateSurvivalCurves(data) {
+            const ctx = document.getElementById('survivalChart').getContext('2d');
+            
+            if (survivalChart) {
+                survivalChart.destroy();
+            }
+
+            // Generate Kaplan-Meier curves (simplified)
+            const treated = data.filter(d => d.treatment === 1).sort((a, b) => a.duration - b.duration);
+            const control = data.filter(d => d.treatment === 0).sort((a, b) => a.duration - b.duration);
+            
+            // Generate survival curves
+            const treatedSurvival = calculateKM(treated);
+            const controlSurvival = calculateKM(control);
+            
+            // Create time points for plotting
+            const maxTime = Math.max(...data.map(d => d.duration));
+            const timePoints = [];
+            for (let t = 0; t <= maxTime; t += maxTime / 50) {
+                timePoints.push(t);
+            }
+
+            survivalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timePoints.map(t => t.toFixed(0)),
+                    datasets: [
+                        {
+                            label: 'Treatment Group S(t)',
+                            data: timePoints.map(t => getSurvivalAtTime(treatedSurvival, t)),
+                            borderColor: '#FF6B47',
+                            backgroundColor: 'rgba(255, 107, 71, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Control Group S(t)',
+                            data: timePoints.map(t => getSurvivalAtTime(controlSurvival, t)),
+                            borderColor: '#52796F',
+                            backgroundColor: 'rgba(82, 121, 111, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Kaplan-Meier Survival Curves by Treatment Status',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Duration (time units)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Survival Probability S(t)' },
+                            min: 0,
+                            max: 1
+                        }
+                    }
+                }
+            });
+        }
+
+        function calculateKM(data) {
+            // Simplified Kaplan-Meier calculation
+            const events = [];
+            data.forEach(d => {
+                events.push({ time: d.duration, event: d.censored === 0 ? 1 : 0 });
+            });
+            
+            return events;
+        }
+
+        function getSurvivalAtTime(kmData, t) {
+            // Simplified survival probability calculation
+            let survival = 1;
+            kmData.forEach(event => {
+                if (event.time <= t && event.event === 1) {
+                    survival *= 0.95; // Simplified survival update
+                }
+            });
+            return Math.max(0, survival);
+        }
+
+        function displayHazardAnalysis(scenario) {
+            document.getElementById('hazardTable').innerHTML = `
+                <h4>⏱️ Economic Hazard Analysis & Policy Implications</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin: 40px 0;">
+                    <div class="stat-card" style="padding: 35px;">
+                        <h5>Economic Theory</h5>
+                        <p><strong>Framework:</strong> ${scenario.economic_theory}</p>
+                        <p><strong>Prediction:</strong> ${scenario.expected_effects}</p>
+                        <div class="censoring-viz">
+                            <div class="observed-obs">Observed Events</div>
+                            <div class="censored-obs">Censored Cases</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="padding: 35px;">
+                        <h5>Policy Applications</h5>
+                        <p><strong>Context:</strong> ${scenario.policy_context}</p>
+                        <p><strong>Evaluation:</strong> Duration models provide causal evidence for policy effectiveness</p>
+                        <p><strong>Implementation:</strong> Hazard ratios guide optimal policy design</p>
+                    </div>
+                </div>
+                <div class="duration-highlight">
+                    <p><strong>⏱️ Duration Modeling Insight:</strong> 
+                    Economic duration analysis provides powerful tools for policy evaluation by modeling the timing of economic decisions. 
+                    Hazard rates capture instantaneous decision probabilities, allowing economists to test theories about search behavior, 
+                    option values, and dynamic optimization while accounting for censoring and unobserved heterogeneity common in economic data.
+                    </p>
+                </div>
+            `;
+        }
+
+        // Assessment Functions
+        function generateNewQuestion() {
+            currentQuestion = assessmentQuestions[Math.floor(Math.random() * assessmentQuestions.length)];
+            selectedAnswer = null;
+            
+            document.querySelector('.decision-question').textContent = currentQuestion.question;
+            
+            const optionsContainer = document.getElementById('assessmentOptions');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'decision-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('assessmentFeedback').innerHTML = '';
+        }
+
+        function selectAnswer(answerIndex) {
+            selectedAnswer = answerIndex;
+            
+            document.querySelectorAll('.decision-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === answerIndex);
+            });
+        }
+
+        function checkAnswer() {
+            if (selectedAnswer === null) {
+                alert('Please select an answer first');
+                return;
+            }
+            
+            const isCorrect = selectedAnswer === currentQuestion.correct;
+            const feedbackClass = isCorrect ? 'feedback-success' : 'feedback-danger';
+            const feedbackTitle = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="${feedbackClass}">
+                    <h4>${feedbackTitle}</h4>
+                    <p><strong>Explanation:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                </div>
+            `;
+        }
+
+        function showExpertSolution() {
+            if (!currentQuestion) {
+                generateNewQuestion();
+                return;
+            }
+            
+            document.getElementById('assessmentFeedback').innerHTML = `
+                <div class="feedback-success">
+                    <h4>⏱️ Expert Analysis</h4>
+                    <p><strong>Correct Answer:</strong> ${currentQuestion.options[currentQuestion.correct]}</p>
+                    <p><strong>Duration Analysis Insight:</strong> ${currentQuestion.explanation}</p>
+                    <p><strong>Economic Application:</strong> Duration analysis provides rigorous econometric tools for modeling economic decision-making over time, essential for policy evaluation when treatment timing varies and outcomes are measured as time-to-event.</p>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        window.addEventListener('load', function() {
+            updateDurationScenario();
+            generateNewQuestion();
+        });
+    </script>
+</body>
+</html>
