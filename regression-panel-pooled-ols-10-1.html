@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pooled OLS with Panel Data (Wooldridge 10.1)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .panel-card    { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .pooled-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .error-card    { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Pooled OLS with Panel Data (Wooldridge 10.1)</h1>
+        <p>Practice interpreting pooled OLS when you have panel data, and think about when it is valid</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Panel Data and Pooled OLS</h3>
+        <div class="measures-grid">
+            <div class="measure-card panel-card">
+                <h4>Panel Structure</h4>
+                <div class="formula">
+                    i = individual (firm, worker, region)<br>
+                    t = time period (year, month, ...)
+                </div>
+                <div class="description">
+                    In panel data we observe the same units (i) repeatedly over time (t). A typical notation is Y<sub>it</sub>, X<sub>it</sub>.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Workers over years, firms over time, states over decades.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Wage<sub>it</sub> for worker i in year t, with education and experience changing slowly over time.
+                </div>
+            </div>
+
+            <div class="measure-card pooled-card">
+                <h4>Pooled OLS</h4>
+                <div class="formula">
+                    Y<sub>it</sub> = β₀ + β₁X<sub>it</sub> + u<sub>it</sub><br>
+                    (treat all (i,t) as independent)
+                </div>
+                <div class="description">
+                    Pooled OLS stacks all observations and runs a single cross-sectional regression, ignoring the panel structure (no i- or t-dummies).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When unobserved heterogeneity is uncorrelated with X<sub>it</sub>, or as a baseline model.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Regressing wages on education and experience using all worker-year observations together.
+                </div>
+            </div>
+
+            <div class="measure-card error-card">
+                <h4>Composite Error & Unobserved Effect</h4>
+                <div class="formula">
+                    u<sub>it</sub> = a<sub>i</sub> + v<sub>it</sub>
+                </div>
+                <div class="description">
+                    a<sub>i</sub> is a time-invariant unobserved effect (ability, firm culture, etc.). v<sub>it</sub> is an idiosyncratic error. Pooled OLS treats a<sub>i</sub> as part of the error term.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Recognize when corr(X<sub>it</sub>, a<sub>i</sub>) ≠ 0 causes omitted-variable bias.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If high-ability workers choose more education, pooled OLS wage–education estimates are biased.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    Pooled OLS is simple but often biased
+                </div>
+                <div class="description">
+                    With panel data we usually move to fixed effects or first differences to eliminate a<sub>i</sub>. But it is useful to understand what pooled OLS is doing, and when it might still be reasonable (e.g. randomized assignment, or when a<sub>i</sub> is plausibly uncorrelated with X<sub>it</sub>).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> First step before more sophisticated panel estimators.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> Ask: “If I ignore the unobserved effect a<sub>i</sub>, do I believe X is still exogenous?”
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Understanding Pooled OLS in Panels</h3>
+            <p>Each scenario gives you a pooled OLS regression using panel data and a story about unobserved heterogeneity. Decide what β₁ means, compute predictions, and judge whether pooled OLS is likely biased.</p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the pooled OLS equation to compute predicted values and interpret β₁. Then think about whether unobserved effects a<sub>i</sub> are likely correlated with X<sub>it</sub>, which would bias pooled OLS.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Predictions</strong><br>Compute predicted Y for given values of X.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Effect of changing X</strong><br>Compute how Y changes when X changes by a given amount.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>⚖️ Bias judgment</strong><br>Decide if pooled OLS is likely unbiased for β₁, based on the story.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain what β₁ means in this panel context, and whether you trust it.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Pooled OLS with panel data (10.1) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: panel setting, pooled OLS regression, plus story about a_i and X_it.
+    var scenarios = [
+        {
+            id: "wageEducationAbility",
+            title: "Wages on Education and Experience (Worker Panel)",
+            description: "You observe a panel of workers over several years. You pool all worker-year observations and estimate a wage regression on education and experience, ignoring the panel structure.",
+            context: "Think about what β₁ means and whether ignoring unobserved ability a_i creates bias.",
+            model: "Y = log(wage_it). X1 = educ_i (years of schooling, time-invariant), X2 = exper_it (potential experience, years).",
+            equation: "log(wage_it) = 0.8 + 0.07·educ_i + 0.02·exper_it",
+            beta0: 0.8,
+            betaEduc: 0.07,
+            betaExper: 0.02,
+            x1Name: "educ (years of schooling)",
+            x2Name: "exper (years of experience)",
+            exampleX1: 12,
+            exampleX2a: 5,
+            exampleX2b: 10,
+            yUnits: "log wage units",
+            unbiasedLikely: false,
+            biasExplanation:
+                "Unobserved ability a_i is likely positively correlated with educ_i: more able workers obtain more schooling and also earn higher wages even holding schooling fixed. This violates exogeneity of X and makes pooled OLS upward biased for the return to education.",
+            betaInterpretation:
+                "β_educ = 0.07 means that, according to pooled OLS, one additional year of schooling is associated with about 7% higher wages, holding experience fixed. But because ability is ignored and likely correlated with education, this probably overstates the true causal return."
+        },
+        {
+            id: "firmKLandManagement",
+            title: "Firm Output on Capital and Labor (Firm Panel)",
+            description: "You observe firms over several years and estimate a Cobb–Douglas–style production function using pooled OLS, ignoring any firm fixed effects.",
+            context: "Interpret the output elasticities and assess whether unobserved management quality a_i is a problem.",
+            model: "Y = log(output_it). X1 = log(K_it), capital; X2 = log(L_it), labor.",
+            equation: "log(output_it) = 1.2 + 0.4·log(K_it) + 0.5·log(L_it)",
+            beta0: 1.2,
+            betaK: 0.4,
+            betaL: 0.5,
+            x1Name: "log(K)",
+            x2Name: "log(L)",
+            exampleX1: Math.log(100).toFixed(2),
+            exampleX2a: Math.log(50).toFixed(2),
+            exampleX2b: Math.log(100).toFixed(2),
+            yUnits: "log output units",
+            unbiasedLikely: false,
+            biasExplanation:
+                "Unobserved management quality a_i likely increases both productivity and the choice of K and L. Better-managed firms may choose more inputs and also be more efficient. This positive correlation between inputs and a_i makes pooled OLS estimates of input elasticities biased.",
+            betaInterpretation:
+                "β_K = 0.4 means a 1% increase in capital is associated with about a 0.4% increase in output, holding labor fixed, according to pooled OLS. But if high-management-quality firms systematically choose higher K, we may be partly picking up management quality, not just capital's causal effect."
+        },
+        {
+            id: "randomizedTrainingPanel",
+            title: "Randomized Training Program over Time",
+            description: "Firms are randomly assigned to receive a training program at the start of the panel. You observe them for several years and estimate a pooled OLS regression of productivity on a training dummy.",
+            context: "Here, treatment is randomly assigned, so unobserved firm effects a_i should be independent of the training dummy.",
+            model: "Y = productivity_it (units per worker). X = Train_i (1 if firm ever gets training, 0 otherwise).",
+            equation: "prod_it = 50 + 8·Train_i",
+            beta0: 50,
+            betaTrain: 8,
+            xName: "Train (0/1)",
+            exampleX0: 0,
+            exampleX1: 1,
+            yUnits: "units per worker",
+            unbiasedLikely: true,
+            biasExplanation:
+                "Because training is randomly assigned, there is no systematic correlation between the training dummy and firm-specific unobserved factors a_i (like baseline productivity or management quality). Pooled OLS should consistently estimate the average effect of training on productivity.",
+            betaInterpretation:
+                "β_Train = 8 means trained firms produce on average 8 more units per worker than control firms, according to pooled OLS. With random assignment, this can be interpreted as a causal effect."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Panel Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(scenario) {
+        var html = "";
+        html += '<h4>📋 Pooled OLS Regression (Panel Data Stacked)</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Outcome:</strong> ' + scenario.model + '</p>';
+
+        html += '<p style="margin-top:8px;"><strong>Estimated regression (pooled OLS on all (i,t)):</strong></p>';
+        html += '<p style="margin-top:4px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += scenario.equation;
+        html += '</p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += 'This regression ignores unobserved effects a<sub>i</sub> that are constant over time. ';
+        html += 'Ask whether these a<sub>i</sub> are likely correlated with the regressors X<sub>it</sub>. ';
+        html += 'If so, β estimates from pooled OLS may be biased.';
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (chkBaseline) {
+            if (s.id === "wageEducationAbility") {
+                var y1 = s.beta0 + s.betaEduc*s.exampleX1 + s.betaExper*s.exampleX2a;
+                var y2 = s.beta0 + s.betaEduc*s.exampleX1 + s.betaExper*s.exampleX2b;
+                currentQuestions.push({
+                    conceptId: "predWage1",
+                    type: "numeric",
+                    title: "🏁 Predicted log wage (educ=" + s.exampleX1 + ", exper=" + s.exampleX2a + ")",
+                    prompt: "Use the regression to compute predicted log wage for a worker with educ=" + s.exampleX1 + " and exper=" + s.exampleX2a + ".",
+                    correctValue: y1,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "predWage2",
+                    type: "numeric",
+                    title: "🏁 Predicted log wage (educ=" + s.exampleX1 + ", exper=" + s.exampleX2b + ")",
+                    prompt: "Now compute predicted log wage for the same worker later, with exper=" + s.exampleX2b + " (education unchanged).",
+                    correctValue: y2,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+            } else if (s.id === "firmKLandManagement") {
+                var logK1 = parseFloat(s.exampleX1);
+                var logL1 = parseFloat(s.exampleX2a);
+                var logL2 = parseFloat(s.exampleX2b);
+                var y1 = s.beta0 + s.betaK*logK1 + s.betaL*logL1;
+                var y2 = s.beta0 + s.betaK*logK1 + s.betaL*logL2;
+                currentQuestions.push({
+                    conceptId: "predOut1",
+                    type: "numeric",
+                    title: "🏁 Predicted log output (logK=" + logK1.toFixed(2) + ", logL=" + logL1.toFixed(2) + ")",
+                    prompt: "Compute predicted log output when log(K)=" + logK1.toFixed(2) + " and log(L)=" + logL1.toFixed(2) + ".",
+                    correctValue: y1,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "predOut2",
+                    type: "numeric",
+                    title: "🏁 Predicted log output (logK=" + logK1.toFixed(2) + ", logL=" + logL2.toFixed(2) + ")",
+                    prompt: "Now compute predicted log output when log(L) rises to " + logL2.toFixed(2) + " holding log(K) fixed.",
+                    correctValue: y2,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+            } else if (s.id === "randomizedTrainingPanel") {
+                var y0 = s.beta0 + s.betaTrain*s.exampleX0;
+                var y1 = s.beta0 + s.betaTrain*s.exampleX1;
+                currentQuestions.push({
+                    conceptId: "predTrain0",
+                    type: "numeric",
+                    title: "🏁 Predicted productivity (Train=0)",
+                    prompt: "Compute predicted productivity for a control firm (Train=0).",
+                    correctValue: y0,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "predTrain1",
+                    type: "numeric",
+                    title: "🏁 Predicted productivity (Train=1)",
+                    prompt: "Compute predicted productivity for a treated firm (Train=1).",
+                    correctValue: y1,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+            }
+        }
+
+        if (chkOtherMeans) {
+            if (s.id === "wageEducationAbility") {
+                var deltaExp = s.betaExper * (s.exampleX2b - s.exampleX2a);
+                currentQuestions.push({
+                    conceptId: "deltaExper",
+                    type: "numeric",
+                    title: "📊 Effect of 5 more years of experience",
+                    prompt: "According to the regression, by how much does log wage change if exper increases from " + s.exampleX2a + " to " + s.exampleX2b + " (education fixed)?",
+                    correctValue: deltaExp,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+            } else if (s.id === "firmKLandManagement") {
+                currentQuestions.push({
+                    conceptId: "elasticL",
+                    type: "numeric",
+                    title: "📊 Elasticity of output w.r.t. labor",
+                    prompt: "According to the regression, what is the elasticity of output with respect to labor L (i.e., β_L)?",
+                    correctValue: s.betaL,
+                    unitHint: "(unit-free elasticity)"
+                });
+            } else if (s.id === "randomizedTrainingPanel") {
+                currentQuestions.push({
+                    conceptId: "trainEffect",
+                    type: "numeric",
+                    title: "📊 Effect of training on productivity",
+                    prompt: "According to the regression, by how much does training change productivity (in units per worker)?",
+                    correctValue: s.betaTrain,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+            }
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "biasLikely",
+                type: "numeric",
+                title: "⚖️ Is pooled OLS likely unbiased for the main slope?",
+                prompt: "Answer 1 if pooled OLS is likely approximately unbiased for the key slope (β₁), and 0 if it is likely biased, based on the story.",
+                correctValue: s.unbiasedLikely ? 1 : 0,
+                unitHint: "(1 = likely unbiased, 0 = likely biased)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation of the main coefficient and bias concern",
+                prompt: "In words, interpret the main slope coefficient in this regression (e.g. β_educ, β_K, or β_Train). Then say whether you think it has a causal interpretation in this panel setting and why.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: pooled OLS stacks panel data and ignores unobserved effects a_i. If corr(X_it, a_i) ≠ 0, pooled OLS is biased; if not, it may still be fine.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (s.id === "wageEducationAbility") {
+            var y1 = s.beta0 + s.betaEduc*s.exampleX1 + s.betaExper*s.exampleX2a;
+            var y2 = s.beta0 + s.betaEduc*s.exampleX1 + s.betaExper*s.exampleX2b;
+            var deltaExp = s.betaExper*(s.exampleX2b - s.exampleX2a);
+            if (q.conceptId === "predWage1") {
+                html += "Plug educ=" + s.exampleX1 + " and exper=" + s.exampleX2a + " into the regression:<br>";
+                html += "E[log wage] = " + s.beta0.toFixed(2) + " + "
+                        + s.betaEduc.toFixed(2) + "·(" + s.exampleX1 + ") + "
+                        + s.betaExper.toFixed(2) + "·(" + s.exampleX2a + ") = "
+                        + y1.toFixed(3) + ".";
+            } else if (q.conceptId === "predWage2") {
+                html += "Same worker, more experience. Plug exper=" + s.exampleX2b + ":<br>";
+                html += "E[log wage] = " + y2.toFixed(3) + ".";
+            } else if (q.conceptId === "deltaExper") {
+                html += "The slope on exper is β_exper = " + s.betaExper.toFixed(2) + ".<br>";
+                html += "A 5-year increase changes log wage by 5·β_exper = "
+                        + deltaExp.toFixed(3) + ".";
+            } else if (q.conceptId === "biasLikely") {
+                html += s.biasExplanation;
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.betaInterpretation + "</em>";
+            } else {
+                html += s.betaInterpretation + "<br>" + s.biasExplanation;
+            }
+        } else if (s.id === "firmKLandManagement") {
+            var logK1 = parseFloat(s.exampleX1);
+            var logL1 = parseFloat(s.exampleX2a);
+            var logL2 = parseFloat(s.exampleX2b);
+            var y1 = s.beta0 + s.betaK*logK1 + s.betaL*logL1;
+            var y2 = s.beta0 + s.betaK*logK1 + s.betaL*logL2;
+            if (q.conceptId === "predOut1") {
+                html += "Plug logK=" + logK1.toFixed(2) + ", logL=" + logL1.toFixed(2) + " into the regression:<br>";
+                html += "E[log output] = " + y1.toFixed(3) + ".";
+            } else if (q.conceptId === "predOut2") {
+                html += "Increase labor: logL=" + logL2.toFixed(2) + " with same logK.<br>";
+                html += "E[log output] = " + y2.toFixed(3) + ".";
+            } else if (q.conceptId === "elasticL") {
+                html += "β_L = " + s.betaL.toFixed(2) + " is the elasticity of output with respect to labor: a 1% increase in L is associated with about a "
+                        + s.betaL.toFixed(2) + "% increase in output, holding K fixed.";
+            } else if (q.conceptId === "biasLikely") {
+                html += s.biasExplanation;
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.betaInterpretation + "</em>";
+            } else {
+                html += s.betaInterpretation + "<br>" + s.biasExplanation;
+            }
+        } else if (s.id === "randomizedTrainingPanel") {
+            var y0 = s.beta0 + s.betaTrain*s.exampleX0;
+            var y1 = s.beta0 + s.betaTrain*s.exampleX1;
+            if (q.conceptId === "predTrain0") {
+                html += "Plug Train=0 into the regression:<br>";
+                html += "E[prod|Train=0] = β₀ = " + y0.toFixed(3) + ".";
+            } else if (q.conceptId === "predTrain1") {
+                html += "Plug Train=1 into the regression:<br>";
+                html += "E[prod|Train=1] = β₀ + β_Train = " + y1.toFixed(3) + ".";
+            } else if (q.conceptId === "trainEffect") {
+                html += "β_Train = " + s.betaTrain.toFixed(2) + " is the difference in mean productivity between treated and control firms.";
+            } else if (q.conceptId === "biasLikely") {
+                html += s.biasExplanation;
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.betaInterpretation + "</em>";
+            } else {
+                html += s.betaInterpretation + "<br>" + s.biasExplanation;
+            }
+        } else {
+            html += "Pooled OLS is valid if the regressors are uncorrelated with the time-invariant unobserved effect a_i and with the idiosyncratic error v_it.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Pooled OLS panel practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
