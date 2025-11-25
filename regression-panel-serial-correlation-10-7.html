@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Serial Correlation in Panel Data (Wooldridge 10.7)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .serial-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .conseq-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .test-card     { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Serial Correlation in Panel Data (Wooldridge 10.7)</h1>
+        <p>Practice detecting serial correlation in FE/RE panels and understanding how it affects inference</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Serial Correlation, Tests, and Corrections</h3>
+        <div class="measures-grid">
+            <div class="measure-card serial-card">
+                <h4>Serial Correlation in Panel Errors</h4>
+                <div class="formula">
+                    Y<sub>it</sub> = βX<sub>it</sub> + a<sub>i</sub> + u<sub>it</sub>,<br>
+                    u<sub>it</sub> = ρu<sub>i,t−1</sub> + e<sub>it</sub>
+                </div>
+                <div class="description">
+                    In panels, errors for the same unit over time are often correlated (AR(1) or more general). Ignoring this correlation makes standard errors too small.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Worker wages over time, firm output over time, state-level policies over time.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> A persistent productivity shock affects a firm in many periods.
+                </div>
+            </div>
+
+            <div class="measure-card conseq-card">
+                <h4>Consequences for FE/RE</h4>
+                <div class="formula">
+                    FE/RE β̂ still consistent (under strict exogeneity),<br>
+                    but usual SEs are wrong
+                </div>
+                <div class="description">
+                    With serial correlation and heteroskedasticity, conventional FE/RE standard errors are invalid. t-stats and p-values can be badly misleading.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Always check residuals for serial correlation and adjust SEs in panel regressions.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> A “highly significant” effect becomes insignificant once SEs are adjusted for serial correlation.
+                </div>
+            </div>
+
+            <div class="measure-card test-card">
+                <h4>Wooldridge Test for AR(1)</h4>
+                <div class="formula">
+                    H₀: no AR(1) serial correlation in u<sub>it</sub><br>
+                    Test: regress Δû<sub>it</sub> on û<sub>i,t−1</sub>, test coefficient = 0
+                </div>
+                <div class="description">
+                    A convenient test for serial correlation in FE panels: use FE residuals û<sub>it</sub>, run an auxiliary regression, and form an F or t-statistic for H₀: ρ = 0.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> After estimating FE, apply the Wooldridge test to check for AR(1) in u<sub>it</sub>.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> t-statistic for ρ̂ is large in absolute value ⇒ reject no serial correlation.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Practical Corrections</h4>
+                <div class="formula">
+                    Cluster by panel ID, or<br>
+                    use models that allow AR(1) in u<sub>it</sub>
+                </div>
+                <div class="description">
+                    In practice, clustering standard errors at the panel level is a robust way to handle serial correlation. More structured approaches use feasible GLS with an AR(1) error structure.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Clustered SEs for FE/RE, or panel-corrected SEs, especially with many periods.
+                </div>
+                <div class="examples">
+                    <strong>Rule:</strong> If residuals are serially correlated within units, do not rely on naive SEs.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Serial Correlation in Panel Data</h3>
+            <p>
+                Each scenario describes a panel regression and reports a Wooldridge-type test for AR(1) serial
+                correlation in the FE residuals. Compute the test statistic, decide whether to reject H₀, and think
+                about how this affects inference and standard error choice.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the reported estimate of the AR(1) coefficient ρ̂ and its standard error from the auxiliary
+                    regression. Compute the t-statistic, the corresponding F-statistic, and decide whether serial
+                    correlation is present.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Test statistic pieces</strong><br>Compute t-statistics and F-statistics for H₀: no AR(1) serial correlation.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Presence of serial correlation</strong><br>Decide whether there is evidence of serial correlation and how strong it is.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Effect on FE estimates & SEs</strong><br>Think about whether β̂ is biased and whether standard errors need adjustment.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain why serial correlation matters in this panel and what you would do in practice.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Serial correlation (10.7) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: simplified Wooldridge-type AR(1) test results
+    var scenarios = [
+        {
+            id: "workerWageAR1",
+            title: "Worker Panel: Training Effect on Log Wages (Strong Serial Correlation)",
+            description: "You estimate a FE wage equation with many workers observed for T=5 years. The key regressor is a training dummy. You then perform a Wooldridge-type test for AR(1) in the FE residuals.",
+            context: "Because wage shocks are persistent within workers, serial correlation is likely.",
+            model: "log(wage_it) = β₁·Training_it + controls + a_i + u_it",
+            yLabel: "log(wage_it)",
+            xLabel: "Training_it",
+            Nunits: 800,
+            T: 5,
+            rhoHat: 0.60,
+            seRho: 0.10,
+            df1: 1,
+            df2: 800 - 1,
+            serialPresent: true,
+            explanation:
+                "The estimated AR(1) coefficient is large and precisely estimated. This is strong evidence of serial correlation in u_it for a given worker.",
+            correctionRationale:
+                "Training evaluations with panel wages should cluster SEs at the worker level (or model AR(1) explicitly) to avoid overstating precision."
+        },
+        {
+            id: "firmOutputAR1",
+            title: "Firm Panel: Investment and Output (Moderate Serial Correlation)",
+            description: "You estimate a FE production function using firm panel data (T=4 years). You then test for AR(1) serial correlation in the FE residuals.",
+            context: "Firm-level productivity shocks may show moderate persistence, but the panel is not very long.",
+            model: "log(output_it) = β₁·log(capital_it) + β₂·log(labor_it) + a_i + u_it",
+            yLabel: "log(output_it)",
+            xLabel: "log(capital_it)",
+            Nunits: 300,
+            T: 4,
+            rhoHat: 0.35,
+            seRho: 0.15,
+            df1: 1,
+            df2: 300 - 1,
+            serialPresent: true,
+            explanation:
+                "The AR(1) estimate is moderate; the test may reject at 5% but the evidence is not as overwhelming as in the wage example.",
+            correctionRationale:
+                "Clustering by firm is a robust way to handle unknown serial correlation patterns. Explicit AR(1) GLS is possible but relies on stronger modeling assumptions."
+        },
+        {
+            id: "statePolicyAR1",
+            title: "State Panel: Policy and Employment (Little Serial Correlation)",
+            description: "You estimate a FE model of state employment rates on a policy index over T=10 years, then test for AR(1) in the residuals.",
+            context: "Year-to-year shocks may not be very persistent once state and year effects are controlled for.",
+            model: "employmentRate_it = β₁·PolicyIndex_it + state FE + year FE + u_it",
+            yLabel: "employmentRate_it",
+            xLabel: "PolicyIndex_it",
+            Nunits: 48,
+            T: 10,
+            rhoHat: 0.15,
+            seRho: 0.20,
+            df1: 1,
+            df2: 48 - 1,
+            serialPresent: false,
+            explanation:
+                "The estimated AR(1) parameter is small and very imprecise. The test does not reject no serial correlation at conventional levels.",
+            correctionRationale:
+                "Even if the test does not show strong serial correlation, clustering by state is still standard in DID-type state panels."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Panel Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 FE Regression and Wooldridge-Type Test</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Model:</strong> ' + s.model + '</p>';
+        html += '<p style="margin-top:8px;"><strong>Panel structure:</strong> ' +
+                s.Nunits + ' units, T = ' + s.T + ' time periods per unit (balanced panel in the test).</p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += 'You run a FE regression and obtain residuals û_it. For the Wooldridge-type test of AR(1), you run an auxiliary regression of ';
+        html += 'Δû_it on û_i,t−1 (and possibly other terms) and test H₀: coefficient on û_i,t−1 = 0.</p>';
+
+        var tRho = s.rhoHat / s.seRho;
+        var Fstat = tRho * tRho;
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Quantity</th><th>Value</th><th>Notes</th></tr></thead><tbody>';
+        html += '<tr><td>ρ̂ (AR(1) coefficient)</td><td>' + s.rhoHat.toFixed(3) + '</td><td>Estimate from auxiliary regression</td></tr>';
+        html += '<tr><td>SE(ρ̂)</td><td>' + s.seRho.toFixed(3) + '</td><td>Standard error of ρ̂</td></tr>';
+        html += '<tr><td>t-stat for ρ̂</td><td>' + tRho.toFixed(3) + '</td><td>t = ρ̂ / SE(ρ̂)</td></tr>';
+        html += '<tr><td>F-stat (≈ t², df₁=1)</td><td>' + Fstat.toFixed(3) + '</td><td>Can be used as an F or χ²₁ test</td></tr>';
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Null hypothesis (H₀):</strong> no AR(1) serial correlation in u_it (ρ = 0).<br>';
+        html += '<strong>Alternative (H₁):</strong> AR(1) serial correlation (ρ ≠ 0).';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Rule of thumb:</strong> For large df, |t| &gt; 1.96 or F &gt; 3.84 suggests rejecting H₀ at the 5% level (two-sided).';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        var tRho   = s.rhoHat / s.seRho;
+        var Fstat  = tRho * tRho;
+        var absT   = Math.abs(tRho);
+        var reject = (absT > 1.96) ? 1 : 0;
+        var serialFlag = s.serialPresent ? 1 : 0;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "tRho",
+                type: "numeric",
+                title: "🏁 t-statistic for ρ̂",
+                prompt: "Compute the t-statistic t = ρ̂ / SE(ρ̂).",
+                correctValue: tRho,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "Fstat",
+                type: "numeric",
+                title: "🏁 F-statistic (≈ t² for df₁ = 1)",
+                prompt: "Compute F = t² using your t-statistic for ρ̂.",
+                correctValue: Fstat,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "reject5",
+                type: "numeric",
+                title: "📊 Reject H₀ at 5% level?",
+                prompt: "At the 5% level, two-sided, do we reject H₀: ρ = 0? Use |t| > 1.96 as the rule. Answer 1 for yes, 0 for no.",
+                correctValue: reject,
+                unitHint: "(1 = reject, 0 = do not reject)"
+            });
+            currentQuestions.push({
+                conceptId: "serialPresent",
+                type: "numeric",
+                title: "📊 Evidence of serial correlation?",
+                prompt: "Based on the test and the scenario description, is there evidence of serial correlation in u_it? Answer 1 for yes, 0 for no.",
+                correctValue: serialFlag,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "biasBeta",
+                type: "numeric",
+                title: "📉 Does AR(1) serial correlation bias β̂ in FE under strict exogeneity?",
+                prompt: "Assume strict exogeneity (E(u_it | X_i1,...,X_iT, a_i) = 0). With AR(1) serial correlation in u_it, is the FE estimator of β biased? Answer 1 for yes, 0 for no.",
+                correctValue: 0,
+                unitHint: "(1 = biased, 0 = not biased)"
+            });
+            currentQuestions.push({
+                conceptId: "SEadjust",
+                type: "numeric",
+                title: "📉 Do we need to adjust standard errors?",
+                prompt: "If serial correlation is present, do we need to adjust standard errors (e.g., cluster by unit) to get valid inference? Answer 1 for yes, 0 for no.",
+                correctValue: 1,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "clusterUnit",
+                type: "numeric",
+                title: "📉 Is clustering by panel unit a sensible correction?",
+                prompt: "In this panel, is clustering SEs at the unit (panel ID) level a standard way to handle serial correlation? Answer 1 for yes, 0 for no.",
+                correctValue: 1,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Serial Correlation & What To Do",
+                prompt: "Explain in words what the result of the serial correlation test implies in this scenario. How would you report it, and what standard error adjustment or model change (if any) would you use?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: serial correlation mainly invalidates usual SEs, not FE/RE β̂ under strict exogeneity. Cluster by panel (or model AR(1)) to fix inference.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var tRho   = s.rhoHat / s.seRho;
+        var Fstat  = tRho * tRho;
+        var absT   = Math.abs(tRho);
+        var reject = (absT > 1.96) ? 1 : 0;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "tRho") {
+            html += "The t-statistic for ρ̂ is t = ρ̂ / SE(ρ̂).<br>";
+            html += "If |t| is large, the data are inconsistent with H₀: ρ = 0 (no AR(1) serial correlation).";
+        } else if (q.conceptId === "Fstat") {
+            html += "With 1 degree of freedom in the numerator, F ≈ t². Under H₀, F follows an F(1, df₂) distribution ";
+            html += "or approximately a χ²₁ distribution when df₂ is large.";
+        } else if (q.conceptId === "reject5") {
+            html += "Using the rule |t| &gt; 1.96 for a 5% two-sided test, we reject H₀ if the t-statistic is sufficiently large in absolute value.<br>";
+            html += "This means there is statistically significant evidence of AR(1) serial correlation in u_it.";
+        } else if (q.conceptId === "serialPresent") {
+            html += "Combine the numeric test result with the economic story. If t is large and the scenario describes persistent shocks, it is sensible to conclude that serial correlation is present.";
+        } else if (q.conceptId === "biasBeta") {
+            html += "Under strict exogeneity, FE remains consistent even if u_it is serially correlated. ";
+            html += "The problem is not bias in β̂, but that naive standard errors are wrong (typically too small).";
+        } else if (q.conceptId === "SEadjust") {
+            html += "If serial correlation is present, conventional FE/RE standard errors underestimate the true variability of β̂.<br>";
+            html += "We need to adjust SEs using methods that allow within-unit correlation—clustering at the unit level is a common choice.";
+        } else if (q.conceptId === "clusterUnit") {
+            html += "In panel data where correlation lives within units (workers, firms, states, schools), clustering at the unit level is a robust way to handle serial correlation and heteroskedasticity.<br>";
+            html += "More structured corrections (e.g., AR(1) GLS) are possible but rely on correct specification of the error process.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In practice, you would report the serial correlation test, note whether H₀ is rejected, and then either (i) use FE/RE with standard errors clustered at the ";
+            html += s.Nunits > 100 ? "unit" : "appropriate group";
+            html += " level, or (ii) consider a more explicit AR(1) modeling approach if warranted.";
+        } else {
+            html += "Serial correlation mostly affects how we measure uncertainty. Always pair your FE/RE estimates with robust SEs that account for within-unit correlation.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Serial correlation practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
