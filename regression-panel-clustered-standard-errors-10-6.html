@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clustered Standard Errors in Panel Data (Wooldridge 10.6)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .cluster-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .serial-card    { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .robust-card    { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Clustered Standard Errors in Panel Data (Wooldridge 10.6)</h1>
+        <p>Practice why and how we cluster by panel units, and how clustering changes inference</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Serial Correlation, Clustering, and Inference</h3>
+        <div class="measures-grid">
+            <div class="measure-card cluster-card">
+                <h4>Why Cluster?</h4>
+                <div class="formula">
+                    Y<sub>it</sub> = βX<sub>it</sub> + a<sub>i</sub> + u<sub>it</sub>,<br>
+                    Corr(u<sub>it</sub>, u<sub>is</sub>) ≠ 0 for t ≠ s
+                </div>
+                <div class="description">
+                    In panel data, errors are usually correlated within individuals (or firms, states, schools). Treating observations as independent underestimates standard errors and overstates significance.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> FE/RE panel regressions, difference-in-differences, repeated cross-sections by region.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Wages for the same worker over time are hit by persistent shocks.
+                </div>
+            </div>
+
+            <div class="measure-card serial-card">
+                <h4>Cluster-Robust SEs</h4>
+                <div class="formula">
+                    Allow arbitrary correlation within cluster,<br>
+                    assume independence across clusters
+                </div>
+                <div class="description">
+                    Clustered standard errors treat each cluster (e.g., worker, firm, state) as the unit of sampling. Within a cluster, residuals can be heteroskedastic and serially correlated.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Many observations per cluster, many clusters overall (e.g., N_clust ≥ 30).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Cluster by worker ID in a worker panel; cluster by state in a state-level DID.
+                </div>
+            </div>
+
+            <div class="measure-card robust-card">
+                <h4>Robust vs Cluster-Robust</h4>
+                <div class="formula">
+                    HC (Eicker–White): robust to heteroskedasticity only<br>
+                    Cluster: robust to heteroskedasticity + within-cluster correlation
+                </div>
+                <div class="description">
+                    Ordinary heteroskedasticity-robust SEs still assume independent errors across all observations. Cluster-robust SEs relax this within each cluster.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> If you have panel data or grouped data, cluster at the group level, not just HC.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> In a DID with state-level treatment, cluster by state, not by individual.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Practical Discussion</h4>
+                <div class="formula">
+                    Fewer “stars” with clustering ⭐ → but more credible
+                </div>
+                <div class="description">
+                    Clustered SEs are often larger than naive ones, reducing t-statistics and statistical significance. This is a feature, not a bug: it corrects for over-optimistic inference.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Always think: “What is my effective sampling unit?” and cluster at that level.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> Cluster by the level at which the error term is correlated and treatment varies.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Clustered Standard Errors</h3>
+            <p>
+                Each scenario shows a key coefficient from a panel or DID regression, with both naive and clustered
+                standard errors. Compute t-statistics, check which results remain significant, and choose an
+                appropriate clustering level.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the coefficient and standard errors given in the scenario. Compare naive vs clustered
+                    t-statistics, significance at 5%, and decide how you would cluster in practice.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 t-statistics</strong><br>Compute t-statistics using naive and clustered standard errors.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 SE inflation & clustering level</strong><br>Compare the size of SEs and pick an appropriate clustering level.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Significance with vs without clustering</strong><br>Check whether significance survives clustering.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain why clustering matters in this scenario.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Clustered SE (10.6) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: each has a key coefficient with naive vs clustered SEs
+    var scenarios = [
+        {
+            id: "workerTraining",
+            title: "Worker Panel: Training Effect on Log Wages",
+            description: "You estimate a wage equation on panel data with many workers observed over time. The key variable is a training dummy that turns from 0 to 1 after the worker completes a training program.",
+            context: "Because shocks to wages are persistent within workers, errors are serially correlated at the worker level.",
+            yLabel: "log(wage_it)",
+            xLabel: "Training_it (0/1)",
+            beta: 0.080,            // effect on log wages
+            seNaive: 0.020,         // naive robust (iid over i,t)
+            seCluster: 0.040,       // clustered by worker
+            nClusters: 500,
+            clusterLevel: "worker",
+            clusterCode: 1,         // 1 = worker, 2 = year, 3 = none
+            explanation:
+                "Training raises log wages. Because wage shocks are correlated over time for the same worker, clustering by worker gives larger SEs and more conservative inference.",
+            clusterRationale:
+                "Panel is at worker-year level; unobservables and shocks are likely correlated for the same worker over time. Cluster at the worker level."
+        },
+        {
+            id: "stateMinimumWage",
+            title: "State Panel: Minimum Wage and Teen Employment (DID-style)",
+            description: "You estimate the effect of state minimum wage changes on teen employment rates using a panel of states over time, with two-way fixed effects.",
+            context: "Policy variation is at the state level. Shocks within a state over time are likely correlated, and the treatment is common within state-year.",
+            yLabel: "Teen employment rate_it",
+            xLabel: "log(MinWage_it)",
+            beta: -0.10,
+            seNaive: 0.030,         // naive
+            seCluster: 0.080,       // clustered by state
+            nClusters: 50,
+            clusterLevel: "state",
+            clusterCode: 1,         // 1 = state, 2 = year, 3 = individual (not relevant here, but we'll just code 1)
+            explanation:
+                "Naive SEs suggest a precisely estimated negative effect. After clustering by state, SEs are much larger and the effect is no longer statistically significant at 5%.",
+            clusterRationale:
+                "Treatment varies by state; shocks within a state are correlated over time. Cluster at the state level in DID panels."
+        },
+        {
+            id: "schoolClassSize",
+            title: "School Panel: Class Size and Test Scores",
+            description: "You estimate the effect of average class size on test scores using a panel of schools over several years, controlling for school fixed effects and year fixed effects.",
+            context: "Unobserved school quality affects all years and is correlated with class size. Shocks within schools may also be serially correlated.",
+            yLabel: "TestScore_it",
+            xLabel: "ClassSize_it",
+            beta: -1.50,
+            seNaive: 0.40,
+            seCluster: 0.90,
+            nClusters: 200,
+            clusterLevel: "school",
+            clusterCode: 1,         // 1 = school, 2 = year, 3 = none
+            explanation:
+                "Smaller classes are associated with higher test scores. However, ignoring serial correlation within schools leads to overly small SEs.",
+            clusterRationale:
+                "Observations are school-years; correlation in unobservables within each school suggests clustering at the school level."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Panel Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Key Coefficient and Standard Errors</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Outcome:</strong> ' + s.yLabel + '<br>';
+        html += '<strong>Regressor of interest:</strong> ' + s.xLabel + '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Estimator</th><th>β̂ (coefficient)</th><th>Standard error</th><th>Notes</th></tr></thead><tbody>';
+        html += '<tr><td>Naive (robust, iid)</td><td>' + s.beta.toFixed(3) + '</td><td>' +
+                s.seNaive.toFixed(3) + '</td><td>Assumes independence across all i,t</td></tr>';
+        html += '<tr><td>Clustered</td><td>' + s.beta.toFixed(3) + '</td><td>' +
+                s.seCluster.toFixed(3) + '</td><td>Cluster-robust at the ' + s.clusterLevel +
+                ' level, with about ' + s.nClusters + ' clusters</td></tr>';
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Interpretation:</strong> β̂ measures the effect of ' + s.xLabel +
+                ' on ' + s.yLabel + '. The clustered SE allows for arbitrary serial correlation and heteroskedasticity within each ' +
+                s.clusterLevel + ', but assumes independence across ' + s.clusterLevel + 's.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        var tNaive   = s.beta / s.seNaive;
+        var tCluster = s.beta / s.seCluster;
+        var ratioSE  = s.seCluster / s.seNaive;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "tNaive",
+                type: "numeric",
+                title: "🏁 Naive t-statistic",
+                prompt: "Compute the naive t-statistic t_naive = β̂ / SE_naive.",
+                correctValue: tNaive,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "tCluster",
+                type: "numeric",
+                title: "🏁 Clustered t-statistic",
+                prompt: "Compute the clustered t-statistic t_cluster = β̂ / SE_cluster.",
+                correctValue: tCluster,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "ratioSE",
+                type: "numeric",
+                title: "🏁 Inflation factor: SE_cluster / SE_naive",
+                prompt: "Compute how much larger the clustered SE is relative to the naive SE: SE_cluster / SE_naive.",
+                correctValue: ratioSE,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "clusterLarger",
+                type: "numeric",
+                title: "📊 Are clustered SEs larger?",
+                prompt: "Is SE_cluster > SE_naive in this scenario? Answer 1 for yes, 0 for no.",
+                correctValue: (s.seCluster > s.seNaive ? 1 : 0),
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "clusterLevelChoice",
+                type: "numeric",
+                title: "📊 Appropriate clustering level",
+                prompt: "What is the most appropriate clustering level here? Answer 1 for the stated cluster level (e.g. worker/state/school), 2 for time (year), 3 for 'no clustering needed'.",
+                correctValue: s.clusterCode,
+                unitHint: "(1 = cluster by unit, 2 = cluster by time, 3 = none)"
+            });
+        }
+
+        if (chkDifference) {
+            var sigNaive   = (Math.abs(tNaive) > 1.96) ? 1 : 0;
+            var sigCluster = (Math.abs(tCluster) > 1.96) ? 1 : 0;
+
+            currentQuestions.push({
+                conceptId: "sigNaive",
+                type: "numeric",
+                title: "📉 Significance using naive SEs (5% level)",
+                prompt: "At the 5% level (two-sided), is the effect statistically significant using naive SEs? Answer 1 if |t_naive| > 1.96, 0 otherwise.",
+                correctValue: sigNaive,
+                unitHint: "(1 = significant, 0 = not significant)"
+            });
+            currentQuestions.push({
+                conceptId: "sigCluster",
+                type: "numeric",
+                title: "📉 Significance using clustered SEs (5% level)",
+                prompt: "At the 5% level (two-sided), is the effect statistically significant using clustered SEs? Answer 1 if |t_cluster| > 1.96, 0 otherwise.",
+                correctValue: sigCluster,
+                unitHint: "(1 = significant, 0 = not significant)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation of clustering in this scenario",
+                prompt: "Explain in words why clustered standard errors are more appropriate here than naive SEs, and how the conclusion about the effect of " +
+                        s.xLabel + " on " + s.yLabel + " changes (if at all) when you cluster.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Remember: clustering adjusts SEs for within-cluster correlation. Significance that disappears after clustering was never really there.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var tNaive   = s.beta / s.seNaive;
+        var tCluster = s.beta / s.seCluster;
+        var ratioSE  = s.seCluster / s.seNaive;
+        var sigNaive   = (Math.abs(tNaive) > 1.96) ? 1 : 0;
+        var sigCluster = (Math.abs(tCluster) > 1.96) ? 1 : 0;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "tNaive") {
+            html += "The naive t-statistic is t_naive = β̂ / SE_naive.<br>";
+            html += "This treats all observations as independent, which is usually unrealistic in panel data.";
+        } else if (q.conceptId === "tCluster") {
+            html += "The clustered t-statistic t_cluster = β̂ / SE_cluster uses a larger SE to account for correlation of residuals within each " +
+                    s.clusterLevel + ".<br>";
+            html += "If errors are positively correlated within clusters, clustered SEs should generally exceed naive SEs.";
+        } else if (q.conceptId === "ratioSE") {
+            html += "The ratio SE_cluster / SE_naive tells you how much naive inference was understating uncertainty.<br>";
+            html += "For example, a ratio around 2 means that ignoring clustering cut the SE roughly in half.";
+        } else if (q.conceptId === "clusterLarger") {
+            html += "In many empirical panels, clustered SEs are indeed larger than naive SEs because ignoring serial correlation treats repeated observations as if they were more informative than they really are.";
+        } else if (q.conceptId === "clusterLevelChoice") {
+            html += s.clusterRationale;
+        } else if (q.conceptId === "sigNaive") {
+            html += "Using naive SEs, we compare |t_naive| to 1.96 for a two-sided 5% test.<br>";
+            html += "If |t_naive| > 1.96, we would (incorrectly) declare significance without accounting for clustering.";
+        } else if (q.conceptId === "sigCluster") {
+            html += "Using clustered SEs, we compare |t_cluster| to 1.96.<br>";
+            html += "If significance disappears after clustering, it means the apparent precision was driven by within-cluster correlation, not truly independent information.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "Clustering by " + s.clusterLevel + " treats each " + s.clusterLevel +
+                    " as one source of information. Within a " + s.clusterLevel +
+                    ", shocks can be correlated over time; across " + s.clusterLevel +
+                    "s, we still assume independence. This usually gives more honest standard errors and fewer spurious stars.";
+        } else {
+            html += "In panel data, always ask: what is the unit of sampling, and where does serial correlation live? That is where to cluster.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Clustered SE practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
