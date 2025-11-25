@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Random Effects Estimation (Wooldridge 10.4)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .ue-card       { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .re-card       { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .qd-card       { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Random Effects Estimation (Wooldridge 10.4)</h1>
+        <p>Practice the random effects model, quasi-demeaning, and when RE is valid or more efficient than FE</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Unobserved Effects, FE, and Random Effects</h3>
+        <div class="measures-grid">
+            <div class="measure-card ue-card">
+                <h4>Unobserved Effects Model</h4>
+                <div class="formula">
+                    Y<sub>it</sub> = β₀ + β₁X<sub>it</sub> + a<sub>i</sub> + u<sub>it</sub>
+                </div>
+                <div class="description">
+                    a<sub>i</sub> is an individual-specific effect that does not change over time. FE and FD treat a<sub>i</sub> as a parameter to eliminate; RE treats a<sub>i</sub> as a random component of the error.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Any panel where unobserved heterogeneity is important: workers, firms, schools, states.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Worker ability, firm culture, school quality.
+                </div>
+            </div>
+
+            <div class="measure-card re-card">
+                <h4>Random Effects Assumption</h4>
+                <div class="formula">
+                    E(a<sub>i</sub> | X<sub>i1</sub>, …, X<sub>iT</sub>) = 0
+                </div>
+                <div class="description">
+                    RE assumes the individual effect a<sub>i</sub> is uncorrelated with all regressors in all periods. Then a<sub>i</sub> is just another error component, and GLS (random effects) is efficient.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When regressors are plausibly exogenous w.r.t. unobserved heterogeneity.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Regressors are randomly assigned over time or determined by external design.
+                </div>
+            </div>
+
+            <div class="measure-card qd-card">
+                <h4>Quasi-Demeaning (RE Transformation)</h4>
+                <div class="formula">
+                    Y*<sub>it</sub> = Y<sub>it</sub> − λȲ<sub>i</sub><br>
+                    X*<sub>it</sub> = X<sub>it</sub> − λX̄<sub>i</sub>
+                </div>
+                <div class="description">
+                    RE can be implemented by “quasi-demeaning” with 0 &lt; λ &lt; 1. If λ = 1, we get FE (demeaning). If λ = 0, we get pooled OLS. With estimated variance components, λ is between 0 and 1.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Combine between-unit and within-unit variation optimally when RE assumptions hold.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If Var(a<sub>i</sub>) is large, λ is close to 1 (more like FE). If Var(u<sub>it</sub>) is large, λ is close to 0 (more like pooled OLS).
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    FE is robust, RE is efficient (if valid)
+                </div>
+                <div class="description">
+                    FE is consistent even if a<sub>i</sub> is correlated with X<sub>it</sub>; RE is inconsistent in that case. When the RE assumption is plausible, RE is more efficient than FE.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Often run both FE and RE, and use a Hausman test or economic reasoning to decide.
+                </div>
+                <div class="examples">
+                    <strong>Hausman idea:</strong> If FE and RE give very different β̂’s, trust FE and distrust RE.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Random Effects & Quasi-Demeaning</h3>
+            <p>
+                Each scenario describes an unobserved-effects model and gives you panel data for a single unit,
+                plus an RE weight λ. You will quasi-demean Y and X, think about the RE exogeneity assumption,
+                and compare FE vs RE.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the model and the values shown in the panel table. Work with Y_it, X_it, their unit means,
+                    and the RE weight λ to compute quasi-demeaned variables and reason about the RE assumption.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Means & quasi-demeaning</strong><br>Compute unit means and transformed Y* and X* for some period(s).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 FE vs RE transformation</strong><br>Compare λ to 0 and 1, and see whether time-invariant regressors survive.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Consistency & efficiency</strong><br>Decide if RE is consistent and/or more efficient than FE in the scenario.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain what β₁ means under RE and how Hausman logic compares FE and RE.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Random effects (10.4) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios:
+    // 1) Wage panel where RE assumption plausibly holds (educ uncorrelated with a_i by design)
+    // 2) Firm panel where RE assumption is violated (capital correlated with a_i)
+    // 3) Policy panel where RE might be plausible and RE uses both within and between variation
+    var scenarios = [
+        {
+            id: "wageEducRE_valid",
+            title: "Worker Panel: Education, Experience, and Random Effects",
+            description: "You have a balanced panel of workers. Education was randomly assigned in a training program long before the panel starts, and experience accumulates mechanically over time.",
+            context: "Here the RE assumption that a_i is uncorrelated with X_it may be plausible by construction.",
+            model: "Y_it = log(wage_it); X1_i = educ_i (time-invariant), X2_it = exper_it (time-varying).",
+            equation: "log(wage_it) = 0.8 + 0.06·educ_i + 0.03·exper_it + a_i + u_it",
+            beta0: 0.8,
+            betaEduc: 0.06,
+            betaExper: 0.03,
+            T: 3,
+            // For a sample worker i, ignore u_it and use:
+            educ: 12,
+            experVec: [5, 6, 7],
+            a_i: 0.25,
+            lambda: 0.7,
+            yUnits: "log wage",
+            xNames: ["educ (years, time-invariant)", "exper (years, time-varying)"],
+            REvalid: true,
+            REeff: true,
+            hausmanHint: "Because education was randomly assigned and experience is mechanical, it is plausible that a_i is not systematically related to educ or exper. RE can be both consistent and more efficient than FE.",
+            expertInterpretation:
+                "Under RE, β_educ ≈ 0.06 is interpreted as the average percentage wage difference for an additional year of education, exploiting both within- and between-worker variation, assuming a_i is uncorrelated with the regressors."
+        },
+        {
+            id: "firmCapitalRE_invalid",
+            title: "Firm Panel: Capital, Productivity, and Correlated Effects",
+            description: "You observe firms over time. Better-managed firms (high a_i) systematically choose higher capital levels in every period.",
+            context: "This violates the RE assumption that a_i is uncorrelated with X_it.",
+            model: "Y_it = log(output_it); X_it = log(K_it) (capital).",
+            equation: "log(output_it) = 1.5 + 0.5·log(K_it) + a_i + u_it",
+            beta0: 1.5,
+            betaK: 0.5,
+            T: 3,
+            logKVec: [1.2, 1.3, 1.4],
+            a_i: 0.4,
+            lambda: 0.6,
+            yUnits: "log output",
+            xNames: ["log(K) (time-varying)"],
+            REvalid: false,
+            REeff: false, // inconsistent, so "efficiency" not meaningful
+            hausmanHint: "Since high-a_i firms choose higher capital in all periods, corr(a_i, log(K_it)) > 0. RE is inconsistent here. FE, which allows correlation between a_i and X_it, is preferred for causal interpretation.",
+            expertInterpretation:
+                "Here β_K ≈ 0.5 estimated by RE would mix up the causal effect of capital with the effect of higher underlying productivity a_i, because firms with higher a_i choose higher K in all periods."
+        },
+        {
+            id: "policyRE_borderline",
+            title: "Household Policy Panel: RE vs FE Tradeoff",
+            description: "Households are observed over three years around the roll-out of a subsidy policy that is partly randomized across regions but may also target poorer areas.",
+            context: "RE might or might not be valid, depending on whether the fixed household effect a_i is correlated with policy exposure.",
+            model: "Y_it = cons_it (monthly consumption, 100s of dollars); X_it = Policy_it (0/1).",
+            equation: "cons_it = 10 + 2·Policy_it + a_i + u_it",
+            beta0: 10,
+            betaPolicy: 2,
+            T: 3,
+            policyVec: [0, 1, 1],
+            a_i: 3,
+            lambda: 0.5,
+            yUnits: "hundreds of dollars",
+            xNames: ["Policy (0/1, time-varying)"],
+            REvalid: null, // ambiguous
+            REeff: true,   // if valid, more efficient
+            hausmanHint: "If policy is effectively randomized conditional on observables, RE could be justified and more efficient. If poorer households (low a_i) are more likely to get the subsidy, corr(a_i, Policy_it) ≠ 0 and FE is safer.",
+            expertInterpretation:
+                "Under RE, β_Policy ≈ 2 says that having the policy increases monthly consumption by about 200 dollars on average, combining within-household changes and between-household differences, if the RE exogeneity condition is credible."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Panel Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Unobserved Effects Model and RE Setup</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Outcome and regressor(s):</strong> ' + s.model + '</p>';
+
+        html += '<p style="margin-top:8px;"><strong>Model with individual effect a<sub>i</sub>:</strong></p>';
+        html += '<p style="margin-top:4px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += s.equation;
+        html += '</p>';
+
+        // Build a simple per-unit panel, ignoring u_it.
+        var T = s.T;
+        var yVec = [];
+        var x1Vec = [];
+        var x2Vec = null;
+        var hasX2 = false;
+
+        if (s.id === "wageEducRE_valid") {
+            for (var t = 0; t < T; t++) {
+                var exper_t = s.experVec[t];
+                var y_t = s.beta0 + s.betaEduc * s.educ + s.betaExper * exper_t + s.a_i;
+                yVec.push(y_t);
+                x1Vec.push(s.educ);      // time invariant
+                if (!x2Vec) x2Vec = [];
+                x2Vec.push(exper_t);     // time varying
+                hasX2 = true;
+            }
+        } else if (s.id === "firmCapitalRE_invalid") {
+            for (var t = 0; t < T; t++) {
+                var logK_t = s.logKVec[t];
+                var y_t2 = s.beta0 + s.betaK * logK_t + s.a_i;
+                yVec.push(y_t2);
+                x1Vec.push(logK_t);
+            }
+        } else if (s.id === "policyRE_borderline") {
+            for (var t = 0; t < T; t++) {
+                var pol_t = s.policyVec[t];
+                var y_t3 = s.beta0 + s.betaPolicy * pol_t + s.a_i;
+                yVec.push(y_t3);
+                x1Vec.push(pol_t);
+            }
+        }
+
+        // Compute means for unit i
+        var ySum = 0, x1Sum = 0, x2Sum = 0;
+        for (var t = 0; t < T; t++) {
+            ySum += yVec[t];
+            x1Sum += x1Vec[t];
+            if (hasX2) x2Sum += x2Vec[t];
+        }
+        var yBar = ySum / T;
+        var x1Bar = x1Sum / T;
+        var x2Bar = hasX2 ? x2Sum / T : null;
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += 'For a representative unit i, we display the panel (ignoring u_it). The RE weight λ is based on variance components estimates.';
+        html += '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Period t</th>';
+        if (s.id === "wageEducRE_valid") {
+            html += '<th>educ_i</th><th>exper_it</th>';
+        } else if (s.id === "firmCapitalRE_invalid") {
+            html += '<th>log(K_it)</th>';
+        } else if (s.id === "policyRE_borderline") {
+            html += '<th>Policy_it</th>';
+        }
+        html += '<th>Y_it (pred, ignoring u_it)</th></tr></thead><tbody>';
+
+        for (var t = 0; t < T; t++) {
+            html += '<tr><td>' + (t+1) + '</td>';
+            if (s.id === "wageEducRE_valid") {
+                html += '<td>' + s.educ.toFixed(2) + '</td>';
+                html += '<td>' + x2Vec[t].toFixed(2) + '</td>';
+            } else if (s.id === "firmCapitalRE_invalid") {
+                html += '<td>' + x1Vec[t].toFixed(2) + '</td>';
+            } else if (s.id === "policyRE_borderline") {
+                html += '<td>' + x1Vec[t].toFixed(2) + '</td>';
+            }
+            html += '<td>' + yVec[t].toFixed(2) + '</td></tr>';
+        }
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Unit means (for this i):</strong> ';
+        html += 'Ȳ_i = ' + yBar.toFixed(2) + ', ';
+        html += 'X̄₁_i = ' + x1Bar.toFixed(2);
+        if (hasX2) {
+            html += ', X̄₂_i = ' + x2Bar.toFixed(2);
+        }
+        html += '.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>RE weight (λ):</strong> λ = ' + s.lambda.toFixed(2) +
+                '. Remember: Y*_it = Y_it − λȲ_i, X*_it = X_it − λX̄_i. When λ=1 we get FE (demeaning); when λ=0 we get pooled OLS.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>RE exogeneity & Hausman intuition:</strong> ' + s.hausmanHint;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        // Recompute yVec, x1Vec, x2Vec, means
+        var T = s.T;
+        var yVec = [];
+        var x1Vec = [];
+        var x2Vec = null;
+        var hasX2 = false;
+
+        if (s.id === "wageEducRE_valid") {
+            for (var t = 0; t < T; t++) {
+                var exper_t = s.experVec[t];
+                var y_t = s.beta0 + s.betaEduc * s.educ + s.betaExper * exper_t + s.a_i;
+                yVec.push(y_t);
+                x1Vec.push(s.educ);
+                if (!x2Vec) x2Vec = [];
+                x2Vec.push(exper_t);
+                hasX2 = true;
+            }
+        } else if (s.id === "firmCapitalRE_invalid") {
+            for (var t = 0; t < T; t++) {
+                var logK_t = s.logKVec[t];
+                var y_t2 = s.beta0 + s.betaK * logK_t + s.a_i;
+                yVec.push(y_t2);
+                x1Vec.push(logK_t);
+            }
+        } else if (s.id === "policyRE_borderline") {
+            for (var t = 0; t < T; t++) {
+                var pol_t = s.policyVec[t];
+                var y_t3 = s.beta0 + s.betaPolicy * pol_t + s.a_i;
+                yVec.push(y_t3);
+                x1Vec.push(pol_t);
+            }
+        }
+
+        var ySum = 0, x1Sum = 0, x2Sum = 0;
+        for (var t = 0; t < T; t++) {
+            ySum += yVec[t];
+            x1Sum += x1Vec[t];
+            if (hasX2) x2Sum += x2Vec[t];
+        }
+        var yBar = ySum / T;
+        var x1Bar = x1Sum / T;
+        var x2Bar = hasX2 ? x2Sum / T : null;
+        var lambda = s.lambda;
+
+        // --- Baseline: means & quasi-demeaning ---
+        if (chkBaseline) {
+            // pick period t=1 (index 0) and t=2 (index 1) for practice
+            var t0 = 0;
+            var t1 = 1;
+
+            currentQuestions.push({
+                conceptId: "yBar",
+                type: "numeric",
+                title: "🏁 Unit mean Ȳ_i",
+                prompt: "Compute Ȳ_i, the mean of Y_it over all T periods (using the table above, ignoring u_it).",
+                correctValue: yBar,
+                unitHint: "(" + s.yUnits + ")"
+            });
+
+            // quasi-demeaned Y at t=1
+            var yStar_t1 = yVec[t0] - lambda * yBar;
+            currentQuestions.push({
+                conceptId: "yStar_t1",
+                type: "numeric",
+                title: "🏁 Quasi-demeaned Y*_i1",
+                prompt: "Compute Y*_i1 = Y_i1 − λȲ_i using λ from the scenario.",
+                correctValue: yStar_t1,
+                unitHint: "(" + s.yUnits + ")"
+            });
+
+            // quasi-demeaned X1 at t=1
+            var x1Star_t1 = x1Vec[t0] - lambda * x1Bar;
+            currentQuestions.push({
+                conceptId: "x1Star_t1",
+                type: "numeric",
+                title: "🏁 Quasi-demeaned X* (main regressor, t=1)",
+                prompt: "Compute X*_i1 = X_i1 − λX̄_i for the main regressor X₁.",
+                correctValue: x1Star_t1,
+                unitHint: "(" + s.xNames[0] + ")"
+            });
+
+            if (hasX2) {
+                var x2Star_t1 = x2Vec[t0] - lambda * x2Bar;
+                currentQuestions.push({
+                    conceptId: "x2Star_t1",
+                    type: "numeric",
+                    title: "🏁 Quasi-demeaned X*_2 (t=1)",
+                    prompt: "Compute X*_{2,i1} = X_{2,i1} − λ X̄₂_i, where X₂ is the time-varying regressor.",
+                    correctValue: x2Star_t1,
+                    unitHint: "(" + s.xNames[1] + ")"
+                });
+            }
+        }
+
+        // --- FE vs RE transform ---
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "lambdaRange",
+                type: "numeric",
+                title: "📊 Where does λ lie between pooled OLS and FE?",
+                prompt: "Recall: λ = 0 corresponds to pooled OLS (no demeaning), λ = 1 to FE (full demeaning). For this scenario, is λ strictly between 0 and 1? Answer 1 for yes, 0 for no.",
+                correctValue: (lambda > 0 && lambda < 1) ? 1 : 0,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+
+            if (s.id === "wageEducRE_valid") {
+                currentQuestions.push({
+                    conceptId: "timeInvariantSurvive",
+                    type: "numeric",
+                    title: "📊 Does a time-invariant regressor (educ) survive the RE transform?",
+                    prompt: "Under FE, a time-invariant regressor like educ_i is wiped out by demeaning. Under RE with λ in (0,1), can educ_i still be used to identify β_educ? Answer 1 for yes, 0 for no.",
+                    correctValue: 1,
+                    unitHint: "(1 = yes, 0 = no)"
+                });
+            } else {
+                currentQuestions.push({
+                    conceptId: "contrastFE",
+                    type: "numeric",
+                    title: "📊 Is the RE transform identical to FE here?",
+                    prompt: "Is the quasi-demeaning transform with λ strictly between 0 and 1 identical to the FE (within) transformation? Answer 1 for yes, 0 for no.",
+                    correctValue: (lambda === 1 ? 1 : 0),
+                    unitHint: "(1 = yes, 0 = no)"
+                });
+            }
+        }
+
+        // --- Consistency & efficiency ---
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "REconsistent",
+                type: "numeric",
+                title: "📉 Is RE consistent for the main slope(s)?",
+                prompt: "Based on the story, is the random effects estimator likely consistent for the key slope coefficient(s)? Answer 1 for yes, 0 for no.",
+                correctValue: (s.REvalid === true ? 1 : (s.REvalid === false ? 0 : 0)),
+                unitHint: "(1 = yes, 0 = no; treat ambiguous case as 'not clearly guaranteed')"
+            });
+
+            currentQuestions.push({
+                conceptId: "REvsFEeff",
+                type: "numeric",
+                title: "📉 Which is typically more efficient here, FE or RE?",
+                prompt: "If RE is valid, it is usually more efficient than FE. If RE is invalid, we prefer FE even if it might be less efficient. Answer 1 for FE, 2 for RE, 3 for 'not clearly determined'.",
+                correctValue: efficiencyCode(s),
+                unitHint: "(1 = FE, 2 = RE, 3 = not clearly determined)"
+            });
+        }
+
+        // --- Interpretation ---
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation of β under RE and Hausman logic",
+                prompt: "Explain in words how you interpret the key slope coefficient(s) under RE in this scenario, and how you would use a Hausman comparison between FE and RE to judge whether the RE estimates are trustworthy.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function efficiencyCode(s) {
+        // 1 = FE, 2 = RE, 3 = ambiguous
+        if (s.REvalid === true && s.REeff === true) {
+            return 2; // RE preferred
+        }
+        if (s.REvalid === false) {
+            return 1; // FE preferred
+        }
+        // borderline case
+        return 3;
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: RE uses quasi-demeaning with λ between 0 and 1, is efficient if a_i is uncorrelated with regressors, and should be checked against FE (Hausman logic).");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var T = s.T;
+        var lambda = s.lambda;
+
+        // Rebuild panel for explanation
+        var yVec = [];
+        var x1Vec = [];
+        var x2Vec = null;
+        var hasX2 = false;
+
+        if (s.id === "wageEducRE_valid") {
+            for (var t = 0; t < T; t++) {
+                var exper_t = s.experVec[t];
+                var y_t = s.beta0 + s.betaEduc * s.educ + s.betaExper * exper_t + s.a_i;
+                yVec.push(y_t);
+                x1Vec.push(s.educ);
+                if (!x2Vec) x2Vec = [];
+                x2Vec.push(exper_t);
+                hasX2 = true;
+            }
+        } else if (s.id === "firmCapitalRE_invalid") {
+            for (var t = 0; t < T; t++) {
+                var logK_t = s.logKVec[t];
+                var y_t2 = s.beta0 + s.betaK * logK_t + s.a_i;
+                yVec.push(y_t2);
+                x1Vec.push(logK_t);
+            }
+        } else if (s.id === "policyRE_borderline") {
+            for (var t = 0; t < T; t++) {
+                var pol_t = s.policyVec[t];
+                var y_t3 = s.beta0 + s.betaPolicy * pol_t + s.a_i;
+                yVec.push(y_t3);
+                x1Vec.push(pol_t);
+            }
+        }
+
+        var ySum = 0, x1Sum = 0, x2Sum = 0;
+        for (var t = 0; t < T; t++) {
+            ySum += yVec[t];
+            x1Sum += x1Vec[t];
+            if (hasX2) x2Sum += x2Vec[t];
+        }
+        var yBar = ySum / T;
+        var x1Bar = x1Sum / T;
+        var x2Bar = hasX2 ? x2Sum / T : null;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "yBar") {
+            html += "Ȳ_i is just the average of the Y_it’s for this unit across all T periods:<br>";
+            html += "Ȳ_i = (1/T) Σ_t Y_it. This is needed for the RE quasi-demeaning transform Y*_it = Y_it − λȲ_i.";
+        } else if (q.conceptId === "yStar_t1") {
+            html += "For t=1 (the first period in the table):<br>";
+            html += "Y*_i1 = Y_i1 − λȲ_i.<br>";
+            html += "You plug in the value of Y_i1 from the table and use λ and Ȳ_i shown in the scenario.";
+        } else if (q.conceptId === "x1Star_t1") {
+            html += "Similarly for the main regressor X₁:<br>";
+            html += "X*_i1 = X_i1 − λX̄₁_i.<br>";
+            html += "If X₁ is time-invariant, then X_i1 = X_i2 = … = X̄₁_i, so X*_it = (1−λ)X̄₁_i, which is not zero when 0&lt;λ&lt;1.";
+        } else if (q.conceptId === "x2Star_t1") {
+            html += "For the time-varying regressor X₂ (e.g., experience):<br>";
+            html += "X*_{2,it} = X_{2,it} − λX̄₂_i.<br>";
+            html += "This looks similar to FE demeaning, but the weight on the mean is λ rather than 1.";
+        } else if (q.conceptId === "lambdaRange") {
+            html += "λ is constructed from variance components; typically 0 &lt; λ &lt; 1.<br>";
+            html += "λ = 0 ⇒ pooled OLS (no demeaning). λ = 1 ⇒ FE (full demeaning). For 0&lt;λ&lt;1, RE is ‘between’ pooled OLS and FE.";
+        } else if (q.conceptId === "timeInvariantSurvive") {
+            html += "Under FE, a time-invariant regressor like educ_i is wiped out because educ_i − ȳeduc_i = 0 for all t.<br>";
+            html += "Under RE, with 0&lt;λ&lt;1, educ*_it = educ_i − λ educ_i = (1−λ) educ_i ≠ 0, so you can still estimate β_educ.";
+        } else if (q.conceptId === "contrastFE") {
+            html += "When λ is strictly between 0 and 1, quasi-demeaning is not the same as full demeaning. FE subtracts the full mean (λ=1), while RE subtracts only a fraction λ of the mean.";
+        } else if (q.conceptId === "REconsistent") {
+            html += "RE is consistent if E(a_i | X_i1,…,X_iT) = 0. In the first scenario this is plausible by design, in the second it is clearly violated, and in the third it is ambiguous.";
+        } else if (q.conceptId === "REvsFEeff") {
+            html += "If the RE assumptions hold, RE uses both within and between variation and is more efficient than FE.<br>";
+            html += "If the RE assumptions fail (corr(a_i, X_it) ≠ 0), RE is inconsistent and you should prefer FE, even if RE might look more ‘efficient’ statistically.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>" + s.expertInterpretation + "</em><br><br>";
+            html += "Hausman logic: compare FE and RE estimates of the slope(s). If they are similar, that is evidence in favor of the RE exogeneity assumption. If they differ substantially, it suggests corr(a_i, X_it) ≠ 0, and FE is safer.";
+        } else if (q.conceptId === "aiGone_FD") {
+            html += "In RE, we are not eliminating a_i by differencing; instead, we treat a_i as part of a structured error and use GLS. The quasi-demeaning transformation decorrelates the composite error (a_i + u_it) from the regressors under the RE assumptions.";
+        } else {
+            html += "Remember: FE is robust to arbitrary correlation between a_i and X_it but cannot estimate time-invariant regressors; RE is efficient when its exogeneity assumptions hold and keeps time-invariant regressors, but becomes inconsistent if corr(a_i, X_it) ≠ 0.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Random effects practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
