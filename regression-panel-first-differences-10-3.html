@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>First Differences Estimator (Wooldridge 10.3)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .fd-card       { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .fe-fd-card    { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .eff-card      { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 First Differences Estimator (Wooldridge 10.3)</h1>
+        <p>Practice differencing panel data, see how FD removes a<sub>i</sub>, and compare FD vs FE</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: First Differences and Fixed Effects</h3>
+        <div class="measures-grid">
+            <div class="measure-card fd-card">
+                <h4>Unobserved Effects Model & FD</h4>
+                <div class="formula">
+                    Y<sub>it</sub> = β₀ + β₁X<sub>it</sub> + a<sub>i</sub> + u<sub>it</sub><br>
+                    ΔY<sub>it</sub> = β₁ΔX<sub>it</sub> + Δu<sub>it</sub>
+                </div>
+                <div class="description">
+                    First differences subtract consecutive periods: ΔY<sub>it</sub> = Y<sub>it</sub> − Y<sub>i,t−1</sub>. Since a<sub>i</sub> is time-invariant, it cancels out: Δa<sub>i</sub> = 0.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When you worry that a<sub>i</sub> is correlated with X<sub>it</sub>, but you observe units at multiple times.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Changes in wages vs changes in experience for the same worker.
+                </div>
+            </div>
+
+            <div class="measure-card fe-fd-card">
+                <h4>FD vs FE</h4>
+                <div class="formula">
+                    T = 2: FE ≡ FD<br>
+                    T ≥ 3: FE ≠ FD (in general)
+                </div>
+                <div class="description">
+                    With two periods, the FE (within) transformation is numerically equivalent to first differencing. With more than two periods, FE uses deviations from unit means; FD uses differences between consecutive periods.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Understand that FE and FD are two ways to remove a<sub>i</sub>.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> With T = 3, FD uses ΔY<sub>i2</sub>, ΔY<sub>i3</sub>; FE uses all deviations Y<sub>it</sub> − Ȳ<sub>i</sub>.
+                </div>
+            </div>
+
+            <div class="measure-card eff-card">
+                <h4>Efficiency Considerations</h4>
+                <div class="formula">
+                    u<sub>it</sub> iid over t → FD often efficient<br>
+                    u<sub>it</sub> AR(1) → FE often better
+                </div>
+                <div class="description">
+                    FD induces serial correlation in Δu<sub>it</sub> if u<sub>it</sub> is already serially correlated. FE does not difference u<sub>it</sub> and can be more efficient under AR(1)-type errors.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Choose between FE and FD based on assumptions about u<sub>it</sub>.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> If u<sub>it</sub> is white noise, FD and FE often similar; if u<sub>it</sub> follows AR(1), FE tends to be more efficient.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Brief Practical Discussion</h4>
+                <div class="formula">
+                    FD: focus on changes;<br>FE: focus on deviations from means
+                </div>
+                <div class="description">
+                    Both FE and FD eliminate a<sub>i</sub>. FD is especially intuitive when most interest is in changes (before/after). FE is convenient in software via fixed-effect dummies and can handle more complex structures.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Empirical work often reports FE as the main estimator, sometimes with FD as a robustness check.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> If you have many periods and u<sub>it</sub> is persistent, FE is typically preferred.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: First Differences & FE vs FD</h3>
+            <p>
+                Scenarios include a two-period FD example (where FE = FD) and a three-period example (stacking differences).
+                You’ll compute ΔY, ΔX, check that a<sub>i</sub> vanishes, and think about when FD vs FE is more efficient.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the unobserved-effects model given in the scenario. For two periods, FD coincides with FE.
+                    For three periods, you’ll see how FD uses consecutive differences (t vs t−1).
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Levels and differences</strong><br>Compute Y<sub>it</sub>, ΔY<sub>it</sub>, and ΔX<sub>it</sub> for the example unit(s).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 FD vs FE identity</strong><br>Check when FD equals FE and when they differ.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Efficiency & error structure</strong><br>Decide whether FE or FD is more efficient, based on the description of u<sub>it</sub>.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain β₁ as a “within” effect under FD and compare it to FE.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("First differences (10.3) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios:
+    // 1) T=2 simple FD = FE
+    // 2) T=3 with stacked differences
+    // 3) Conceptual efficiency scenario (u_it structure)
+    var scenarios = [
+        {
+            id: "wageExperienceFD_T2",
+            type: "T2",
+            title: "Two-Period Wage Panel: FD = FE",
+            description: "You observe a worker at t=0 and t=1. Log wages follow an unobserved-effects model with worker ability a_i.",
+            context: "Show that first differencing removes a_i and is equivalent to FE when T=2.",
+            model: "Y_it = log(wage_it), X_it = exper_it (years of experience).",
+            equation: "log(wage_it) = 1.20 + 0.05·exper_it + a_i + u_it",
+            beta0: 1.20,
+            beta1: 0.05,
+            a_i: 0.40,
+            xVec: [4, 6], // exper_0, exper_1
+            yUnits: "log wage",
+            xName: "experience (years)",
+            errorStructure: "iid",
+            effHint: "Here u_it can be viewed as independent over time (no serial correlation). With T=2, FE and FD coincide numerically and have the same efficiency.",
+            expertInterpretation:
+                "β₁ = 0.05 is a within-worker effect: for a given worker, an extra year of experience raises log wages by about 0.05 (≈5%). With T=2 and u_it iid, the FE and FD estimators coincide and are equally efficient."
+        },
+        {
+            id: "outputCapitalFD_T3",
+            type: "T3",
+            title: "Three-Period Firm Panel: FD vs FE",
+            description: "You observe a firm for three years t = 1, 2, 3. Output depends on capital, a firm fixed effect a_i, and an idiosyncratic error.",
+            context: "See how first differences work with T=3 and how they differ from FE.",
+            model: "Y_it = log(output_it), X_it = log(K_it) (capital).",
+            equation: "log(output_it) = 2.00 + 0.60·log(K_it) + a_i + u_it",
+            beta0: 2.00,
+            beta1: 0.60,
+            a_i: -0.30,
+            xVec: [1.00, 1.10, 1.25], // logK_1, logK_2, logK_3
+            yUnits: "log output",
+            xName: "log(capital)",
+            errorStructure: "AR1",
+            effHint: "Suppose u_it follows a persistent AR(1) process. First differencing induces negative serial correlation in Δu_it; under these conditions, FE is typically more efficient than FD.",
+            expertInterpretation:
+                "β₁ = 0.60 is the within-firm elasticity of output with respect to capital: a 1% increase in K is associated with a 0.6% increase in output, holding fixed firm-specific productivity a_i. With T=3 and AR(1) errors, FE usually dominates FD in efficiency."
+        },
+        {
+            id: "policyIncomeFD_T3",
+            type: "T3",
+            title: "Three-Period Policy & Income Panel: Changes Focus",
+            description: "Household income is measured for three years around a policy introduction. The policy indicator is time-varying; there is an unobserved household effect a_i.",
+            context: "Use first differences to focus entirely on changes and interpret β₁ as a change-on-change effect.",
+            model: "Y_it = income_it (thousand dollars). X_it = Policy_it (0/1 policy indicator).",
+            equation: "income_it = 30 + 4·Policy_it + a_i + u_it",
+            beta0: 30,
+            beta1: 4,
+            a_i: 5,
+            xVec: [0, 1, 1], // policy status at t=1,2,3
+            yUnits: "thousand dollars",
+            xName: "Policy (0/1)",
+            errorStructure: "iid",
+            effHint: "If u_it is roughly iid over time, both FE and FD are valid; FD has a nice interpretation in terms of how changes in the policy status affect changes in income.",
+            expertInterpretation:
+                "β₁ = 4 means that, within a household, turning the policy on (0→1) is associated with about a $4,000 increase in annual income, after differencing out the fixed household effect a_i."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Panel Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Unobserved Effects Model & Panel Structure</h4>';
+        html += '<div class="data-block">';
+        html += '<p><strong>Outcome and regressor:</strong> ' + s.model + '</p>';
+
+        html += '<p style="margin-top:8px;"><strong>Model with individual effect a<sub>i</sub>:</strong></p>';
+        html += '<p style="margin-top:4px; font-family:Courier New, monospace; font-size:1.0em;">';
+        html += s.equation;
+        html += '</p>';
+
+        // Compute levels ignoring u_it
+        var yVec = [];
+        for (var t = 0; t < s.xVec.length; t++) {
+            var x_t = s.xVec[t];
+            var y_t = s.beta0 + s.beta1 * x_t + s.a_i; // u_it = 0 for display
+            yVec.push(y_t);
+        }
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += 'For a given unit i, the unobserved effect a<sub>i</sub> is constant over time. ';
+        html += 'Below we show the regressor X_it and the implied Y_it (ignoring u_it) at each time period.</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Period t</th><th>X_it (' + s.xName + ')</th><th>Y_it (pred, ignoring u_it)</th></tr></thead><tbody>';
+        for (var t = 0; t < s.xVec.length; t++) {
+            html += '<tr><td>' + (t+1) + '</td><td>' + s.xVec[t].toFixed(2) + '</td><td>' + yVec[t].toFixed(2) + '</td></tr>';
+        }
+        html += '</tbody></table>';
+
+        if (s.type === "T2") {
+            var dX = s.xVec[1] - s.xVec[0];
+            var dY = yVec[1] - yVec[0];
+            html += '<p style="margin-top:10px;font-size:0.9em;">';
+            html += '<strong>Two-period first difference:</strong> ΔX_i = X_i1 − X_i0, ΔY_i = Y_i1 − Y_i0.<br>';
+            html += 'Here, ΔX_i = ' + dX.toFixed(2) + ', ΔY_i = ' + dY.toFixed(2) +
+                    ', and β₁ΔX_i = ' + (s.beta1 * dX).toFixed(2) + ' (ignoring Δu_i).';
+            html += '</p>';
+            html += '<p style="margin-top:6px;font-size:0.9em;">';
+            html += 'With T = 2, the FE (within) transformation is algebraically equivalent to first differencing, so FE and FD give the same estimate of β₁.';
+            html += '</p>';
+        } else if (s.type === "T3") {
+            // Differences between t and t-1
+            var dx21 = s.xVec[1] - s.xVec[0];
+            var dx32 = s.xVec[2] - s.xVec[1];
+            var dy21 = yVec[1] - yVec[0];
+            var dy32 = yVec[2] - yVec[1];
+            html += '<p style="margin-top:10px;font-size:0.9em;">';
+            html += '<strong>Three-period first differences:</strong> we can difference t=2−1 and t=3−2.<br>';
+            html += 'ΔX_i(2) = X_i2 − X_i1 = ' + dx21.toFixed(2) +
+                    ', ΔY_i(2) = Y_i2 − Y_i1 = ' + dy21.toFixed(2) + '.<br>';
+            html += 'ΔX_i(3) = X_i3 − X_i2 = ' + dx32.toFixed(2) +
+                    ', ΔY_i(3) = Y_i3 − Y_i2 = ' + dy32.toFixed(2) + '.';
+            html += '</p>';
+        }
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Error structure & efficiency (for thinking questions):</strong> ' + s.effHint;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        // Precompute helpful values
+        var yVec = [];
+        for (var t = 0; t < s.xVec.length; t++) {
+            var x_t = s.xVec[t];
+            var y_t = s.beta0 + s.beta1 * x_t + s.a_i;
+            yVec.push(y_t);
+        }
+
+        if (chkBaseline) {
+            // Levels and differences
+            if (s.type === "T2") {
+                var dX = s.xVec[1] - s.xVec[0];
+                var dY = yVec[1] - yVec[0];
+
+                currentQuestions.push({
+                    conceptId: "Y0",
+                    type: "numeric",
+                    title: "🏁 Y_i0 (t=0 level)",
+                    prompt: "Compute Y_i0 (t=0) using the model (ignore u_it).",
+                    correctValue: yVec[0],
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "Y1",
+                    type: "numeric",
+                    title: "🏁 Y_i1 (t=1 level)",
+                    prompt: "Compute Y_i1 (t=1) using the model (ignore u_it).",
+                    correctValue: yVec[1],
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "dX_T2",
+                    type: "numeric",
+                    title: "📊 ΔX_i (T=2)",
+                    prompt: "Compute ΔX_i = X_i1 − X_i0.",
+                    correctValue: dX,
+                    unitHint: "(" + s.xName + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "dY_T2",
+                    type: "numeric",
+                    title: "📊 ΔY_i (T=2)",
+                    prompt: "Compute ΔY_i = Y_i1 − Y_i0 (using your Y_i0 and Y_i1, ignoring u_it).",
+                    correctValue: dY,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+            } else if (s.type === "T3") {
+                var dx21 = s.xVec[1] - s.xVec[0];
+                var dx32 = s.xVec[2] - s.xVec[1];
+                var dy21 = yVec[1] - yVec[0];
+                var dy32 = yVec[2] - yVec[1];
+
+                currentQuestions.push({
+                    conceptId: "Y1_T3",
+                    type: "numeric",
+                    title: "🏁 Y_i1 (t=1 level)",
+                    prompt: "Compute Y_i1 using the model (ignore u_it).",
+                    correctValue: yVec[0],
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "Y2_T3",
+                    type: "numeric",
+                    title: "🏁 Y_i2 (t=2 level)",
+                    prompt: "Compute Y_i2 using the model (ignore u_it).",
+                    correctValue: yVec[1],
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "Y3_T3",
+                    type: "numeric",
+                    title: "🏁 Y_i3 (t=3 level)",
+                    prompt: "Compute Y_i3 using the model (ignore u_it).",
+                    correctValue: yVec[2],
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "dX21",
+                    type: "numeric",
+                    title: "📊 ΔX_i(2) = X_i2 − X_i1",
+                    prompt: "Compute ΔX_i(2) = X_i2 − X_i1.",
+                    correctValue: dx21,
+                    unitHint: "(" + s.xName + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "dY21",
+                    type: "numeric",
+                    title: "📊 ΔY_i(2) = Y_i2 − Y_i1",
+                    prompt: "Compute ΔY_i(2) = Y_i2 − Y_i1 (using your levels, ignoring u_it).",
+                    correctValue: dy21,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "dX32",
+                    type: "numeric",
+                    title: "📊 ΔX_i(3) = X_i3 − X_i2",
+                    prompt: "Compute ΔX_i(3) = X_i3 − X_i2.",
+                    correctValue: dx32,
+                    unitHint: "(" + s.xName + ")"
+                });
+                currentQuestions.push({
+                    conceptId: "dY32",
+                    type: "numeric",
+                    title: "📊 ΔY_i(3) = Y_i3 − Y_i2",
+                    prompt: "Compute ΔY_i(3) = Y_i3 − Y_i2 (using your levels, ignoring u_it).",
+                    correctValue: dy32,
+                    unitHint: "(" + s.yUnits + ")"
+                });
+            }
+        }
+
+        if (chkOtherMeans) {
+            // FD vs FE identity
+            if (s.type === "T2") {
+                currentQuestions.push({
+                    conceptId: "FD_EQ_FE",
+                    type: "numeric",
+                    title: "📊 With T=2, does FD equal FE?",
+                    prompt: "In this two-period case, are the FE and FD estimators for β₁ numerically identical? Answer 1 for yes, 0 for no.",
+                    correctValue: 1,
+                    unitHint: "(1 = yes, 0 = no)"
+                });
+            } else if (s.type === "T3") {
+                currentQuestions.push({
+                    conceptId: "FD_EQ_FE_T3",
+                    type: "numeric",
+                    title: "📊 With T=3, does FD equal FE in general?",
+                    prompt: "With three periods, are the FE and FD estimators for β₁ necessarily identical? Answer 1 for yes, 0 for no.",
+                    correctValue: 0,
+                    unitHint: "(1 = yes, 0 = no)"
+                });
+            }
+        }
+
+        if (chkDifference) {
+            // Efficiency question: FE vs FD given errorStructure
+            currentQuestions.push({
+                conceptId: "efficiencyChoice",
+                type: "numeric",
+                title: "📉 Which is more efficient, FE or FD?",
+                prompt: "Based on the error structure described in the scenario, which estimator is typically more efficient for β₁? Answer 1 for FE, 2 for FD, 3 for 'about the same'.",
+                correctValue: efficiencyAnswerCode(s.errorStructure, s.type),
+                unitHint: "(1 = FE, 2 = FD, 3 = about the same)"
+            });
+            currentQuestions.push({
+                conceptId: "aiGone_FD",
+                type: "numeric",
+                title: "📉 Does a_i appear in the FD equation?",
+                prompt: "In the FD equation ΔY_it = β₁ΔX_it + Δu_it, does the fixed effect a_i still appear? Answer 1 for yes, 0 for no.",
+                correctValue: 0,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation of β₁ under FD (vs FE)",
+                prompt: "In words, interpret β₁ as a within-unit effect under first differencing in this scenario. Explain how this compares to the FE interpretation, and which estimator you might prefer given the error structure.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function efficiencyAnswerCode(errorStructure, type) {
+        // 1 = FE, 2 = FD, 3 = about the same.
+        // Simple rule-of-thumb mapping for this teaching tool:
+        // - If iid and T=2: about the same (3).
+        // - If iid and T>=3: both fine, FD sometimes nice → say 3 as well.
+        // - If AR1: FE often more efficient → 1.
+        if (errorStructure === "AR1") {
+            return 1;
+        }
+        // iid
+        if (type === "T2") {
+            return 3;
+        }
+        return 3;
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Key identities: FD removes a_i by differencing, FE removes a_i by demeaning. With T=2 they coincide; with T≥3 they differ, and efficiency depends on the error structure.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+
+        var yVec = [];
+        for (var t = 0; t < s.xVec.length; t++) {
+            var x_t = s.xVec[t];
+            var y_t = s.beta0 + s.beta1 * x_t + s.a_i;
+            yVec.push(y_t);
+        }
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (s.type === "T2") {
+            var dX = s.xVec[1] - s.xVec[0];
+            var dY = yVec[1] - yVec[0];
+            var betaDX = s.beta1 * dX;
+
+            if (q.conceptId === "Y0") {
+                html += "At t=0, plug X_i0 into the model:<br>";
+                html += "Y_i0 = β₀ + β₁ X_i0 + a_i (ignoring u_i0).";
+            } else if (q.conceptId === "Y1") {
+                html += "At t=1, plug X_i1 into the model:<br>";
+                html += "Y_i1 = β₀ + β₁ X_i1 + a_i (ignoring u_i1).";
+            } else if (q.conceptId === "dX_T2") {
+                html += "ΔX_i = X_i1 − X_i0 captures the change in the regressor between periods.";
+            } else if (q.conceptId === "dY_T2") {
+                html += "ΔY_i = Y_i1 − Y_i0. In the model, this equals β₁ΔX_i + Δu_i, because a_i cancels out.";
+            } else if (q.conceptId === "FD_EQ_FE") {
+                html += "With T=2, the FE (within) transformation is numerically identical to first differencing: both use one equation per unit based on changes, and both eliminate a_i in the same way.";
+            } else if (q.conceptId === "efficiencyChoice") {
+                html += "With iid errors and T=2, FE and FD coincide and have the same efficiency. Neither dominates the other.";
+            } else if (q.conceptId === "aiGone_FD") {
+                html += "Start from Y_it = β₀ + β₁X_it + a_i + u_it. Differencing: ΔY_i = β₁ΔX_i + (u_i1 − u_i0). The a_i term drops out because it is the same in both periods.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em>";
+            } else {
+                html += s.expertInterpretation + "<br>" + s.effHint;
+            }
+        } else if (s.type === "T3") {
+            var dx21 = s.xVec[1] - s.xVec[0];
+            var dx32 = s.xVec[2] - s.xVec[1];
+            var dy21 = yVec[1] - yVec[0];
+            var dy32 = yVec[2] - yVec[1];
+
+            if (q.conceptId === "Y1_T3" || q.conceptId === "Y2_T3" || q.conceptId === "Y3_T3") {
+                html += "Use Y_it = β₀ + β₁ X_it + a_i (ignoring u_it) to compute each period’s level.<br>";
+                html += "The important thing is that a_i is the same in all three periods.";
+            } else if (q.conceptId === "dX21") {
+                html += "ΔX_i(2) = X_i2 − X_i1 is the change in the regressor between periods 1 and 2.";
+            } else if (q.conceptId === "dY21") {
+                html += "ΔY_i(2) = Y_i2 − Y_i1 = β₁ΔX_i(2) + (u_i2 − u_i1). a_i cancels, so it does not appear in the differenced equation.";
+            } else if (q.conceptId === "dX32") {
+                html += "ΔX_i(3) = X_i3 − X_i2 is the change between periods 2 and 3.";
+            } else if (q.conceptId === "dY32") {
+                html += "ΔY_i(3) = Y_i3 − Y_i2 = β₁ΔX_i(3) + (u_i3 − u_i2). Again, a_i is gone.";
+            } else if (q.conceptId === "FD_EQ_FE_T3") {
+                html += "With T=3, FE and FD are both consistent under the same exogeneity assumptions, but they are not algebraically identical. FE uses all deviations from the unit mean; FD uses consecutive differences.";
+            } else if (q.conceptId === "efficiencyChoice") {
+                if (s.errorStructure === "AR1") {
+                    html += "Assuming u_it follows a persistent AR(1) process, differencing creates Δu_it = u_it − u_i,t−1 which is negatively serially correlated. FE typically has better efficiency under AR(1) errors.";
+                } else {
+                    html += "With roughly iid errors over time, both FE and FD are valid and often similar in efficiency. FD is especially intuitive if you like to think in terms of changes.";
+                }
+            } else if (q.conceptId === "aiGone_FD") {
+                html += "In any period, Y_it = β₀ + β₁X_it + a_i + u_it. When you take ΔY_it = Y_it − Y_i,t−1, the a_i term subtracts out (a_i − a_i = 0), so the fixed effect does not appear in the FD equation.";
+            } else if (q.conceptId === "interpret") {
+                html += "<em>" + s.expertInterpretation + "</em><br><br>";
+                html += "Under FD, β₁ is interpreted as the effect of a change in X on the change in Y within units. Under FE, β₁ is the effect of deviations of X from its unit mean on deviations of Y from its unit mean. Both are “within” interpretations, but FD literally focuses on time differences.";
+            } else {
+                html += s.expertInterpretation + "<br>" + s.effHint;
+            }
+        } else {
+            html += "Both FE and FD remove the time-invariant effect a_i; the main differences are how they transform the data and how they interact with the error structure u_it.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("First differences practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
