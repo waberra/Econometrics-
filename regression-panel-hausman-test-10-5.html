@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hausman Test: Fixed Effects vs Random Effects (Wooldridge 10.5)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .haus-card     { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .comp-card     { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .stat-card     { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .mode-toggle {
+            margin-top: 10px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            align-items:center;
+            font-size:0.9em;
+        }
+
+        .mode-btn {
+            padding:6px 12px;
+            border-radius: 8px;
+            border:2px solid #6c757d;
+            background:#e9ecef;
+            cursor:pointer;
+            font-size:0.9em;
+        }
+
+        .mode-btn.active {
+            background:#17a2b8;
+            border-color:#117a8b;
+            color:white;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Hausman Test: Fixed Effects vs Random Effects (Wooldridge 10.5)</h1>
+        <p>Compare FE and RE estimators, compute Hausman statistics, and practice interpreting the results</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: FE vs RE and the Hausman Test</h3>
+        <div class="measures-grid">
+            <div class="measure-card haus-card">
+                <h4>FE vs RE: Competing Estimators</h4>
+                <div class="formula">
+                    Y<sub>it</sub> = βX<sub>it</sub> + a<sub>i</sub> + u<sub>it</sub>
+                </div>
+                <div class="description">
+                    FE is consistent even if a<sub>i</sub> is correlated with X<sub>it</sub> but uses only within-unit variation. RE is more efficient when a<sub>i</sub> is uncorrelated with X<sub>it</sub>, using both within and between variation.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When you want to decide whether to trust RE or stick with FE.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Worker panel: if ability a<sub>i</sub> is correlated with education, FE is safer.
+                </div>
+            </div>
+
+            <div class="measure-card comp-card">
+                <h4>Hausman Null & Alternative</h4>
+                <div class="formula">
+                    H₀: E(a<sub>i</sub> | X<sub>i</sub>) = 0 ⇒ FE & RE both consistent, RE efficient<br>
+                    H₁: E(a<sub>i</sub> | X<sub>i</sub>) ≠ 0 ⇒ RE inconsistent
+                </div>
+                <div class="description">
+                    The Hausman test compares β̂<sub>FE</sub> and β̂<sub>RE</sub>. If RE is valid, they should be similar, apart from sampling error. Large differences signal RE is not credible.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Decide whether to use RE estimates for inference.
+                </div>
+                <div class="examples">
+                    <strong>Rule:</strong> If Hausman rejects, prefer FE.
+                </div>
+            </div>
+
+            <div class="measure-card stat-card">
+                <h4>Hausman Test Statistic</h4>
+                <div class="formula">
+                    H = (β̂<sub>FE</sub> − β̂<sub>RE</sub>)′[Var(β̂<sub>FE</sub>) − Var(β̂<sub>RE</sub>)]⁻¹(β̂<sub>FE</sub> − β̂<sub>RE</sub>)<br>
+                    H ~ χ²<sub>k</sub> under H₀
+                </div>
+                <div class="description">
+                    In the single-regressor case, H reduces to:<br>
+                    H = (β̂<sub>FE</sub> − β̂<sub>RE</sub>)² / [Var(β̂<sub>FE</sub>) − Var(β̂<sub>RE</sub>)].
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Compute H, compare to χ² critical value, or use p-value.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> k=1, 5% critical value ≈ 3.84.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Practical Issues</h4>
+                <div class="formula">
+                    FE robust; RE efficient (if valid)
+                </div>
+                <div class="description">
+                    Hausman tests can be sensitive to how you estimate the variance. Sometimes the difference matrix is not positive definite, leading to weird or negative statistics.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Combine Hausman with economic reasoning, and consider robust or cluster-robust versions.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> If FE and RE give very different answers, be cautious with RE even if the formal test is inconclusive.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Hausman Test Practice</h3>
+            <p>
+                Choose a mode: a simple one-regressor Hausman test (beginner) or a full matrix version with multiple
+                regressors (advanced). Then generate a scenario, compute the test statistic, and interpret the result.
+            </p>
+
+            <div class="mode-toggle">
+                <span><strong>Mode:</strong></span>
+                <button class="mode-btn active" id="btnModeBeginner" onclick="setMode('beginner')">
+                    🌱 Beginner (single regressor)
+                </button>
+                <button class="mode-btn" id="btnModeAdvanced" onclick="setMode('advanced')">
+                    🧮 Advanced (matrix version)
+                </button>
+            </div>
+
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the FE and RE estimates shown. In beginner mode, there is one slope coefficient. In advanced
+                    mode, there are multiple. Compute differences, the Hausman statistic, and interpret the test.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Differences & variances</strong><br>Compute β̂<sub>FE</sub> − β̂<sub>RE</sub> and variance differences.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 FE vs RE comparison</strong><br>Check whether FE and RE are “close” or “far apart”.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Hausman statistic & decision</strong><br>Compute H and decide whether to reject H₀ (RE valid).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain what the result means for using FE vs RE.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Hausman test (10.5) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+    var currentMode = "beginner"; // 'beginner' or 'advanced'
+
+    // Beginner mode: single regressor Hausman test
+    // H = (b_FE - b_RE)^2 / (Var_FE - Var_RE), df = 1, 5% critical ≈ 3.84
+    var beginnerScenarios = [
+        {
+            id: "wageEduc_simpleReject",
+            title: "Wage Equation: Education Effect (Reject RE)",
+            description: "You estimate the return to education on log wages using FE and RE on a panel of workers.",
+            context: "FE allows correlation between ability a_i and education; RE assumes E(a_i | educ_i, exper_it) = 0.",
+            betaFE: 0.08,
+            seFE: 0.020,
+            betaRE: 0.05,
+            seRE: 0.015,
+            df: 1,
+            alpha: 0.05,
+            yLabel: "log(wage)",
+            xLabel: "educ (years)",
+            story: "Because ability is positively related to education, FE gives a larger return to education than RE. If the Hausman test rejects, FE is preferred.",
+            expectReject: true
+        },
+        {
+            id: "firmCapital_simpleNoReject",
+            title: "Firm Output: Capital Elasticity (Do Not Reject RE)",
+            description: "You estimate the elasticity of output with respect to capital using FE and RE on a panel of firms.",
+            context: "Firm-specific productivity a_i may not be strongly related to (small) fluctuations in capital over time.",
+            betaFE: 0.45,
+            seFE: 0.08,
+            betaRE: 0.44,
+            seRE: 0.07,
+            df: 1,
+            alpha: 0.05,
+            yLabel: "log(output)",
+            xLabel: "log(K)",
+            story: "FE and RE estimates are very similar. If Hausman does not reject, you might be comfortable using RE for efficiency.",
+            expectReject: false
+        },
+        {
+            id: "policy_simpleBorder",
+            title: "Policy Impact: Income Change (Borderline)",
+            description: "You estimate the effect of a policy on household income using FE and RE.",
+            context: "Households differ in permanent income components, but the policy may be close to randomly assigned.",
+            betaFE: 0.20,
+            seFE: 0.05,
+            betaRE: 0.18,
+            seRE: 0.045,
+            df: 1,
+            alpha: 0.05,
+            yLabel: "income (thousand $)",
+            xLabel: "Policy (0/1)",
+            story: "FE and RE are not identical, but not extremely different either. Hausman may not reject at 5%, and you must use economic reasoning as well.",
+            expectReject: false
+        }
+    ];
+
+    // Advanced mode: multi-regressor Hausman test
+    // H = d' * [Var_FE - Var_RE]^{-1} * d, with d = beta_FE - beta_RE, df = k
+    var advancedScenarios = [
+        {
+            id: "firmTwoReg_advancedReject",
+            title: "Firm Output: Capital and Labor (Reject RE)",
+            description: "You estimate a production function with capital and labor using FE and RE on firm panel data.",
+            context: "More productive firms choose both higher capital and labor, violating the RE exogeneity assumption.",
+            k: 2,
+            betaFE: [0.50, -0.20],   // [capital, labor]
+            betaRE: [0.40, -0.10],
+            varFE: [
+                [0.010, 0.002],
+                [0.002, 0.005]
+            ],
+            varRE: [
+                [0.008, 0.0015],
+                [0.0015, 0.004]
+            ],
+            df: 2,
+            alpha: 0.05,
+            xLabels: ["log(K)", "log(L)"],
+            story: "FE suggests stronger capital effect and more negative labor coefficient than RE. This difference is consistent with positive correlation between (K,L) and productivity a_i.",
+            expectReject: true
+        },
+        {
+            id: "schoolClassSpending_advancedNoReject",
+            title: "School Outcomes: Class Size and Spending (Do Not Reject RE)",
+            description: "You estimate the effect of class size and per-pupil spending on test scores using FE and RE.",
+            context: "After controlling for observable school characteristics, it is plausible that unobserved school quality a_i is not strongly correlated with small year-to-year changes in X.",
+            k: 2,
+            betaFE: [-1.50, 0.30],   // [class size, spending]
+            betaRE: [-1.45, 0.32],
+            varFE: [
+                [0.004, 0.0008],
+                [0.0008, 0.003]
+            ],
+            varRE: [
+                [0.003, 0.0006],
+                [0.0006, 0.0025]
+            ],
+            df: 2,
+            alpha: 0.05,
+            xLabels: ["class size", "spending per pupil"],
+            story: "FE and RE give very similar estimates of both coefficients. This is consistent with RE being valid; Hausman should not reject.",
+            expectReject: false
+        }
+    ];
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById("btnModeBeginner").classList.toggle("active", mode === "beginner");
+        document.getElementById("btnModeAdvanced").classList.toggle("active", mode === "advanced");
+        // Reset the current scenario/question area when switching mode
+        currentScenario = null;
+        currentQuestions = [];
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Mode set to:", mode);
+    }
+
+    function generateScenario() {
+        var pool = (currentMode === "beginner") ? beginnerScenarios : advancedScenarios;
+        var idx = Math.floor(Math.random() * pool.length);
+        currentScenario = JSON.parse(JSON.stringify(pool[idx])); // deep copy
+        console.log("Scenario:", currentScenario.id, "mode:", currentMode);
+
+        // For advanced scenarios, compute Hausman statistic and store it
+        if (currentMode === "advanced") {
+            currentScenario.H = computeHausmanAdvanced(currentScenario);
+        } else {
+            currentScenario.H = computeHausmanBeginner(currentScenario);
+        }
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 FE vs RE Estimates</h4>';
+        html += '<div class="data-block">';
+
+        if (currentMode === "beginner") {
+            var varFE = s.seFE * s.seFE;
+            var varRE = s.seRE * s.seRE;
+
+            html += '<p><strong>Model:</strong> Panel regression of ' + s.yLabel +
+                    ' on ' + s.xLabel + ' with unobserved effects.</p>';
+            html += '<p style="margin-top:8px;font-size:0.9em;">We estimate the slope on ' +
+                    s.xLabel + ' using FE and RE.</p>';
+
+            html += '<table class="data-table" style="margin-top:12px;">';
+            html += '<thead><tr><th>Estimator</th><th>β̂</th><th>SE(β̂)</th><th>Var(β̂)</th></tr></thead><tbody>';
+            html += '<tr><td>FE</td><td>' + s.betaFE.toFixed(3) + '</td><td>' + s.seFE.toFixed(3) + '</td><td>' +
+                    varFE.toFixed(6) + '</td></tr>';
+            html += '<tr><td>RE</td><td>' + s.betaRE.toFixed(3) + '</td><td>' + s.seRE.toFixed(3) + '</td><td>' +
+                    varRE.toFixed(6) + '</td></tr>';
+            html += '</tbody></table>';
+
+            html += '<p style="margin-top:10px;font-size:0.9em;">';
+            html += '<strong>Null hypothesis (H₀):</strong> FE and RE estimate the same true coefficient (RE is consistent and efficient).<br>';
+            html += '<strong>Alternative (H₁):</strong> RE is inconsistent, FE is still consistent.</p>';
+
+            html += '<p style="margin-top:6px;font-size:0.9em;">';
+            html += '<strong>Hausman statistic (k = 1):</strong> H = (β̂_FE − β̂_RE)² / [Var(β̂_FE) − Var(β̂_RE)]. ';
+            html += 'Under H₀, H ~ χ²₁. The 5% critical value is about 3.84.';
+            html += '</p>';
+
+        } else {
+            // advanced: multi-regressor version
+            html += '<p><strong>Model:</strong> Panel regression with multiple regressors and unobserved effects.</p>';
+            html += '<p style="margin-top:8px;font-size:0.9em;">We compare the FE and RE estimates of the coefficient vector β.</p>';
+
+            html += '<table class="data-table" style="margin-top:12px;">';
+            html += '<thead><tr><th>Regressor</th><th>β̂_FE</th><th>β̂_RE</th></tr></thead><tbody>';
+            for (var j = 0; j < s.k; j++) {
+                html += '<tr><td>' + s.xLabels[j] + '</td><td>' +
+                        s.betaFE[j].toFixed(3) + '</td><td>' +
+                        s.betaRE[j].toFixed(3) + '</td></tr>';
+            }
+            html += '</tbody></table>';
+
+            html += '<p style="margin-top:10px;font-size:0.9em;"><strong>Variance–covariance matrices:</strong></p>';
+            html += '<table class="data-table" style="margin-top:8px;">';
+            html += '<thead><tr><th colspan="3">Var(β̂_FE)</th></tr></thead><tbody>';
+            for (var r = 0; r < s.k; r++) {
+                html += '<tr>';
+                for (var c = 0; c < s.k; c++) {
+                    html += '<td>' + s.varFE[r][c].toFixed(6) + '</td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+
+            html += '<table class="data-table" style="margin-top:8px;">';
+            html += '<thead><tr><th colspan="3">Var(β̂_RE)</th></tr></thead><tbody>';
+            for (var r2 = 0; r2 < s.k; r2++) {
+                html += '<tr>';
+                for (var c2 = 0; c2 < s.k; c2++) {
+                    html += '<td>' + s.varRE[r2][c2].toFixed(6) + '</td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+
+            html += '<p style="margin-top:10px;font-size:0.9em;">';
+            html += '<strong>Hausman statistic (k = ' + s.k + '):</strong><br>';
+            html += 'Let d = β̂_FE − β̂_RE and S = Var(β̂_FE) − Var(β̂_RE). Then H = d′S⁻¹d. Under H₀, H ~ χ²_k.';
+            html += '</p>';
+        }
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.story;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function computeHausmanBeginner(s) {
+        var varFE = s.seFE * s.seFE;
+        var varRE = s.seRE * s.seRE;
+        var diffVar = varFE - varRE;
+        var diffBeta = s.betaFE - s.betaRE;
+        if (diffVar <= 0) {
+            return NaN;
+        }
+        var H = (diffBeta * diffBeta) / diffVar;
+        return H;
+    }
+
+    function computeHausmanAdvanced(s) {
+        // d = betaFE - betaRE
+        var k = s.k;
+        var d = [];
+        for (var j = 0; j < k; j++) {
+            d.push(s.betaFE[j] - s.betaRE[j]);
+        }
+        // S = Var_FE - Var_RE
+        var S = [];
+        for (var r = 0; r < k; r++) {
+            var row = [];
+            for (var c = 0; c < k; c++) {
+                row.push(s.varFE[r][c] - s.varRE[r][c]);
+            }
+            S.push(row);
+        }
+        // Invert S (here k=2 in the scenarios)
+        if (k === 2) {
+            var a = S[0][0], b = S[0][1], c = S[1][0], d2 = S[1][1];
+            var det = a * d2 - b * c;
+            if (det <= 0) {
+                return NaN;
+            }
+            var invS = [
+                [ d2 / det, -b / det],
+                [-c / det,  a / det]
+            ];
+            // H = d' invS d
+            var temp0 = invS[0][0] * d[0] + invS[0][1] * d[1];
+            var temp1 = invS[1][0] * d[0] + invS[1][1] * d[1];
+            var H = d[0] * temp0 + d[1] * temp1;
+            return H;
+        } else {
+            // For k != 2, skip matrix inversion in this teaching tool
+            return NaN;
+        }
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (currentMode === "beginner") {
+            var varFE = s.seFE * s.seFE;
+            var varRE = s.seRE * s.seRE;
+            var diffVar = varFE - varRE;
+            var diffBeta = s.betaFE - s.betaRE;
+            var H = computeHausmanBeginner(s);
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "diffBeta_simple",
+                    type: "numeric",
+                    title: "🏁 Difference in slopes: β̂_FE − β̂_RE",
+                    prompt: "Compute the difference β̂_FE − β̂_RE for the single regressor.",
+                    correctValue: diffBeta,
+                    unitHint: "(slope units)"
+                });
+                currentQuestions.push({
+                    conceptId: "varFE_simple",
+                    type: "numeric",
+                    title: "🏁 Var(β̂_FE)",
+                    prompt: "Compute Var(β̂_FE) as SE(β̂_FE)².",
+                    correctValue: varFE,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "varRE_simple",
+                    type: "numeric",
+                    title: "🏁 Var(β̂_RE)",
+                    prompt: "Compute Var(β̂_RE) as SE(β̂_RE)².",
+                    correctValue: varRE,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "diffVar_simple",
+                    type: "numeric",
+                    title: "🏁 Var difference: Var(β̂_FE) − Var(β̂_RE)",
+                    prompt: "Compute Var(β̂_FE) − Var(β̂_RE). This goes in the denominator of the Hausman statistic.",
+                    correctValue: diffVar,
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "closeOrFar_simple",
+                    type: "numeric",
+                    title: "📊 Are FE and RE numerically close?",
+                    prompt: "Is |β̂_FE − β̂_RE| less than 0.02 in absolute value? Answer 1 for yes, 0 for no.",
+                    correctValue: (Math.abs(diffBeta) < 0.02 ? 1 : 0),
+                    unitHint: "(1 = yes, 0 = no)"
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "Hausman_simple",
+                    type: "numeric",
+                    title: "📉 Hausman statistic H (single regressor)",
+                    prompt: "Compute H = (β̂_FE − β̂_RE)² / [Var(β̂_FE) − Var(β̂_RE)].",
+                    correctValue: H,
+                    unitHint: "(χ² with 1 df)"
+                });
+                currentQuestions.push({
+                    conceptId: "reject_simple",
+                    type: "numeric",
+                    title: "📉 Decision at 5% (df = 1)",
+                    prompt: "At the 5% level, with df = 1, do we reject H₀ that FE and RE estimate the same true coefficient? (Critical value ≈ 3.84.) Answer 1 if H > 3.84, 0 otherwise.",
+                    correctValue: (H > 3.84 ? 1 : 0),
+                    unitHint: "(1 = reject, 0 = do not reject)"
+                });
+            }
+
+            if (chkInterpret) {
+                currentQuestions.push({
+                    conceptId: "interpret_simple",
+                    type: "open",
+                    title: "🧠 Interpretation (Beginner)",
+                    prompt: "Explain in words what your Hausman result implies for whether you should trust the RE estimate in this scenario. How would you report this in an empirical paper?",
+                    correctText: ""
+                });
+            }
+
+        } else {
+            // advanced
+            var k = s.k;
+            var d = [];
+            for (var j = 0; j < k; j++) {
+                d.push(s.betaFE[j] - s.betaRE[j]);
+            }
+            var S = [];
+            for (var r = 0; r < k; r++) {
+                var row = [];
+                for (var c = 0; c < k; c++) {
+                    row.push(s.varFE[r][c] - s.varRE[r][c]);
+                }
+                S.push(row);
+            }
+            var Hadv = s.H;
+
+            if (chkBaseline) {
+                currentQuestions.push({
+                    conceptId: "diffBeta1_adv",
+                    type: "numeric",
+                    title: "🏁 Difference for regressor 1: β̂_FE1 − β̂_RE1",
+                    prompt: "Compute the difference in β̂ for the first regressor (e.g., " + s.xLabels[0] + ").",
+                    correctValue: d[0],
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "diffBeta2_adv",
+                    type: "numeric",
+                    title: "🏁 Difference for regressor 2: β̂_FE2 − β̂_RE2",
+                    prompt: "Compute the difference in β̂ for the second regressor (e.g., " + s.xLabels[1] + ").",
+                    correctValue: d[1],
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "S11_adv",
+                    type: "numeric",
+                    title: "🏁 S(1,1) = Var_FE(1,1) − Var_RE(1,1)",
+                    prompt: "Compute S(1,1) = Var(β̂_FE1) − Var(β̂_RE1) from the variance matrices.",
+                    correctValue: S[0][0],
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "S22_adv",
+                    type: "numeric",
+                    title: "🏁 S(2,2) = Var_FE(2,2) − Var_RE(2,2)",
+                    prompt: "Compute S(2,2) = Var(β̂_FE2) − Var(β̂_RE2).",
+                    correctValue: S[1][1],
+                    unitHint: ""
+                });
+            }
+
+            if (chkOtherMeans) {
+                currentQuestions.push({
+                    conceptId: "largeDiff_adv",
+                    type: "numeric",
+                    title: "📊 Are FE and RE far apart in at least one coefficient?",
+                    prompt: "Is max_j |β̂_FE,j − β̂_RE,j| greater than 0.05? Answer 1 for yes, 0 for no.",
+                    correctValue: (Math.max(Math.abs(d[0]), Math.abs(d[1])) > 0.05 ? 1 : 0),
+                    unitHint: "(1 = yes, 0 = no)"
+                });
+            }
+
+            if (chkDifference) {
+                currentQuestions.push({
+                    conceptId: "Hausman_adv",
+                    type: "numeric",
+                    title: "📉 Hausman statistic H (matrix version)",
+                    prompt: "Compute H = d′S⁻¹d using the d and S implied by the tables (you may approximate).",
+                    correctValue: Hadv,
+                    unitHint: "(χ² with " + s.df + " df)"
+                });
+                currentQuestions.push({
+                    conceptId: "reject_adv",
+                    type: "numeric",
+                    title: "📉 Decision at 5% (df = " + s.df + ")",
+                    prompt: "At the 5% level, with df = " + s.df + ", do we reject H₀? For df=2, the 5% critical value is about 5.99. Answer 1 if H > 5.99, 0 otherwise.",
+                    correctValue: (Hadv > 5.99 ? 1 : 0),
+                    unitHint: "(1 = reject, 0 = do not reject)"
+                });
+            }
+
+            if (chkInterpret) {
+                currentQuestions.push({
+                    conceptId: "interpret_adv",
+                    type: "open",
+                    title: "🧠 Interpretation (Advanced)",
+                    prompt: "Explain what your Hausman result implies about correlation between a_i and the regressors in this scenario. Which estimator (FE or RE) would you use for reporting, and why?",
+                    correctText: ""
+                });
+            }
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Remember: Hausman compares FE and RE. If they differ a lot and H is large, trust FE; if they are similar, RE may be a good efficient choice.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.03); // ±3% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (currentMode === "beginner") {
+            var varFE = s.seFE * s.seFE;
+            var varRE = s.seRE * s.seRE;
+            var diffVar = varFE - varRE;
+            var diffBeta = s.betaFE - s.betaRE;
+            var H = computeHausmanBeginner(s);
+
+            if (q.conceptId === "diffBeta_simple") {
+                html += "The Hausman test starts by looking at the difference between FE and RE slopes:<br>";
+                html += "β̂_FE − β̂_RE = " + diffBeta.toFixed(3) +
+                        ". A large difference suggests RE might be inconsistent.";
+            } else if (q.conceptId === "varFE_simple") {
+                html += "Var(β̂_FE) is just SE(β̂_FE)². Here that is " + varFE.toFixed(6) + ".";
+            } else if (q.conceptId === "varRE_simple") {
+                html += "Var(β̂_RE) is SE(β̂_RE)². Here that is " + varRE.toFixed(6) + ".";
+            } else if (q.conceptId === "diffVar_simple") {
+                html += "The denominator of H is Var(β̂_FE) − Var(β̂_RE).<br>";
+                html += "Because RE is more efficient under H₀, Var(β̂_FE) should be larger, so this difference should be positive.";
+            } else if (q.conceptId === "closeOrFar_simple") {
+                html += "If FE and RE are numerically very close (difference near zero), the Hausman statistic H will also be small.";
+            } else if (q.conceptId === "Hausman_simple") {
+                html += "For a single regressor, H = (β̂_FE − β̂_RE)² / [Var(β̂_FE) − Var(β̂_RE)].<br>";
+                html += "Under H₀ (RE valid), H ~ χ²₁. Large H means FE and RE differ more than sampling variation alone would predict.";
+            } else if (q.conceptId === "reject_simple") {
+                html += "Compare H to the χ²₁ critical value 3.84 at 5%.<br>";
+                html += "If H > 3.84, reject H₀ and prefer FE; if H ≤ 3.84, do not reject and RE may be acceptable.";
+            } else if (q.conceptId === "interpret_simple") {
+                html += "<em>If Hausman rejects (H large):</em> there is evidence that corr(a_i, X_it) ≠ 0, so RE is inconsistent and FE is safer.<br>";
+                html += "<em>If Hausman does not reject:</em> FE and RE are statistically similar; you may report RE for efficiency, but it is still wise to discuss economic plausibility.";
+            } else {
+                html += "In this simple case, Hausman is just a squared t-test comparing FE and RE slopes, scaled by their variance difference.";
+            }
+
+        } else {
+            // advanced explanations
+            var k = s.k;
+            var d = [];
+            for (var j = 0; j < k; j++) {
+                d.push(s.betaFE[j] - s.betaRE[j]);
+            }
+            var S = [];
+            for (var r = 0; r < k; r++) {
+                var row = [];
+                for (var c = 0; c < k; c++) {
+                    row.push(s.varFE[r][c] - s.varRE[r][c]);
+                }
+                S.push(row);
+            }
+            var Hadv = s.H;
+
+            if (q.conceptId === "diffBeta1_adv" || q.conceptId === "diffBeta2_adv") {
+                html += "Form the vector of differences d = β̂_FE − β̂_RE. Each component tells you how much the FE and RE estimates disagree for that regressor.";
+            } else if (q.conceptId === "S11_adv" || q.conceptId === "S22_adv") {
+                html += "The matrix S = Var(β̂_FE) − Var(β̂_RE) captures how much noisier FE is compared to RE under H₀. It plays the role of the variance in the multivariate comparison.";
+            } else if (q.conceptId === "largeDiff_adv") {
+                html += "If at least one coefficient differs substantially between FE and RE, the Hausman statistic is likely to be large.";
+            } else if (q.conceptId === "Hausman_adv") {
+                html += "In matrix form, H = d′S⁻¹d where d is the difference vector and S is the difference in variance matrices.<br>";
+                html += "Under H₀, H ~ χ²_k. Large H relative to χ²_k critical values is evidence against RE.";
+            } else if (q.conceptId === "reject_adv") {
+                html += "Compare H to the χ²_k critical value (for k=2, about 5.99 at 5%).<br>";
+                html += "If H is larger, FE and RE differ more than can be explained by sampling error if RE were valid.";
+            } else if (q.conceptId === "interpret_adv") {
+                html += "<em>Interpretation:</em> a large Hausman statistic suggests that the pattern of FE vs RE differences is not just random noise. ";
+                html += "It indicates correlation between a_i and the regressors, so FE is consistent while RE is not. ";
+                html += "If H is small, FE and RE are similar and you might use RE for efficiency, but you should still justify the RE assumptions substantively.";
+            } else {
+                html += "In the advanced setting, Hausman is a multivariate generalization of comparing FE and RE: it combines differences across all coefficients, scaled by their joint covariance.";
+            }
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Hausman practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
