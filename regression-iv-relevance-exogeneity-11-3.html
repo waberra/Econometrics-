@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IV: Relevance & Exogeneity (Wooldridge 11.3)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .relevance-card { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .exog-card      { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .weak-card      { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 IV: Relevance & Exogeneity (Wooldridge 11.3)</h1>
+        <p>Practice checking instrument strength (relevance) and validity (exogeneity) using F- and J-tests</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: First-Stage F, Weak Instruments, and Overidentification Tests</h3>
+        <div class="measures-grid">
+            <div class="measure-card relevance-card">
+                <h4>Instrument Relevance</h4>
+                <div class="formula">
+                    1st stage: X₂ = ZΠ + V<br>
+                    H₀: excluded instruments have π = 0
+                </div>
+                <div class="description">
+                    Relevance means the excluded instruments are correlated with the endogenous regressors. We usually test this with an F-test in the first stage.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Always report first-stage F-statistics and partial R² for excluded instruments.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> F ≥ 10 ⇒ reasonably strong instruments; F very small ⇒ weak.
+                </div>
+            </div>
+
+            <div class="measure-card exog-card">
+                <h4>Instrument Exogeneity</h4>
+                <div class="formula">
+                    H₀: E(u | Z) = 0<br>
+                    Tested only if L &gt; K<sub>endo</sub>
+                </div>
+                <div class="description">
+                    Exogeneity means instruments are uncorrelated with the structural error. In overidentified models, we can test this using Sargan or Hansen J-tests.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Only in overidentified models (L > K_endog). Just-identified models cannot be overid-tested.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> J-statistic with df = L − K_endog; large J (small p) ⇒ some instrument invalid.
+                </div>
+            </div>
+
+            <div class="measure-card weak-card">
+                <h4>Weak Instruments</h4>
+                <div class="formula">
+                    Small 1st-stage F ⇒ weak<br>
+                    IV estimates noisy & biased
+                </div>
+                <div class="description">
+                    Weak instruments make 2SLS estimates unstable and can introduce large finite-sample bias. Relevance is a prerequisite before worrying about exogeneity tests.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> If F &lt; 10, proceed with caution; consider alternative instruments or methods.
+                </div>
+                <div class="examples">
+                    <strong>Symptom:</strong> Massive change from OLS to IV with huge standard errors and low first-stage F-statistics.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Putting It Together</h4>
+                <div class="formula">
+                    1️⃣ Check relevance (F)<br>
+                    2️⃣ Check exogeneity (J-test)<br>
+                    3️⃣ Compare OLS vs IV
+                </div>
+                <div class="description">
+                    A credible IV study shows: strong first stage, plausible economic story, non-rejection of overid tests (when available), and sensible IV estimates.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Empirical papers often show a table with OLS, 2SLS, first-stage, and overid test results.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> Do not lean heavily on J-tests if instruments are clearly weak.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: IV Relevance & Exogeneity</h3>
+            <p>
+                Each scenario describes an IV application, the number of endogenous regressors and instruments, the
+                first-stage F-statistic, and an overidentification J-test (when defined). Decide whether instruments are
+                strong, whether overid tests reject, and whether IV looks credible.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on the number of endogenous regressors and instruments, first-stage F-statistics, and the
+                    overidentification J-test. Use the rule-of-thumb F ≥ 10 and χ² critical values for J.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Identification counts</strong><br>Compute K_endog, L, and the number of overidentifying restrictions.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Relevance (first stage)</strong><br>Decide whether instruments are strong or weak from F-statistics.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Exogeneity (J-test)</strong><br>Check if the J-test rejects at 5% and whether IV looks credible overall.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain how you would report F and J in an empirical paper.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("IV relevance & exogeneity (11.3) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: combine first-stage F and J-test information
+    var scenarios = [
+        {
+            id: "educStrongValid",
+            title: "Returns to Education: Strong & Valid Instruments",
+            description: "You estimate returns to education using two instruments: distance to college and tuition level. Education is endogenous; you control for experience, gender, and region.",
+            context: "Instruments look strong in the first stage and the overid test does not reject.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·female + β₄·region + u",
+            endogenous: ["educ"],
+            instruments: ["DistCollege", "Tuition"],
+            exogenous: ["exper", "female", "region"],
+            nEndog: 1,
+            nInstr: 2,
+            Ffirst: 25.0,
+            // Overid: J-test
+            Jstat: 1.5,
+            dfJ: 1,
+            // approximate: χ²_1(0.95) ≈ 3.84
+            Jreject: 0,  // no reject at 5%
+            instrStrength: "strong",
+            overallValid: 1,  // relevance strong & J not reject
+            explanation:
+                "First-stage F ≈ 25 suggests strong instruments. With 1 overidentifying restriction and J ≈ 1.5 < 3.84, the overid test does not reject. IV looks reasonably credible here."
+        },
+        {
+            id: "demandInvalidInstr",
+            title: "Demand for a Product: Possible Invalid Instruments",
+            description: "You estimate a demand equation with price endogenous. You use three cost and policy shifters as instruments for price. Income enters as an exogenous control.",
+            context: "Instruments are reasonably strong but the overidentification test suggests some instrument may be invalid.",
+            structuralEq: "Q = β₀ + β₁·Price + β₂·Income + u",
+            endogenous: ["Price"],
+            instruments: ["CostShock", "TaxChange", "PolicyIndex"],
+            exogenous: ["Income"],
+            nEndog: 1,
+            nInstr: 3,
+            Ffirst: 12.0,
+            Jstat: 7.5,
+            dfJ: 2,
+            // χ²_2(0.95) ≈ 5.99, so reject
+            Jreject: 1,
+            instrStrength: "strong",
+            overallValid: 0,  // relevance OK, exogeneity suspect
+            explanation:
+                "First-stage F ≈ 12 suggests the instruments are not weak. But with df = 2, J ≈ 7.5 exceeds the 5% critical value (~5.99), so the overid test rejects the joint exogeneity of the instruments."
+        },
+        {
+            id: "weakButClean",
+            title: "Education & Wages: Weak but Apparently Exogenous Instruments",
+            description: "You use two institutional variables as instruments for education. They are only weakly related to education, but the overid test does not reject.",
+            context: "Illustrates that exogeneity tests are not very informative when instruments are weak.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·female + u",
+            endogenous: ["educ"],
+            instruments: ["Z1", "Z2"],
+            exogenous: ["exper", "female"],
+            nEndog: 1,
+            nInstr: 2,
+            Ffirst: 4.0,
+            Jstat: 0.8,
+            dfJ: 1,
+            // J < 3.84, so no rejection
+            Jreject: 0,
+            instrStrength: "weak",
+            overallValid: 0,  // exogeneity maybe fine, relevance not
+            explanation:
+                "First-stage F ≈ 4 suggests the instruments are weak. Although the overid test does not reject, weak instruments make the 2SLS estimates unreliable and J-tests have low power."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 IV Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural Equation, Instruments, and Tests</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equation:</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.structuralEq + '</span></p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Endogenous regressor(s):</strong> ' + s.endogenous.join(", ") + '<br>';
+        html += '<strong>Exogenous regressor(s):</strong> ' + s.exogenous.join(", ") + '<br>';
+        html += '<strong>Instrument(s):</strong> ' + s.instruments.join(", ") + '</p>';
+
+        var overid = s.nInstr - s.nEndog;
+        var balanced = overid > 0 ? "Overidentified" : (overid === 0 ? "Just identified" : "Underidentified (problem)");
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Quantity</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td># endogenous (K<sub>endo</sub>)</td><td>' + s.nEndog + '</td><td>Number of regressors treated as endogenous</td></tr>';
+        html += '<tr><td># instruments (L)</td><td>' + s.nInstr + '</td><td>Number of excluded instruments</td></tr>';
+        html += '<tr><td>Overidentifying restrictions</td><td>' + overid + '</td><td>L − K<sub>endo</sub> (' + balanced + ')</td></tr>';
+        html += '<tr><td>First-stage F</td><td>' + s.Ffirst.toFixed(1) + '</td><td>Relevance test; F ≥ 10 ⇒ strong</td></tr>';
+        if (overid > 0) {
+            html += '<tr><td>J-statistic</td><td>' + s.Jstat.toFixed(2) + '</td><td>Overid test statistic</td></tr>';
+            html += '<tr><td>df for J-test</td><td>' + s.dfJ + '</td><td>df = L − K<sub>endo</sub></td></tr>';
+        } else {
+            html += '<tr><td>J-test</td><td>Not available</td><td>Needs L &gt; K<sub>endo</sub> (overidentified model)</td></tr>';
+        }
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Critical values for J-test (5% level, χ²):</strong> with df = 1, ≈ 3.84; with df = 2, ≈ 5.99. ';
+        html += 'If J exceeds the relevant critical value, reject H₀ that all instruments are exogenous.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var overid = s.nInstr - s.nEndog;
+        var isOverId = overid > 0 ? 1 : 0;
+        var isJustId = overid === 0 ? 1 : 0;
+        var strongInstrFlag = (s.Ffirst >= 10) ? 1 : 0;
+        var weakFlag = (s.instrStrength === "weak") ? 1 : 0;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "nEndog",
+                type: "numeric",
+                title: "🏁 Number of endogenous regressors (K_endo)",
+                prompt: "How many endogenous regressors are there in this structural equation?",
+                correctValue: s.nEndog,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nInstr",
+                type: "numeric",
+                title: "🏁 Number of instruments (L)",
+                prompt: "How many excluded instruments are used for the endogenous regressor(s)?",
+                correctValue: s.nInstr,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "overid",
+                type: "numeric",
+                title: "🏁 Overidentifying restrictions (L − K_endo)",
+                prompt: "Compute the number of overidentifying restrictions: L − K_endo.",
+                correctValue: overid,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "isOverId",
+                type: "numeric",
+                title: "📊 Is the model overidentified?",
+                prompt: "Is L > K_endo? Answer 1 if the model is overidentified, 0 otherwise.",
+                correctValue: isOverId,
+                unitHint: "(1 = overidentified, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "isJustId",
+                type: "numeric",
+                title: "📊 Is the model just identified?",
+                prompt: "Is L = K_endo? Answer 1 if the model is just identified, 0 otherwise.",
+                correctValue: isJustId,
+                unitHint: "(1 = just identified, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "Fstrong",
+                type: "numeric",
+                title: "📊 Strong instruments (F ≥ 10)?",
+                prompt: "Using the first-stage F-statistic, are the instruments strong by the rule-of-thumb F ≥ 10? Answer 1 for yes, 0 for no.",
+                correctValue: strongInstrFlag,
+                unitHint: "(1 = strong, 0 = weak)"
+            });
+            currentQuestions.push({
+                conceptId: "weakFlag",
+                type: "numeric",
+                title: "📊 Are the instruments described as weak in the scenario?",
+                prompt: "Based on the text description, are the instruments described as weak (1) or not (0)?",
+                correctValue: weakFlag,
+                unitHint: "(1 = weak, 0 = not weak)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "canJtest",
+                type: "numeric",
+                title: "📉 Can we run an overidentification J-test?",
+                prompt: "Is the model overidentified (L > K_endo) so that a J-test is defined? Answer 1 for yes, 0 for no.",
+                correctValue: isOverId,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+
+            if (overid > 0) {
+                currentQuestions.push({
+                    conceptId: "dfJ",
+                    type: "numeric",
+                    title: "📉 Degrees of freedom for J-test",
+                    prompt: "What are the degrees of freedom for the J-test? (df = L − K_endo).",
+                    correctValue: s.dfJ,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "Jstat",
+                    type: "numeric",
+                    title: "📉 J-statistic value",
+                    prompt: "What is the reported J-test statistic?",
+                    correctValue: s.Jstat,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "Jreject",
+                    type: "numeric",
+                    title: "📉 Reject H₀ at 5% using χ² critical values?",
+                    prompt: "Using χ² critical values (≈ 3.84 for df=1, 5.99 for df=2), does the J-test reject H₀ that all instruments are exogenous at the 5% level? Answer 1 for yes, 0 for no.",
+                    correctValue: s.Jreject,
+                    unitHint: "(1 = reject, 0 = do not reject)"
+                });
+            }
+
+            currentQuestions.push({
+                conceptId: "overallValid",
+                type: "numeric",
+                title: "📉 Do the instruments look overall credible in this scenario?",
+                prompt: "Combining relevance (first-stage F) and the overid test (when available), would you say the instruments look overall credible? Answer 1 for yes, 0 for no.",
+                correctValue: s.overallValid,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: F-statistics and J-tests in practice",
+                prompt: "Explain in words how you would present and interpret the first-stage F-statistic and the J-test in this scenario. Would you trust the IV estimates? Why or why not?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: first check instrument relevance (F-statistics), then—if overidentified—use J-tests to assess exogeneity. Weak instruments make both IV estimates and J-tests hard to interpret.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var overid = s.nInstr - s.nEndog;
+        var isOverId = overid > 0;
+        var isJustId = overid === 0;
+        var strongInstrFlag = (s.Ffirst >= 10);
+        var weakFlag = (s.instrStrength === "weak");
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "nEndog") {
+            html += "Count how many regressors are explicitly treated as endogenous in the structural equation. ";
+            html += "These are the variables that require instruments.";
+        } else if (q.conceptId === "nInstr") {
+            html += "Count the excluded instruments used to predict the endogenous regressors in the first stage. ";
+            html += "These instruments should be relevant and exogenous.";
+        } else if (q.conceptId === "overid") {
+            html += "Overidentifying restrictions = L − K_endo. ";
+            html += "If > 0, the model is overidentified and you can run an overid test such as Sargan or Hansen J.";
+        } else if (q.conceptId === "isOverId") {
+            html += "If L > K_endo, the model is overidentified. ";
+            html += "This allows testing joint exogeneity of the instruments via a J-test.";
+        } else if (q.conceptId === "isJustId") {
+            html += "If L = K_endo, the model is just identified. ";
+            html += "2SLS is still defined, but you cannot use an overidentification test to check instrument validity.";
+        } else if (q.conceptId === "Fstrong") {
+            html += "The first-stage F-statistic summarizes how strongly the instruments explain the endogenous regressor(s). ";
+            html += "The common rule-of-thumb is F ≥ 10 for reasonably strong instruments.";
+        } else if (q.conceptId === "weakFlag") {
+            html += "If F is well below 10 (like 4), instruments are weak. ";
+            html += "Weak instruments produce noisy, potentially biased IV estimates and make J-tests low power.";
+        } else if (q.conceptId === "canJtest") {
+            html += "You can only run a J-test when the model is overidentified (L > K_endo). ";
+            html += "In just-identified models, the J-statistic is not defined.";
+        } else if (q.conceptId === "dfJ") {
+            html += "The degrees of freedom for the J-test equal the number of overidentifying restrictions: df = L − K_endo. ";
+            html += "You compare J to a χ²(df) critical value.";
+        } else if (q.conceptId === "Jstat") {
+            html += "The J-statistic measures how well the instruments, treated as a group, satisfy the exogeneity restrictions. ";
+            html += "A large J (relative to χ² critical values) suggests that at least one instrument is correlated with the error term.";
+        } else if (q.conceptId === "Jreject") {
+            html += "At the 5% level, reject H₀ if J exceeds the χ²(df) critical value (≈ 3.84 for df=1, 5.99 for df=2). ";
+            html += "Rejecting H₀ means at least one instrument may be invalid.";
+        } else if (q.conceptId === "overallValid") {
+            html += "To judge overall credibility, combine: (i) relevance (F-stat), (ii) overid test (when defined), and (iii) the economic story. ";
+            html += "Strong instruments with non-rejected J-tests are reassuring; weak or rejected cases call for caution.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In a paper, you would typically present a table with first-stage coefficients and F-statistics, ";
+            html += "the 2SLS estimates, and the J-test statistic and p-value (if overidentified), then comment on both instrument strength and validity.";
+        } else {
+            html += "Relevance and exogeneity are the two pillars of IV: without relevance, 2SLS is weak and noisy; without exogeneity, 2SLS is biased. ";
+            html += "F-tests help with relevance; J-tests (when possible) help with exogeneity.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("IV relevance & exogeneity practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
