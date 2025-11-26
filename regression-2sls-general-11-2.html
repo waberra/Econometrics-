@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Two-Stage Least Squares (2SLS) – General Case (Wooldridge 11.2)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .setup-card    { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .stages-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .id-card       { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Two-Stage Least Squares (2SLS) – General Case (Wooldridge 11.2)</h1>
+        <p>Practice identification, first stages, and interpretation when there are multiple instruments and endogenous regressors</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: General 2SLS, Identification, and First-Stage Diagnostics</h3>
+        <div class="measures-grid">
+            <div class="measure-card setup-card">
+                <h4>General IV/2SLS Setup</h4>
+                <div class="formula">
+                    Y = Xβ + u, &nbsp; X = [X<sub>1</sub> X<sub>2</sub>]<br>
+                    X<sub>1</sub>: exogenous, X<sub>2</sub>: endogenous
+                </div>
+                <div class="description">
+                    We allow several endogenous regressors (X₂) and several instruments (Z). Instruments must be correlated with X₂ (relevance) and uncorrelated with u (exogeneity).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Many economic models have multiple potentially endogenous variables.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Demand with price and advertising both endogenous, instrumented with cost shifters and policy shocks.
+                </div>
+            </div>
+
+            <div class="measure-card stages-card">
+                <h4>Two Stages in Matrix Form</h4>
+                <div class="formula">
+                    1st: X₂ = ZΠ + V<br>
+                    2nd: Y = X̂β + error, &nbsp; X̂ = [X₁  X̂₂]
+                </div>
+                <div class="description">
+                    First project each endogenous regressor on all instruments (and exogenous X₁). Second, regress Y on the fitted values X̂. This is equivalent to the IV estimator using the instrument set Z.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Any IV problem with more than one instrument or endogenous regressor.
+                </div>
+                <div class="examples">
+                    <strong>Note:</strong> Software does this matrix 2SLS automatically; we focus on interpretation and diagnostics.
+                </div>
+            </div>
+
+            <div class="measure-card id-card">
+                <h4>Identification & Overidentification</h4>
+                <div class="formula">
+                    Let L = # instruments for X₂,<br>
+                    K<sub>endo</sub> = # endogenous regressors<br>
+                    Over-ID restrictions: L − K<sub>endo</sub> ≥ 0
+                </div>
+                <div class="description">
+                    Just identified: L = K<sub>endo</sub>. Overidentified: L &gt; K<sub>endo</sub>. If L &lt; K<sub>endo</sub>, the model is underidentified and 2SLS cannot be computed.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Overidentification allows tests (e.g. Sargan/Hansen) but requires all instruments to be valid.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 1 endogenous, 2 instruments → 1 overidentifying restriction.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>First-Stage Diagnostics</h4>
+                <div class="formula">
+                    Strong instruments: large F in 1st stage<br>
+                    Weak instruments: small F, unstable 2SLS
+                </div>
+                <div class="description">
+                    In multiple IV settings, look at: first-stage F-statistics, partial R², and whether 2SLS estimates move a lot relative to OLS.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Always report first-stage results in IV applications.
+                </div>
+                <div class="examples">
+                    <strong>Rule of thumb:</strong> F ≥ 10 for each endogenous regressor suggests reasonably strong instruments.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive 2SLS Practice (General Case)</h3>
+            <p>
+                Each scenario shows an IV application with multiple instruments and possibly multiple endogenous regressors.
+                Practice checking identification, reading first stages, and interpreting 2SLS estimates.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the structural equation, list of endogenous regressors and instruments, and the reported first-stage
+                    and 2SLS results to answer the questions.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Identification counts</strong><br>Compute numbers of endogenous regressors, instruments, and overidentifying restrictions.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 First-stage strength</strong><br>Evaluate first-stage F-statistics and instrument strength.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 OLS vs 2SLS</strong><br>Compare OLS and 2SLS estimates and t-statistics.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain what 2SLS is doing and how you would report the results.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("2SLS general (11.2) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: multiple instruments and possibly multiple endogenous regressors
+    var scenarios = [
+        {
+            id: "educTwoInstruments",
+            title: "Returns to Education with Two Instruments",
+            description: "You estimate the causal effect of education on log wages. Education is endogenous. You have two instruments: distance to college (DistCollege) and tuition level (Tuition).",
+            context: "Think about identification (1 endogenous, 2 instruments), first-stage strength, and how 2SLS changes the estimated return.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·female + u",
+            endogenous: ["educ"],
+            instruments: ["DistCollege", "Tuition"],
+            exogenous: ["exper", "female"],
+            nEndog: 1,
+            nInstr: 2,
+            firstStageMain: "educ = 12.5 − 0.05·DistCollege − 0.03·Tuition + controls",
+            FfirstMain: 22.0,
+            betaOLS: 0.09,
+            seOLS: 0.008,
+            beta2SLS: 0.18,
+            se2SLS: 0.04,
+            explanation:
+                "With two strong instruments, the model is overidentified (1 overidentifying restriction). 2SLS suggests a larger return to education than OLS, consistent with ability bias in OLS.",
+            instrStrength: "strong" // F >= 10
+        },
+        {
+            id: "demandPriceAdvertising",
+            title: "Demand with Price and Advertising Endogenous",
+            description: "You estimate a demand equation where both price and advertising are chosen by the firm in response to demand shocks.",
+            context: "You have three cost and policy shifters that affect price and advertising but not demand shocks directly.",
+            structuralEq: "Q = β₀ + β₁·Price + β₂·Advert + β₃·Income + u",
+            endogenous: ["Price", "Advert"],
+            instruments: ["CostShock", "TaxChange", "AdRegulation"],
+            exogenous: ["Income"],
+            nEndog: 2,
+            nInstr: 3,
+            firstStageMain: "Each endogenous regressor is regressed on all three instruments and Income. First-stage F-statistics for Price and Advert are 18 and 15, respectively.",
+            FfirstMain: 16.5, // average or summary
+            betaOLS: -1.5,
+            seOLS: 0.3,
+            beta2SLS: -3.0,
+            se2SLS: 0.9,
+            explanation:
+                "The model has 2 endogenous variables and 3 instruments ⇒ 1 overidentifying restriction. Instruments are reasonably strong. 2SLS implies a more elastic demand than OLS.",
+            instrStrength: "strong"
+        },
+        {
+            id: "weakMultiInstr",
+            title: "Schooling and Wages with Weak Multiple Instruments",
+            description: "You use two candidate instruments for education, but both have weak first-stage relationships with educ.",
+            context: "Even with more than one instrument, the first-stage F-statistic is low.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·female + u",
+            endogenous: ["educ"],
+            instruments: ["Z1", "Z2"],
+            exogenous: ["exper", "female"],
+            nEndog: 1,
+            nInstr: 2,
+            firstStageMain: "educ = 12.0 + 0.01·Z1 + 0.015·Z2 + controls",
+            FfirstMain: 4.0,
+            betaOLS: 0.08,
+            seOLS: 0.010,
+            beta2SLS: 0.60,
+            se2SLS: 0.35,
+            explanation:
+                "Even with two instruments, the first-stage F-stat is only about 4. The 2SLS estimate is very imprecise and much larger than OLS, illustrating the weak instrument problem.",
+            instrStrength: "weak"
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 IV/2SLS Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural Equation, Endogenous Regressors, and Instruments</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equation of interest:</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.structuralEq + '</span></p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Endogenous regressor(s):</strong> ' + s.endogenous.join(", ") + '<br>';
+        html += '<strong>Exogenous regressor(s):</strong> ' + s.exogenous.join(", ") + '<br>';
+        html += '<strong>Instrument(s) for endogenous regressor(s):</strong> ' + s.instruments.join(", ") + '</p>';
+
+        html += '<p style="margin-top:8px;"><strong>First-stage summary for main endogenous regressor(s):</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.firstStageMain + '</span></p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Quantity</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td># endogenous regressors (K<sub>endo</sub>)</td><td>' + s.nEndog + '</td><td>Number of regressors treated as endogenous</td></tr>';
+        html += '<tr><td># instruments (L)</td><td>' + s.nInstr + '</td><td>Number of excluded instruments used for X₂</td></tr>';
+        var overid = s.nInstr - s.nEndog;
+        html += '<tr><td>Overidentifying restrictions</td><td>' + overid + '</td><td>L − K<sub>endo</sub>; if &gt; 0, model is overidentified</td></tr>';
+        html += '<tr><td>First-stage F (summary)</td><td>' + s.FfirstMain.toFixed(1) + '</td><td>Instrument relevance; rule-of-thumb: F ≥ 10</td></tr>';
+        html += '<tr><td>β̂ (OLS) on main endogenous regressor</td><td>' + s.betaOLS.toFixed(3) + '</td><td>Endogenous OLS estimate</td></tr>';
+        html += '<tr><td>SE(β̂ OLS)</td><td>' + s.seOLS.toFixed(3) + '</td><td>Standard error of OLS estimate</td></tr>';
+        html += '<tr><td>β̂ (2SLS)</td><td>' + s.beta2SLS.toFixed(3) + '</td><td>2SLS estimate using instruments</td></tr>';
+        html += '<tr><td>SE(β̂ 2SLS)</td><td>' + s.se2SLS.toFixed(3) + '</td><td>Standard error of 2SLS estimate</td></tr>';
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Interpretation:</strong> 2SLS uses only the part of the endogenous variable(s) explained by the instruments and exogenous regressors. ';
+        html += 'With L ≥ K<sub>endo</sub>, identification is possible; with L &gt; K<sub>endo</sub>, you have overidentifying restrictions that can be tested in later sections.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        var overid = s.nInstr - s.nEndog;
+        var isOverId = overid > 0 ? 1 : 0;
+        var isJustId = overid === 0 ? 1 : 0;
+        var strongInstrFlag = (s.FfirstMain >= 10) ? 1 : 0;
+        var instrStrengthFlag = (s.instrStrength === "strong") ? 1 : 0;
+
+        var tOLS   = s.betaOLS   / s.seOLS;
+        var t2SLS  = s.beta2SLS  / s.se2SLS;
+        var absTOLS  = Math.abs(tOLS);
+        var absT2SLS = Math.abs(t2SLS);
+        var sigOLS   = absTOLS  > 1.96 ? 1 : 0;
+        var sig2SLS  = absT2SLS > 1.96 ? 1 : 0;
+        var diffCoef = s.beta2SLS - s.betaOLS;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "nEndog",
+                type: "numeric",
+                title: "🏁 Number of endogenous regressors (K_endo)",
+                prompt: "How many endogenous regressors are there in this structural equation?",
+                correctValue: s.nEndog,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nInstr",
+                type: "numeric",
+                title: "🏁 Number of instruments (L)",
+                prompt: "How many excluded instruments are used for the endogenous regressor(s)?",
+                correctValue: s.nInstr,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "overid",
+                type: "numeric",
+                title: "🏁 Overidentifying restrictions: L − K_endo",
+                prompt: "Compute the number of overidentifying restrictions: L − K_endo.",
+                correctValue: overid,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "isOverId",
+                type: "numeric",
+                title: "📊 Is the model overidentified?",
+                prompt: "Is L > K_endo? Answer 1 if the model is overidentified, 0 otherwise.",
+                correctValue: isOverId,
+                unitHint: "(1 = overidentified, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "isJustId",
+                type: "numeric",
+                title: "📊 Is the model just identified?",
+                prompt: "Is L = K_endo? Answer 1 if the model is just identified, 0 otherwise.",
+                correctValue: isJustId,
+                unitHint: "(1 = just identified, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "Fstrong",
+                type: "numeric",
+                title: "📊 Strong instruments by F ≥ 10 rule?",
+                prompt: "Using the summary first-stage F-statistic, are the instruments strong by the rule of thumb F ≥ 10? Answer 1 for yes, 0 for no.",
+                correctValue: strongInstrFlag,
+                unitHint: "(1 = strong, 0 = weak)"
+            });
+            currentQuestions.push({
+                conceptId: "instrStrengthFlag",
+                type: "numeric",
+                title: "📊 How is instrument strength described in the scenario?",
+                prompt: "According to the text description (not just the F-stat), are the instruments described as strong (1) or weak (0)?",
+                correctValue: instrStrengthFlag,
+                unitHint: "(1 = strong, 0 = weak)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "tOLS",
+                type: "numeric",
+                title: "📉 t-statistic for OLS estimate",
+                prompt: "Compute the OLS t-statistic on the main endogenous regressor: t_OLS = β̂_OLS / SE(β̂_OLS).",
+                correctValue: tOLS,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "t2SLS",
+                type: "numeric",
+                title: "📉 t-statistic for 2SLS estimate",
+                prompt: "Compute the 2SLS t-statistic on the main endogenous regressor: t_2SLS = β̂_2SLS / SE(β̂_2SLS).",
+                correctValue: t2SLS,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "sigOLS",
+                type: "numeric",
+                title: "📉 Is the OLS effect significant at 5%?",
+                prompt: "At the 5% level (two-sided), is the OLS coefficient statistically significant? Answer 1 if |t_OLS| > 1.96, 0 otherwise.",
+                correctValue: sigOLS,
+                unitHint: "(1 = significant, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "sig2SLS",
+                type: "numeric",
+                title: "📉 Is the 2SLS effect significant at 5%?",
+                prompt: "At the 5% level (two-sided), is the 2SLS coefficient statistically significant? Answer 1 if |t_2SLS| > 1.96, 0 otherwise.",
+                correctValue: sig2SLS,
+                unitHint: "(1 = significant, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "diffCoef",
+                type: "numeric",
+                title: "📉 Difference β̂_2SLS − β̂_OLS",
+                prompt: "Compute β̂_2SLS − β̂_OLS. A large difference may indicate substantial endogeneity or weak instruments.",
+                correctValue: diffCoef,
+                unitHint: ""
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: General 2SLS in This Scenario",
+                prompt: "Explain in words how 2SLS is working here: (i) what is endogenous, (ii) what the instruments are, (iii) whether the model is just- or overidentified, and (iv) how you would present the OLS vs 2SLS results in a paper.",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: in the general 2SLS case, you track (i) which regressors are endogenous, (ii) how many instruments you have, (iii) whether identification is just or over, and (iv) how 2SLS changes estimates and significance relative to OLS.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var overid = s.nInstr - s.nEndog;
+        var isOverId = overid > 0;
+        var isJustId = overid === 0;
+        var strongInstrFlag = (s.FfirstMain >= 10);
+        var instrStrengthFlag = (s.instrStrength === "strong");
+
+        var tOLS   = s.betaOLS  / s.seOLS;
+        var t2SLS  = s.beta2SLS / s.se2SLS;
+        var absTOLS  = Math.abs(tOLS);
+        var absT2SLS = Math.abs(t2SLS);
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "nEndog") {
+            html += "Count how many regressors are explicitly labeled as endogenous in the structural equation. ";
+            html += "These regressors require instruments for identification.";
+        } else if (q.conceptId === "nInstr") {
+            html += "Count the excluded instruments: variables that appear in the first stage but not in the structural equation. ";
+            html += "These provide exogenous variation for the endogenous regressors.";
+        } else if (q.conceptId === "overid") {
+            html += "Overidentifying restrictions = L − K_endo. ";
+            html += "If this number is negative, the model is underidentified; if zero, just identified; if positive, overidentified.";
+        } else if (q.conceptId === "isOverId") {
+            html += "The model is overidentified if you have more instruments than endogenous regressors (L > K_endo). ";
+            html += "Overidentification allows testing instrument validity later (e.g. Sargan/Hansen).";
+        } else if (q.conceptId === "isJustId") {
+            html += "The model is just identified if L = K_endo. ";
+            html += "2SLS is still possible, but you cannot test instrument validity using overidentification tests.";
+        } else if (q.conceptId === "Fstrong") {
+            html += "The first-stage F-statistic summarizes instrument relevance. ";
+            html += "The rule-of-thumb F ≥ 10 is often used to flag reasonably strong instruments.";
+        } else if (q.conceptId === "instrStrengthFlag") {
+            html += "Use both the numerical F-statistic and the substantive discussion to judge instrument strength. ";
+            html += "Even with multiple instruments, a weak first stage can lead to very imprecise and unreliable 2SLS estimates.";
+        } else if (q.conceptId === "tOLS") {
+            html += "The OLS t-statistic is t_OLS = β̂_OLS / SE(β̂_OLS). ";
+            html += "It tells you how many standard errors the estimate is away from zero, under the (often unrealistic) assumption that X is exogenous.";
+        } else if (q.conceptId === "t2SLS") {
+            html += "The 2SLS t-statistic is t_2SLS = β̂_2SLS / SE(β̂_2SLS). ";
+            html += "2SLS often has larger SEs than OLS because it uses only instrument-induced variation.";
+        } else if (q.conceptId === "sigOLS") {
+            html += "Use |t_OLS| > 1.96 as a simple 5% two-sided rule. ";
+            html += "OLS may show strong significance even when it is biased due to endogeneity.";
+        } else if (q.conceptId === "sig2SLS") {
+            html += "Use |t_2SLS| > 1.96 for 5% significance. ";
+            html += "If 2SLS is less significant than OLS, that reflects both corrected bias and the fact that IV is less precise.";
+        } else if (q.conceptId === "diffCoef") {
+            html += "Comparing β̂_2SLS − β̂_OLS is a useful diagnostic. ";
+            html += "A big difference suggests that endogeneity in OLS was substantial, or that instruments are weak and 2SLS is very noisy.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In a paper, you would: (i) state which regressors are endogenous, (ii) list and justify the instruments, ";
+            html += "(iii) report first-stage results and F-statistics, (iv) report OLS and 2SLS estimates side-by-side, and ";
+            html += "(v) discuss identification (just vs overidentified) and, in later sections, overidentification tests.";
+        } else {
+            html += "General 2SLS is conceptually the same as simple IV: use exogenous variation from instruments to identify the causal effect of endogenous regressors, checking both identification (L vs K_endo) and instrument strength (first-stage diagnostics).";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("2SLS general practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
