@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Instrumental Variables: Basics (Wooldridge 11.1)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .endog-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .iv-card      { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .twosls-card  { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card{ background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Instrumental Variables: Basics (Wooldridge 11.1)</h1>
+        <p>Practice the logic of IV, relevance/exogeneity, and simple 2SLS with one endogenous regressor</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Endogeneity, Instruments, and 2SLS</h3>
+        <div class="measures-grid">
+            <div class="measure-card endog-card">
+                <h4>Endogeneity Problem</h4>
+                <div class="formula">
+                    Y = β₀ + β₁X + u,  &nbsp; with  &nbsp; corr(X, u) ≠ 0
+                </div>
+                <div class="description">
+                    OLS requires X to be exogenous: E(u | X) = 0. If X is correlated with u (omitted variables, simultaneity, measurement error), OLS is biased and inconsistent.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Returns to education, price–quantity relationships, policy variables chosen in response to outcomes.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Ability affects both education and wages ⇒ corr(educ, u) ≠ 0.
+                </div>
+            </div>
+
+            <div class="measure-card iv-card">
+                <h4>What is an Instrument?</h4>
+                <div class="formula">
+                    Z correlated with X (relevance)<br>
+                    Z uncorrelated with u (exogeneity)
+                </div>
+                <div class="description">
+                    An instrument Z helps isolate variation in X that is not contaminated by u. IV uses only the part of X explained by Z.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Policy changes, distance variables, random assignment, lags of X (sometimes).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Distance to college as an instrument for education.
+                </div>
+            </div>
+
+            <div class="measure-card twosls-card">
+                <h4>Simple 2SLS (One Endogenous X)</h4>
+                <div class="formula">
+                    1st stage: X = π₀ + π₁Z + v<br>
+                    2nd stage: Y = β₀ + β₁X̂ + error
+                </div>
+                <div class="description">
+                    First predict X using Z; then regress Y on the predicted X̂. This gives the IV/2SLS estimator β̂₁<sup>IV</sup>.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When you have at least one valid instrument for each endogenous regressor.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Wage on education, instrumented with distance to college.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>IV vs OLS</h4>
+                <div class="formula">
+                    OLS: biased but precise<br>
+                    IV: consistent but less precise
+                </div>
+                <div class="description">
+                    IV often has larger standard errors than OLS, because it uses only part of the variation in X. Good instruments must be both relevant and credible.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When exogeneity is doubtful and you can argue for a strong, plausibly exogenous instrument.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> Weak instruments (small first-stage F) can make IV unreliable.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive IV Practice (Single Endogenous Regressor)</h3>
+            <p>
+                Each scenario shows a simple IV application with one endogenous regressor and one instrument.
+                Practice checking relevance, computing simple IV/2SLS estimates, and comparing IV to OLS.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Use the first-stage and reduced-form regressions to compute the IV estimate, check instrument relevance,
+                    and compare IV with OLS.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 First stage & reduced form</strong><br>Work with π̂₁ and δ̂₁ from the two regressions.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 IV estimate from ratios</strong><br>Compute β̂₁<sup>IV</sup> using δ̂₁ / π̂₁.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Compare OLS vs IV</strong><br>See how IV changes the estimated effect and significance.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain why IV is needed and whether the instrument is credible.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("IV basics (11.1) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Simple IV scenarios: one endogenous X and one instrument Z
+    // We use the ratio form: β_IV = δ1 / π1 where:
+    // First stage:   X = π0 + π1 Z + v
+    // Reduced form:  Y = δ0 + δ1 Z + e
+    var scenarios = [
+        {
+            id: "educDistance",
+            title: "Returns to Education, Instrumented by Distance to College",
+            description: "You are interested in the causal effect of education on log wages. Education is likely endogenous because ability affects both education and wages.",
+            context: "Use distance to the nearest college (DistCollege) as an instrument for education.",
+            model: "log(wage) = β₀ + β₁·educ + u",
+            xLabel: "educ (years)",
+            zLabel: "DistCollege (km)",
+            firstStage: "educ = 14.0 − 0.04·DistCollege",
+            reducedForm: "log(wage) = 2.0 − 0.010·DistCollege",
+            pi1: -0.04,
+            delta1: -0.010,
+            Ffirst: 25.0,
+            betaOLS: 0.10,
+            betaIV: (-0.010)/(-0.04), // 0.25
+            explanation:
+                "Distance to college is negatively related to education (relevance) and is plausibly exogenous once we control for region. IV suggests a larger return to education than OLS.",
+            instrumentStrength: "strong" // F > 10
+        },
+        {
+            id: "priceDemand",
+            title: "Demand for a Product, Instrumented by Cost Shifter",
+            description: "You model quantity demanded as a function of price. Price is endogenous because supply and demand are jointly determined.",
+            context: "Use an exogenous cost shifter (CostShock) as an instrument for price.",
+            model: "Q = β₀ + β₁·Price + u",
+            xLabel: "Price",
+            zLabel: "CostShock",
+            firstStage: "Price = 5.0 + 0.8·CostShock",
+            reducedForm: "Q = 100 − 6.4·CostShock",
+            pi1: 0.8,
+            delta1: -6.4,
+            Ffirst: 50.0,
+            betaOLS: -2.0,
+            betaIV: (-6.4)/(0.8), // -8
+            explanation:
+                "The cost shifter strongly affects price but is assumed not to affect demand directly. IV finds a much more elastic (steeper) demand curve than OLS.",
+            instrumentStrength: "strong"
+        },
+        {
+            id: "weakInstrument",
+            title: "Schooling and Wages with a Weak Instrument",
+            description: "You revisit the returns to education, but now the instrument (Z) is only weakly correlated with education.",
+            context: "First-stage F is small, raising concerns about weak instruments.",
+            model: "log(wage) = β₀ + β₁·educ + u",
+            xLabel: "educ (years)",
+            zLabel: "Z (weak instrument)",
+            firstStage: "educ = 12.0 + 0.02·Z",
+            reducedForm: "log(wage) = 1.8 + 0.03·Z",
+            pi1: 0.02,
+            delta1: 0.03,
+            Ffirst: 3.0,
+            betaOLS: 0.08,
+            betaIV: (0.03)/(0.02), // 1.5
+            explanation:
+                "Because the instrument is weak, the IV estimate is extremely imprecise and implausibly large. This illustrates the dangers of weak instruments.",
+            instrumentStrength: "weak"
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 IV Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Endogeneity and Instrument in This Scenario</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equation (of interest):</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.model + '</span></p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Endogenous regressor:</strong> ' + s.xLabel + '<br>';
+        html += '<strong>Proposed instrument:</strong> ' + s.zLabel + '</p>';
+
+        html += '<p style="margin-top:8px;"><strong>First stage (effect of Z on X):</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.firstStage + '</span></p>';
+
+        html += '<p style="margin-top:8px;"><strong>Reduced form (effect of Z on Y):</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.reducedForm + '</span></p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Quantity</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td>π̂₁</td><td>' + s.pi1.toFixed(3) + '</td><td>Effect of Z on X (first stage)</td></tr>';
+        html += '<tr><td>δ̂₁</td><td>' + s.delta1.toFixed(3) + '</td><td>Effect of Z on Y (reduced form)</td></tr>';
+        html += '<tr><td>F-stat (first stage)</td><td>' + s.Ffirst.toFixed(1) + '</td><td>Instrument relevance test (F &gt; 10 ≈ strong)</td></tr>';
+        html += '<tr><td>β̂₁ (OLS)</td><td>' + s.betaOLS.toFixed(3) + '</td><td>Endogenous OLS estimate</td></tr>';
+        html += '<tr><td>β̂₁ (IV)</td><td>' + s.betaIV.toFixed(3) + '</td><td>IV estimate using Z as instrument</td></tr>';
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key IV identity (one endogenous X, one Z):</strong><br>';
+        html += 'β̂₁<sup>IV</sup> = δ̂₁ / π̂₁ = (effect of Z on Y) / (effect of Z on X).';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        var betaIVcalc = s.delta1 / s.pi1;
+        var strongInstr = (s.Ffirst >= 10) ? 1 : 0;
+        var instrStrengthFlag = (s.instrumentStrength === "strong") ? 1 : 0;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "pi1",
+                type: "numeric",
+                title: "🏁 First-stage slope π̂₁",
+                prompt: "Read off π̂₁ from the first-stage equation (effect of " + s.zLabel + " on " + s.xLabel + ").",
+                correctValue: s.pi1,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "delta1",
+                type: "numeric",
+                title: "🏁 Reduced-form slope δ̂₁",
+                prompt: "Read off δ̂₁ from the reduced-form equation (effect of " + s.zLabel + " on Y).",
+                correctValue: s.delta1,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "betaIV",
+                type: "numeric",
+                title: "📊 IV estimate β̂₁<sup>IV</sup> = δ̂₁ / π̂₁",
+                prompt: "Compute the IV estimate β̂₁<sup>IV</sup> using β̂₁<sup>IV</sup> = δ̂₁ / π̂₁.",
+                correctValue: betaIVcalc,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "Fstrong",
+                type: "numeric",
+                title: "📊 Is the instrument strong by the F ≥ 10 rule?",
+                prompt: "Using the first-stage F-statistic, is the instrument strong according to the common rule of thumb F ≥ 10? Answer 1 for yes, 0 for no.",
+                correctValue: strongInstr,
+                unitHint: "(1 = strong, 0 = weak)"
+            });
+        }
+
+        if (chkDifference) {
+            var diffIV_OLS = s.betaIV - s.betaOLS;
+
+            currentQuestions.push({
+                conceptId: "diffIV_OLS",
+                type: "numeric",
+                title: "📉 Difference between IV and OLS estimates",
+                prompt: "Compute β̂₁(IV) − β̂₁(OLS). A large difference suggests substantial endogeneity or weak instruments.",
+                correctValue: diffIV_OLS,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "instrStrengthFlag",
+                type: "numeric",
+                title: "📉 Is the instrument described as strong or weak in the scenario?",
+                prompt: "Based on the textual description (not just the F-stat), is the instrument treated as strong (1) or weak (0) in this scenario?",
+                correctValue: instrStrengthFlag,
+                unitHint: "(1 = strong, 0 = weak)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Why IV and is Z credible?",
+                prompt: "Explain why OLS is likely biased in this scenario, how the instrument Z helps, and whether you find the instrument plausible. How would you present the IV vs OLS results in a paper?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: IV replaces biased OLS with a consistent estimator that uses only variation in X coming from Z. The quality of IV hinges on instrument relevance and exogeneity.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var betaIVcalc = s.delta1 / s.pi1;
+        var strongInstr = (s.Ffirst >= 10) ? 1 : 0;
+        var diffIV_OLS = s.betaIV - s.betaOLS;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "pi1") {
+            html += "π̂₁ comes from the first-stage regression X on Z. ";
+            html += "It measures how strongly the instrument moves the endogenous regressor.";
+        } else if (q.conceptId === "delta1") {
+            html += "δ̂₁ comes from the reduced-form regression Y on Z. ";
+            html += "It measures how Z shifts the outcome through all channels (including via X).";
+        } else if (q.conceptId === "betaIV") {
+            html += "With one endogenous regressor and one instrument, the IV slope equals the ratio of reduced-form to first-stage slopes:<br>";
+            html += "β̂₁<sup>IV</sup> = δ̂₁ / π̂₁. ";
+            html += "Intuitively: effect of Z on Y divided by effect of Z on X.";
+        } else if (q.conceptId === "Fstrong") {
+            html += "The first-stage F-statistic tests whether the instrument is relevant. ";
+            html += "A common rule of thumb is F ≥ 10 for a 'strong' instrument. Smaller values raise weak instrument concerns.";
+        } else if (q.conceptId === "diffIV_OLS") {
+            html += "Comparing IV and OLS is diagnostic. Large differences can mean that endogeneity bias in OLS is substantial, ";
+            html += "or that the instrument is weak and IV is very noisy. Context and instrument strength both matter.";
+        } else if (q.conceptId === "instrStrengthFlag") {
+            html += "Use both numbers (F-stat) and story (design) to judge strength. ";
+            html += "A very weak first stage makes IV estimates unstable and often implausible.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In practice, you would: (i) explain why X is endogenous, (ii) justify Z as relevant and exogenous, ";
+            html += "(iii) report first-stage results and F-stat, and (iv) present both OLS and IV estimates, discussing differences.";
+        } else {
+            html += "IV is all about isolating exogenous variation in X using Z. The ratio form is a simple way to see how that works.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("IV basics practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
