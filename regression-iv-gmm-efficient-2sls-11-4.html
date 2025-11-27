@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Efficient 2SLS & GMM (Wooldridge 11.4)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .moments-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .w-card         { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .efficiency-card{ background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Efficient 2SLS & GMM (Wooldridge 11.4)</h1>
+        <p>Practice viewing 2SLS as a GMM estimator and understanding when efficient GMM improves on 2SLS</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Moment Conditions, Weighting, and Efficient GMM</h3>
+        <div class="measures-grid">
+            <div class="measure-card moments-card">
+                <h4>Moment Conditions for IV/GMM</h4>
+                <div class="formula">
+                    E[ Zᵀ u(β) ] = 0, &nbsp; u(β) = Y − Xβ
+                </div>
+                <div class="description">
+                    IV and GMM are based on moment conditions: on average, instruments Z should be uncorrelated with the error term u(β). Each instrument adds one moment condition.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Count # moments = # instruments × # equations (usually 1 equation in basic IV).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 1 equation, 3 instruments ⇒ 3 scalar moments.
+                </div>
+            </div>
+
+            <div class="measure-card w-card">
+                <h4>GMM Weighting Matrix</h4>
+                <div class="formula">
+                    GMM minimizes: ḡ(β)ᵀ W ḡ(β)<br>
+                    Efficient: W ≈ [Var(√n ḡ(β))]⁻¹
+                </div>
+                <div class="description">
+                    Different choices of W give different GMM estimators. 2SLS corresponds to a particular W based on ZᵀZ, while efficient GMM uses an estimate of the optimal W that accounts for heteroskedasticity.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Heteroskedasticity-robust IV estimation (Hansen GMM).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Two-step GMM: 1st step uses simple W, 2nd step uses estimated optimal W.
+                </div>
+            </div>
+
+            <div class="measure-card efficiency-card">
+                <h4>2SLS vs Efficient GMM</h4>
+                <div class="formula">
+                    Homoskedastic errors ⇒ 2SLS is efficient IV<br>
+                    Heteroskedastic errors ⇒ Efficient GMM can improve SEs
+                </div>
+                <div class="description">
+                    Under homoskedasticity, conventional 2SLS is already asymptotically efficient among IV estimators. Under heteroskedasticity, GMM with an optimal weighting matrix is more efficient.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Often use robust 2SLS or GMM in practice, especially with cross-sectional heteroskedasticity.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Cross-section wage regressions with heteroskedastic residuals by education.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>GMM J-Test</h4>
+                <div class="formula">
+                    J = n · ḡ(β̂)ᵀ W ḡ(β̂) ~ χ²(df)<br>
+                    df = #moments − #parameters
+                </div>
+                <div class="description">
+                    In GMM, the J-statistic is both an overidentification test and a GMM objective value. For IV-GMM, this is the familiar Hansen J-test discussed in 11.3.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Check instrument exogeneity when overidentified, now in a robust GMM framework.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 1 endogenous, 3 instruments ⇒ df = 2 for J-test.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Efficient 2SLS & GMM</h3>
+            <p>
+                Each scenario describes an IV setup, the number of instruments and parameters, the presence or absence of
+                heteroskedasticity, and GMM vs 2SLS results. Practice counting moments, degrees of freedom, and deciding
+                when GMM improves on 2SLS.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on the number of instruments (moments), number of parameters, whether the model is overidentified,
+                    and how 2SLS compares to efficient GMM in terms of standard errors and tests.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Moments & parameters</strong><br>Compute number of moments, parameters, and overidentifying restrictions.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Efficiency & heteroskedasticity</strong><br>Decide whether GMM should be more efficient than 2SLS.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 J-test & fit</strong><br>Interpret the J-statistic and degrees of freedom.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain how you’d report 2SLS vs GMM results in a paper.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Efficient 2SLS & GMM (11.4) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: simple IV-GMM set-ups emphasizing homoskedastic vs heteroskedastic, moments, df, and J.
+    var scenarios = [
+        {
+            id: "homoskedasticCase",
+            title: "Returns to Education – Homoskedastic Case",
+            description: "You estimate returns to education with education endogenous and two instruments (distance to college and tuition). You assume homoskedastic errors.",
+            context: "In this case, 2SLS is already efficient among IV estimators; GMM coincides with 2SLS.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + u",
+            endogenous: ["educ"],
+            instruments: ["DistCollege", "Tuition"],
+            exogenous: ["exper"],
+            nEndog: 1,
+            nInstr: 2,
+            nParams: 3, // β0, β1, β2 (for main equation)
+            homoskedastic: 1,
+            // J-test info
+            Jstat: 1.2,
+            dfJ: 1,
+            Jreject: 0,
+            beta2SLS: 0.10,
+            se2SLS: 0.02,
+            betaGMM: 0.10,
+            seGMM: 0.02,
+            explanation:
+                "Under homoskedasticity, 2SLS is efficient within IV, and efficient GMM gives the same point estimates and asymptotic variance as standard 2SLS."
+        },
+        {
+            id: "heteroskedasticImprove",
+            title: "Demand with Heteroskedastic Errors – GMM Improvement",
+            description: "You estimate a demand equation with price endogenous and three instruments (two cost shifters and a tax variable). Residual plots suggest strong heteroskedasticity related to income.",
+            context: "Here, efficient GMM can improve on 2SLS by using a heteroskedasticity-robust weighting matrix.",
+            structuralEq: "Q = β₀ + β₁·Price + β₂·Income + u",
+            endogenous: ["Price"],
+            instruments: ["CostShock1", "CostShock2", "TaxVar"],
+            exogenous: ["Income"],
+            nEndog: 1,
+            nInstr: 3,
+            nParams: 3, // β0, β1, β2
+            homoskedastic: 0,
+            Jstat: 3.0,
+            dfJ: 2,
+            Jreject: 0,
+            beta2SLS: -1.6,
+            se2SLS: 0.6,
+            betaGMM: -1.7,
+            seGMM: 0.4,
+            explanation:
+                "With heteroskedasticity, efficient GMM uses a better weighting matrix than 2SLS and can yield smaller standard errors. The J-test does not reject, suggesting instruments are reasonably valid."
+        },
+        {
+            id: "heteroskedasticWeak",
+            title: "Education & Wages – Weak Instruments and GMM",
+            description: "You use two weak institutional instruments for education. There is also evidence of heteroskedasticity. 2SLS and GMM give very noisy estimates.",
+            context: "Illustrates that GMM cannot fix the weak instrument problem; efficiency gains are limited or irrelevant when the first stage is weak.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + u",
+            endogenous: ["educ"],
+            instruments: ["Z1", "Z2"],
+            exogenous: ["exper"],
+            nEndog: 1,
+            nInstr: 2,
+            nParams: 3,
+            homoskedastic: 0,
+            Jstat: 0.5,
+            dfJ: 1,
+            Jreject: 0,
+            beta2SLS: 0.80,
+            se2SLS: 0.50,
+            betaGMM: 0.75,
+            seGMM: 0.48,
+            explanation:
+                "Even with efficient GMM, weak instruments yield imprecise, unstable estimates. Heteroskedasticity-robust GMM improves asymptotic efficiency, but the weak first stage is still the main problem."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 IV/GMM Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural Equation, Instruments, and 2SLS vs GMM</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equation:</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.structuralEq + '</span></p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Endogenous regressor(s):</strong> ' + s.endogenous.join(", ") + '<br>';
+        html += '<strong>Exogenous regressor(s):</strong> ' + s.exogenous.join(", ") + '<br>';
+        html += '<strong>Instrument(s):</strong> ' + s.instruments.join(", ") + '</p>';
+
+        var nMoments = s.nInstr;  // 1 equation, so #moments = #instruments
+        var overid = nMoments - s.nParams; // strictly GMM: df = moments - parameters
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Quantity</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td># parameters (β)</td><td>' + s.nParams + '</td><td>Parameters in the structural equation</td></tr>';
+        html += '<tr><td># instruments (moments)</td><td>' + nMoments + '</td><td>Number of moment conditions from instruments</td></tr>';
+        html += '<tr><td>Overidentifying restrictions (df for J)</td><td>' + overid + '</td><td>df = #moments − #parameters</td></tr>';
+        html += '<tr><td>Homoskedasticity?</td><td>' + (s.homoskedastic ? "Yes" : "No") + '</td><td>Homoskedastic ⇒ 2SLS efficient; Heteroskedastic ⇒ GMM more efficient</td></tr>';
+        html += '<tr><td>β̂₂SLS (main endogenous regressor)</td><td>' + s.beta2SLS.toFixed(3) + '</td><td>2SLS estimate</td></tr>';
+        html += '<tr><td>SE₂SLS</td><td>' + s.se2SLS.toFixed(3) + '</td><td>Standard error (robust or classical)</td></tr>';
+        html += '<tr><td>β̂_GMM</td><td>' + s.betaGMM.toFixed(3) + '</td><td>Efficient GMM estimate</td></tr>';
+        html += '<tr><td>SE_GMM</td><td>' + s.seGMM.toFixed(3) + '</td><td>GMM standard error</td></tr>';
+
+        if (overid > 0) {
+            html += '<tr><td>J-statistic</td><td>' + s.Jstat.toFixed(2) + '</td><td>GMM overidentification test</td></tr>';
+            html += '<tr><td>df for J-test</td><td>' + s.dfJ + '</td><td>df should equal #overidentifying restrictions</td></tr>';
+        } else {
+            html += '<tr><td>J-test</td><td>Not available</td><td>Need overidentification (#moments > #parameters)</td></tr>';
+        }
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key idea:</strong> 2SLS is a special case of GMM with a simple weighting matrix. Efficient GMM uses an estimate of the optimal weighting matrix that accounts for heteroskedasticity, often improving standard errors when heteroskedasticity is present.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        var nMoments = s.nInstr; // single equation
+        var overid = nMoments - s.nParams;
+        var canJ = overid > 0 ? 1 : 0;
+        var homoskFlag = s.homoskedastic ? 1 : 0;
+
+        var t2SLS = s.beta2SLS / s.se2SLS;
+        var tGMM  = s.betaGMM  / s.seGMM;
+        var absT2SLS = Math.abs(t2SLS);
+        var absTGMM  = Math.abs(tGMM);
+        var sig2SLS  = absT2SLS > 1.96 ? 1 : 0;
+        var sigGMM   = absTGMM  > 1.96 ? 1 : 0;
+        var seImproved = (s.seGMM < s.se2SLS) ? 1 : 0;
+
+        // For J-test decision at 5% (if defined)
+        var JrejectCorrect = s.Jreject;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "nParams",
+                type: "numeric",
+                title: "🏁 Number of parameters",
+                prompt: "How many parameters β are estimated in the structural equation?",
+                correctValue: s.nParams,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nMoments",
+                type: "numeric",
+                title: "🏁 Number of GMM moments",
+                prompt: "With one equation, how many moment conditions are there? (Hint: equal to the number of instruments.)",
+                correctValue: nMoments,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "overid",
+                type: "numeric",
+                title: "🏁 Overidentifying restrictions (df for J)",
+                prompt: "Compute the number of overidentifying restrictions: #moments − #parameters.",
+                correctValue: overid,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "homoskFlag",
+                type: "numeric",
+                title: "📊 Are errors assumed homoskedastic?",
+                prompt: "According to the scenario, are the errors assumed homoskedastic? Answer 1 for yes, 0 for no.",
+                correctValue: homoskFlag,
+                unitHint: "(1 = homoskedastic, 0 = heteroskedastic)"
+            });
+            currentQuestions.push({
+                conceptId: "seImproved",
+                type: "numeric",
+                title: "📊 Does GMM have smaller SE than 2SLS?",
+                prompt: "Compare SE_GMM and SE_2SLS. Is the GMM standard error smaller? Answer 1 for yes, 0 for no.",
+                correctValue: seImproved,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "t2SLS",
+                type: "numeric",
+                title: "📉 t-statistic for 2SLS estimate",
+                prompt: "Compute t_2SLS = β̂_2SLS / SE_2SLS.",
+                correctValue: t2SLS,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "tGMM",
+                type: "numeric",
+                title: "📉 t-statistic for GMM estimate",
+                prompt: "Compute t_GMM = β̂_GMM / SE_GMM.",
+                correctValue: tGMM,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "sig2SLS",
+                type: "numeric",
+                title: "📉 Is the 2SLS estimate significant at 5%?",
+                prompt: "Is |t_2SLS| > 1.96? Answer 1 if yes, 0 otherwise.",
+                correctValue: sig2SLS,
+                unitHint: "(1 = significant, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "sigGMM",
+                type: "numeric",
+                title: "📉 Is the GMM estimate significant at 5%?",
+                prompt: "Is |t_GMM| > 1.96? Answer 1 if yes, 0 otherwise.",
+                correctValue: sigGMM,
+                unitHint: "(1 = significant, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "canJ",
+                type: "numeric",
+                title: "📉 Is the J-test defined in this scenario?",
+                prompt: "Is the model overidentified (#moments > #parameters), so that a J-test is defined? Answer 1 for yes, 0 for no.",
+                correctValue: canJ,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+
+            if (overid > 0) {
+                currentQuestions.push({
+                    conceptId: "dfJ",
+                    type: "numeric",
+                    title: "📉 Degrees of freedom for J-test",
+                    prompt: "What is the df for the J-test? (df = #moments − #parameters).",
+                    correctValue: s.dfJ,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "Jstat",
+                    type: "numeric",
+                    title: "📉 J-statistic value",
+                    prompt: "What is the reported J-statistic in this scenario?",
+                    correctValue: s.Jstat,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "Jreject",
+                    type: "numeric",
+                    title: "📉 Does the J-test reject H₀ at 5%?",
+                    prompt: "Using χ² critical values (≈ 3.84 for df=1, 5.99 for df=2), should we reject H₀ that all instruments are valid? Answer 1 for yes, 0 for no.",
+                    correctValue: JrejectCorrect,
+                    unitHint: "(1 = reject, 0 = do not reject)"
+                });
+            }
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: 2SLS vs Efficient GMM",
+                prompt: "Explain how you would describe 2SLS and efficient GMM in this scenario in an empirical paper. Would you emphasize GMM over 2SLS? Why or why not?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: 2SLS is a special case of GMM. Under homoskedasticity, 2SLS is already efficient; under heteroskedasticity, efficient GMM can improve precision but cannot fix weak instruments.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var nMoments = s.nInstr;
+        var overid = nMoments - s.nParams;
+        var homoskFlag = s.homoskedastic ? 1 : 0;
+
+        var t2SLS = s.beta2SLS / s.se2SLS;
+        var tGMM  = s.betaGMM  / s.seGMM;
+        var absT2SLS = Math.abs(t2SLS);
+        var absTGMM  = Math.abs(tGMM);
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "nParams") {
+            html += "The number of parameters is the number of coefficients in the structural equation (including the intercept). ";
+            html += "In GMM, you compare #moments to #parameters to determine overidentification.";
+        } else if (q.conceptId === "nMoments") {
+            html += "With one structural equation, each instrument generates one scalar moment condition. ";
+            html += "So #moments = #instruments in these examples.";
+        } else if (q.conceptId === "overid") {
+            html += "Overidentifying restrictions = #moments − #parameters. ";
+            html += "If this is positive, the model is overidentified and you can run a J-test.";
+        } else if (q.conceptId === "homoskFlag") {
+            html += "Under homoskedasticity, standard 2SLS is efficient among IV estimators. ";
+            html += "Efficient GMM then coincides with 2SLS in large samples.";
+        } else if (q.conceptId === "seImproved") {
+            html += "If SE_GMM < SE_2SLS under heteroskedasticity, GMM is achieving the promised efficiency gain by using a better weighting matrix. ";
+            html += "If they are similar, the gain is small in this scenario.";
+        } else if (q.conceptId === "t2SLS") {
+            html += "The 2SLS t-statistic is t_2SLS = β̂_2SLS / SE_2SLS. ";
+            html += "Use |t| > 1.96 as a 5% rule-of-thumb for significance in large samples.";
+        } else if (q.conceptId === "tGMM") {
+            html += "The GMM t-statistic is t_GMM = β̂_GMM / SE_GMM. ";
+            html += "If GMM is more efficient, SE_GMM tends to be smaller and |t_GMM| can be larger.";
+        } else if (q.conceptId === "sig2SLS") {
+            html += "Check whether |t_2SLS| > 1.96. ";
+            html += "Remember, significance does not prove identification or instrument validity; it just reflects sampling variation given the model.";
+        } else if (q.conceptId === "sigGMM") {
+            html += "Check whether |t_GMM| > 1.96. ";
+            html += "If GMM is more efficient and the underlying identification is valid, you may see more precise estimates than with 2SLS.";
+        } else if (q.conceptId === "canJ") {
+            html += "The J-test is defined only when the model is overidentified (more moments than parameters). ";
+            html += "In just-identified models, ḡ(β̂) must be exactly zero at the solution, so there is no room for an overid test.";
+        } else if (q.conceptId === "dfJ") {
+            html += "The degrees of freedom for J is df = #moments − #parameters. ";
+            html += "You compare J to χ²(df) critical values to decide whether to reject.";
+        } else if (q.conceptId === "Jstat") {
+            html += "The J-statistic is the minimized GMM objective function evaluated at β̂. ";
+            html += "Larger values (relative to χ²(df)) indicate that the moment conditions fit poorly, suggesting instrument problems.";
+        } else if (q.conceptId === "Jreject") {
+            html += "At the 5% level, reject H₀ that all instruments are valid if J is greater than the χ²(df) critical value. ";
+            html += "If J is below the critical value, you do not reject, but that does not prove validity—only that the data do not contradict it strongly.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += "In a paper, you would usually report both 2SLS and heteroskedasticity-robust GMM estimates, highlight that 2SLS is a special case of GMM, ";
+            html += "and comment on whether GMM changes the standard errors or significance. You would also report the Hansen J-test (if defined) as an overidentification check.";
+        } else {
+            html += "Remember: 2SLS is GMM with a particular weighting matrix. Efficient GMM improves the weighting, especially under heteroskedasticity, but cannot solve weak instrument issues.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Efficient 2SLS & GMM practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
