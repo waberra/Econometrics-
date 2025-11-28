@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IV Overidentification Tests (Sargan & Hansen J) – Wooldridge 11.5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .sargan-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .hansen-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .df-card       { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 IV Overidentification Tests (Sargan & Hansen J) – Wooldridge 11.5</h1>
+        <p>Practice using Sargan and Hansen J-tests to assess instrument exogeneity in overidentified IV models</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Sargan Test, Hansen J-Test, and Overidentification</h3>
+        <div class="measures-grid">
+            <div class="measure-card sargan-card">
+                <h4>Sargan Test (Homoskedastic)</h4>
+                <div class="formula">
+                    J<sub>Sargan</sub> = n · R²<sub>aux</sub>  (from regression of 2SLS residuals on instruments)<br>
+                    J<sub>Sargan</sub> ~ χ²(df), &nbsp; df = L − K<sub>endo</sub>
+                </div>
+                <div class="description">
+                    The Sargan test uses residuals from 2SLS and assumes homoskedastic errors. It checks whether instruments are uncorrelated with the error term.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Older IV applications under homoskedasticity; not robust to heteroskedasticity.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 1 endogenous, 3 instruments ⇒ df = 2; reject if J_Sargan > χ²₂(0.95) ≈ 5.99.
+                </div>
+            </div>
+
+            <div class="measure-card hansen-card">
+                <h4>Hansen J-Test (Robust GMM)</h4>
+                <div class="formula">
+                    J<sub>Hansen</sub> = n · ḡ(β̂)ᵀ Ŵ ḡ(β̂)  ~ χ²(df)<br>
+                    df = #moments − #parameters
+                </div>
+                <div class="description">
+                    The Hansen J-test comes from GMM and is robust to heteroskedasticity and some forms of serial correlation, as long as the weighting matrix and SEs are computed robustly.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Modern IV/GMM applications, especially with heteroskedasticity.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Same df as Sargan in the IV case, but robust standard errors and weighting matrix.
+                </div>
+            </div>
+
+            <div class="measure-card df-card">
+                <h4>Degrees of Freedom & Identification</h4>
+                <div class="formula">
+                    df = L − K<sub>endo</sub> (IV-GMM)<br>
+                    Need L &gt; K<sub>endo</sub>
+                </div>
+                <div class="description">
+                    Overidentification tests are only defined when there are more instruments than endogenous regressors. In just-identified models (L = K<sub>endo</sub>), the test is not available.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Check L and K_endog before interpreting any J-statistic.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 1 endogenous, 1 instrument ⇒ df = 0 ⇒ no Sargan/Hansen test.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Interpreting Overid Tests</h4>
+                <div class="formula">
+                    H₀: All instruments are exogenous<br>
+                    Large J ⇒ reject H₀
+                </div>
+                <div class="description">
+                    If J is larger than the χ²(df) critical value, we reject the hypothesis that all instruments are valid. If J is small, we do not reject—but this does not prove validity, especially with weak instruments.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Combine J-test with first-stage F and economic reasoning.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Weak instruments often give low J (no rejection) but that does not make them good instruments.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Overidentification Tests</h3>
+            <p>
+                Each scenario describes an IV model with multiple instruments. You’ll compute df, check whether Sargan and Hansen tests
+                are defined, and decide whether to reject instrument validity at the 5% level.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on the number of endogenous regressors (K_endog), the number of instruments (L), whether the model is
+                    overidentified, and how to read Sargan and Hansen J-statistics.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Identification counts</strong><br>Compute K_endog, L, and the number of overidentifying restrictions.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Which tests are defined?</strong><br>Decide when Sargan and Hansen J are available, and which is robust.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Reject or not?</strong><br>Interpret Sargan and Hansen J-statistics at the 5% level.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain how you’d report these overidentification tests in a paper.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Overidentification tests (11.5) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: combine Sargan, Hansen J, df, and homosk/heterosk distinction
+    var scenarios = [
+        {
+            id: "wageStrongValid",
+            title: "Returns to Education – Strong & Valid Instruments (Homoskedastic)",
+            description: "You estimate returns to education with educ endogenous and three instruments (distance to college, tuition, college density). You assume homoskedastic errors.",
+            context: "Classic case where Sargan and Hansen J coincide asymptotically and suggest valid instruments.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·female + u",
+            endogenous: ["educ"],
+            instruments: ["DistCollege", "Tuition", "CollegeDensity"],
+            exogenous: ["exper", "female"],
+            nEndog: 1,
+            nInstr: 3,
+            homoskedastic: 1,
+            SarganStat: 2.0,
+            dfSargan: 2,
+            SarganReject: 0, // χ²2(0.95)=5.99
+            HansenStat: 2.1,
+            dfHansen: 2,
+            HansenReject: 0,
+            explanation:
+                "With 1 endogenous regressor and 3 instruments, you have 2 overidentifying restrictions. Both Sargan and Hansen J are small relative to χ²₂(0.95) ≈ 5.99, so you do not reject instrument exogeneity."
+        },
+        {
+            id: "demandHeteroskConflict",
+            title: "Demand – Heteroskedastic Errors, Conflicting Sargan vs Hansen",
+            description: "You estimate a demand equation with price endogenous and three instruments. Residual plots and tests indicate strong heteroskedasticity.",
+            context: "Sargan (homoskedastic) suggests OK instruments, but robust Hansen J rejects.",
+            structuralEq: "Q = β₀ + β₁·Price + β₂·Income + u",
+            endogenous: ["Price"],
+            instruments: ["CostShock1", "CostShock2", "TaxChange"],
+            exogenous: ["Income"],
+            nEndog: 1,
+            nInstr: 3,
+            homoskedastic: 0,
+            SarganStat: 2.5,
+            dfSargan: 2,
+            SarganReject: 0, // no reject if you (wrongly) assume homosk
+            HansenStat: 8.0,
+            dfHansen: 2,
+            HansenReject: 1, // reject with robust test
+            explanation:
+                "Under heteroskedasticity, the Sargan test is not reliable; it may under-reject. The robust Hansen J-statistic of about 8 with df=2 exceeds 5.99, so you reject joint instrument exogeneity at 5%."
+        },
+        {
+            id: "weakButJok",
+            title: "Education & Wages – Weak Instruments, Non-Rejected J",
+            description: "You use two weak institutional instruments for education. There is evidence of heteroskedasticity. 2SLS and GMM estimates are very imprecise.",
+            context: "Illustrates that a non-rejected J-test does not rescue weak instruments; J has low power with weak first-stage.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + u",
+            endogenous: ["educ"],
+            instruments: ["Z1", "Z2"],
+            exogenous: ["exper"],
+            nEndog: 1,
+            nInstr: 2,
+            homoskedastic: 0,
+            SarganStat: 0.7,
+            dfSargan: 1,
+            SarganReject: 0,
+            HansenStat: 0.6,
+            dfHansen: 1,
+            HansenReject: 0,
+            explanation:
+                "With 1 endogenous and 2 instruments, df=1. Both Sargan and Hansen J are small, so you do not reject. But the instruments are weak, so the J-test has very little power; you still should not trust the IV estimates."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 IV Overidentification Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural Equation, Instruments, and Overid Tests</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equation:</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.structuralEq + '</span></p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Endogenous regressor(s):</strong> ' + s.endogenous.join(", ") + '<br>';
+        html += '<strong>Exogenous regressor(s):</strong> ' + s.exogenous.join(", ") + '<br>';
+        html += '<strong>Instrument(s):</strong> ' + s.instruments.join(", ") + '</p>';
+
+        var overid = s.nInstr - s.nEndog;
+        var modelType = overid > 0 ? "Overidentified" : (overid === 0 ? "Just identified" : "Underidentified (problem)");
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Quantity</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td># endogenous regressors (K<sub>endo</sub>)</td><td>' + s.nEndog + '</td><td>Regressors treated as endogenous</td></tr>';
+        html += '<tr><td># instruments (L)</td><td>' + s.nInstr + '</td><td>Excluded instruments used for IV</td></tr>';
+        html += '<tr><td>Overidentifying restrictions</td><td>' + overid + '</td><td>L − K<sub>endo</sub> (' + modelType + ')</td></tr>';
+        html += '<tr><td>Homoskedasticity assumed?</td><td>' + (s.homoskedastic ? "Yes" : "No") + '</td><td>Sargan relies on homoskedasticity; Hansen J is robust</td></tr>';
+
+        if (overid > 0) {
+            html += '<tr><td>Sargan statistic</td><td>' + s.SarganStat.toFixed(2) + '</td><td>2SLS-based, homoskedastic</td></tr>';
+            html += '<tr><td>df for Sargan</td><td>' + s.dfSargan + '</td><td>df = L − K<sub>endo</sub></td></tr>';
+            html += '<tr><td>Hansen J statistic</td><td>' + s.HansenStat.toFixed(2) + '</td><td>Robust GMM J-test</td></tr>';
+            html += '<tr><td>df for Hansen J</td><td>' + s.dfHansen + '</td><td>df = L − K<sub>endo</sub></td></tr>';
+        } else {
+            html += '<tr><td>Sargan / Hansen J</td><td>Not available</td><td>Need overidentification: L &gt; K<sub>endo</sub></td></tr>';
+        }
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Critical values (5% level, χ²):</strong> df = 1 ⇒ 3.84; df = 2 ⇒ 5.99. ';
+        html += 'If the test statistic exceeds the critical value, reject H₀ that all instruments are exogenous.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var overid = s.nInstr - s.nEndog;
+        var isOverId = overid > 0 ? 1 : 0;
+        var isJustId = overid === 0 ? 1 : 0;
+        var canSargan = (overid > 0) ? 1 : 0;
+        var canHansen = (overid > 0) ? 1 : 0;
+        var robustPreferred = (s.homoskedastic ? 0 : 1); // prefer Hansen under heteroskedasticity
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "nEndog",
+                type: "numeric",
+                title: "🏁 Number of endogenous regressors (K_endo)",
+                prompt: "How many endogenous regressors are there in this structural equation?",
+                correctValue: s.nEndog,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nInstr",
+                type: "numeric",
+                title: "🏁 Number of instruments (L)",
+                prompt: "How many excluded instruments are used in this IV setup?",
+                correctValue: s.nInstr,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "overid",
+                type: "numeric",
+                title: "🏁 Overidentifying restrictions (L − K_endo)",
+                prompt: "Compute the number of overidentifying restrictions: L − K_endo.",
+                correctValue: overid,
+                unitHint: ""
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "isOverId",
+                type: "numeric",
+                title: "📊 Is the model overidentified?",
+                prompt: "Is L > K_endo? Answer 1 if the model is overidentified, 0 otherwise.",
+                correctValue: isOverId,
+                unitHint: "(1 = overidentified, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "isJustId",
+                type: "numeric",
+                title: "📊 Is the model just identified?",
+                prompt: "Is L = K_endo? Answer 1 if the model is just identified, 0 otherwise.",
+                correctValue: isJustId,
+                unitHint: "(1 = just identified, 0 = not)"
+            });
+            currentQuestions.push({
+                conceptId: "canSargan",
+                type: "numeric",
+                title: "📊 Is the Sargan test defined?",
+                prompt: "Is the Sargan test defined in this model (L > K_endo)? Answer 1 for yes, 0 for no.",
+                correctValue: canSargan,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "canHansen",
+                type: "numeric",
+                title: "📊 Is the Hansen J-test defined?",
+                prompt: "Is the Hansen J-test defined (i.e., is the model overidentified)? Answer 1 for yes, 0 for no.",
+                correctValue: canHansen,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "robustPreferred",
+                type: "numeric",
+                title: "📊 Should we prefer Hansen J over Sargan in this scenario?",
+                prompt: "Given the heteroskedasticity assumption, should we prefer the robust Hansen J-test (1) or not (0)?",
+                correctValue: robustPreferred,
+                unitHint: "(1 = prefer Hansen, 0 = Sargan is fine)"
+            });
+        }
+
+        if (chkDifference) {
+            if (overid > 0) {
+                currentQuestions.push({
+                    conceptId: "dfSargan",
+                    type: "numeric",
+                    title: "📉 Degrees of freedom for Sargan test",
+                    prompt: "What are the degrees of freedom for the Sargan test? (df = L − K_endo).",
+                    correctValue: s.dfSargan,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "SarganStat",
+                    type: "numeric",
+                    title: "📉 Sargan statistic value",
+                    prompt: "What is the Sargan test statistic reported in this scenario?",
+                    correctValue: s.SarganStat,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "SarganReject",
+                    type: "numeric",
+                    title: "📉 Does Sargan reject H₀ at 5%?",
+                    prompt: "Using χ² critical values (≈ 3.84 for df=1, 5.99 for df=2), does the Sargan test reject instrument validity at 5%? Answer 1 for yes, 0 for no.",
+                    correctValue: s.SarganReject,
+                    unitHint: "(1 = reject, 0 = do not reject)"
+                });
+                currentQuestions.push({
+                    conceptId: "dfHansen",
+                    type: "numeric",
+                    title: "📉 Degrees of freedom for Hansen J-test",
+                    prompt: "What are the degrees of freedom for the Hansen J-test? (df = L − K_endo).",
+                    correctValue: s.dfHansen,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "HansenStat",
+                    type: "numeric",
+                    title: "📉 Hansen J statistic value",
+                    prompt: "What is the Hansen J statistic reported in this scenario?",
+                    correctValue: s.HansenStat,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "HansenReject",
+                    type: "numeric",
+                    title: "📉 Does Hansen J reject H₀ at 5%?",
+                    prompt: "Using χ² critical values (≈ 3.84 for df=1, 5.99 for df=2), does the Hansen J-test reject instrument validity at 5%? Answer 1 for yes, 0 for no.",
+                    correctValue: s.HansenReject,
+                    unitHint: "(1 = reject, 0 = do not reject)"
+                });
+            }
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Sargan vs Hansen in this scenario",
+                prompt: "Explain how you would report the Sargan and Hansen J-tests in this scenario in an empirical paper. Would you trust the instruments? Why or why not?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: overidentification tests require L > K_endog, Sargan is homoskedastic-only, Hansen J is robust. Non-rejection is comforting but not conclusive, especially with weak instruments.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var overid = s.nInstr - s.nEndog;
+        var isOverId = overid > 0;
+        var isJustId = overid === 0;
+        var canSargan = isOverId;
+        var canHansen = isOverId;
+        var robustPreferred = (s.homoskedastic ? 0 : 1);
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "nEndog") {
+            html += "Count how many regressors in the structural equation are treated as endogenous. ";
+            html += "Each endogenous regressor needs at least one instrument for identification.";
+        } else if (q.conceptId === "nInstr") {
+            html += "Count the excluded instruments (those that appear in first stage but not in the structural equation). ";
+            html += "These determine L and therefore the number of overidentifying restrictions.";
+        } else if (q.conceptId === "overid") {
+            html += "Overidentifying restrictions = L − K_endo. ";
+            html += "If this is greater than zero, you can run Sargan/Hansen tests.";
+        } else if (q.conceptId === "isOverId") {
+            html += "If L > K_endo, the model is overidentified. ";
+            html += "This allows you to test whether the extra instruments are consistent with exogeneity.";
+        } else if (q.conceptId === "isJustId") {
+            html += "If L = K_endo, the model is just identified. ";
+            html += "In that case the overidentification tests are not defined.";
+        } else if (q.conceptId === "canSargan") {
+            html += "The Sargan test is only defined if the model is overidentified (L > K_endo). ";
+            html += "It also assumes homoskedastic errors, so it is not reliable under heteroskedasticity.";
+        } else if (q.conceptId === "canHansen") {
+            html += "The Hansen J-test is also defined only when the model is overidentified. ";
+            html += "Unlike Sargan, it is robust to heteroskedasticity when you use robust GMM.";
+        } else if (q.conceptId === "robustPreferred") {
+            html += "When there is heteroskedasticity, you should rely on Hansen J rather than Sargan. ";
+            html += "Under homoskedasticity they coincide asymptotically, but Hansen J remains robust in more general settings.";
+        } else if (q.conceptId === "dfSargan") {
+            html += "For IV, the Sargan test uses df = L − K_endo. ";
+            html += "This equals the number of overidentifying restrictions.";
+        } else if (q.conceptId === "SarganStat") {
+            html += "The Sargan statistic is based on regressing 2SLS residuals on the instruments. ";
+            html += "A large value relative to χ²(df) suggests instrument invalidity under homoskedasticity.";
+        } else if (q.conceptId === "SarganReject") {
+            html += "Compare the Sargan statistic to χ²(df) at the 5% level (e.g. 3.84 for df=1, 5.99 for df=2). ";
+            html += "If the statistic is larger, you reject the null that all instruments are exogenous.";
+        } else if (q.conceptId === "dfHansen") {
+            html += "The Hansen J-test also uses df = L − K_endo in the IV-GMM case. ";
+            html += "The logic is the same: each extra instrument beyond identification provides one restriction to test.";
+        } else if (q.conceptId === "HansenStat") {
+            html += "The Hansen J statistic is the GMM objective at the estimated parameters, scaled by n. ";
+            html += "It is robust to heteroskedasticity provided the weighting matrix is computed robustly.";
+        } else if (q.conceptId === "HansenReject") {
+            html += "Again compare J to χ²(df). If J exceeds the critical value, you reject the joint null that all instruments are valid. ";
+            html += "When Sargan and Hansen disagree under heteroskedasticity, trust Hansen J.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In a paper, you would typically report the Hansen J-test (and possibly Sargan when homoskedastic), ";
+            html += "state the df and p-value, and say whether you reject instrument validity. You would also remind the reader that non-rejection does not prove validity, especially when instruments are weak.";
+        } else {
+            html += "Overidentification tests are one piece of the IV credibility puzzle. ";
+            html += "They are useful only when the model is overidentified and instruments are reasonably strong; otherwise, their power can be very low.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Overidentification tests practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
