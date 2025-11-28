@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IV Functional Form & Exogeneity Tests – Wooldridge 11.6</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .ff-card       { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .ivreset-card  { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .instr-card    { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practice-card { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 IV Functional Form & Exogeneity Tests (Wooldridge 11.6)</h1>
+        <p>Practice testing functional form and instrument exogeneity in IV/GMM settings</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: IV-RESET, Added Terms, and Extra Instruments</h3>
+        <div class="measures-grid">
+            <div class="measure-card ff-card">
+                <h4>Functional Form in IV</h4>
+                <div class="formula">
+                    Y = Xβ + u, &nbsp; X may need squares, interactions, logs
+                </div>
+                <div class="description">
+                    Even in IV, you must worry about functional form: omission of nonlinear terms (like X², X³, log(X)) can bias estimates and invalidate instruments.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Add powers of fitted values or regressors and test them jointly.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Add \^Ŷ², \^Ŷ³ or educ² to check nonlinearities in a wage equation.
+                </div>
+            </div>
+
+            <div class="measure-card ivreset-card">
+                <h4>IV-RESET–Type Tests</h4>
+                <div class="formula">
+                    H₀: Added nonlinear terms have zero coefficients<br>
+                    Use F-test on added terms
+                </div>
+                <div class="description">
+                    An IV version of RESET adds functions of predicted values (or regressors) to the IV regression and tests whether they matter. Rejection suggests functional form problems.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Specification check when you suspect missing curvature or interactions.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Add \^Ŷ² and \^Ŷ³; if F-test is large, your linear specification may be too simple.
+                </div>
+            </div>
+
+            <div class="measure-card instr-card">
+                <h4>Testing Instrument Exogeneity with Extra Instruments</h4>
+                <div class="formula">
+                    H₀: Extra instruments are valid<br>
+                    Use overid (J) or Hausman-type tests
+                </div>
+                <div class="description">
+                    Sometimes you have a core set of trusted instruments and extra, more questionable instruments. Compare estimates or use overid tests to see if the extra instruments are consistent with exogeneity.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Test whether adding more instruments changes β̂ or leads to J-test rejection.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Compare 2SLS with and without policy dummy as an instrument using a Hausman-type test.
+                </div>
+            </div>
+
+            <div class="measure-card practice-card">
+                <h4>Putting It Together</h4>
+                <div class="formula">
+                    1️⃣ Check functional form (IV-RESET)<br>
+                    2️⃣ Check instrument sets (overid / Hausman)<br>
+                    3️⃣ Combine with first-stage diagnostics
+                </div>
+                <div class="description">
+                    A credible IV specification has: good first stage, plausible functional form, and instruments that pass exogeneity checks when you vary the instrument set.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Present robustness checks with different functional forms and instrument sets.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> If functional form tests and J-tests both reject, re-think the whole specification.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: IV Functional Form & Exogeneity</h3>
+            <p>
+                Each scenario describes an IV model, an IV-RESET–type F-test for added terms, and tests for extra instruments.
+                Decide whether functional form looks adequate and whether extra instruments appear exogenous.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on the number of endogenous regressors and instruments, the IV-RESET F-test for added nonlinear terms,
+                    and the overidentification/Hausman-type tests when extra instruments are included.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Model & counts</strong><br>Compute K_endog, L, and how many nonlinear terms or extra instruments are added.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Functional form (IV-RESET)</strong><br>Decide whether the functional form is rejected at 5% using F-tests.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Extra instruments & exogeneity</strong><br>Use J / Hausman-type results to judge extra instruments.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain how you’d report these specification tests in a paper.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("IV functional form & exogeneity tests (11.6) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios for functional form tests and extra instruments
+    var scenarios = [
+        {
+            id: "wageIVresetOK",
+            title: "Returns to Education – Functional Form OK, Instruments OK",
+            description: "You estimate returns to education with educ endogenous and two instruments (DistCollege, Tuition). You then add squared and cubic terms in fitted values (IV-RESET) and test them jointly.",
+            context: "IV-RESET does not reject; extra instrument tests also look fine.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + β₃·exper² + u",
+            endogenous: ["educ"],
+            instrumentsCore: ["DistCollege", "Tuition"],
+            instrumentsExtra: ["CollegeDensity"],
+            exogenous: ["exper", "exper²"],
+            nEndog: 1,
+            Lcore: 2,
+            Lextra: 1,
+            // IV-RESET: add 2 nonlinear terms in fitted values, F test
+            nNonlinear: 2,
+            Freset: 1.5,
+            dfResetNum: 2,
+            dfResetDen: 500,
+            FresetReject: 0, // F small, no rejection
+            // Extra instruments test (Hansen J or Hausman-type) when adding CollegeDensity
+            Jextra: 1.8,
+            dfJextra: 1,
+            JextraReject: 0,
+            explanation:
+                "Functional form looks adequate (IV-RESET F ≈ 1.5 with df=2 is not large), and adding CollegeDensity as an extra instrument does not cause an overid rejection. Both functional form and instrument exogeneity look acceptable."
+        },
+        {
+            id: "demandFFproblems",
+            title: "Demand – Functional Form Problems, Instruments Still OK",
+            description: "You estimate a demand equation with price endogenous and two cost instruments. An IV-RESET test that adds squared and cubic fitted values yields a large F-statistic.",
+            context: "Functional form is rejected, but overid test with existing instruments does not reject.",
+            structuralEq: "Q = β₀ + β₁·Price + β₂·Income + u",
+            endogenous: ["Price"],
+            instrumentsCore: ["CostShock1", "CostShock2"],
+            instrumentsExtra: [],
+            exogenous: ["Income"],
+            nEndog: 1,
+            Lcore: 2,
+            Lextra: 0,
+            nNonlinear: 2,
+            Freset: 6.5,
+            dfResetNum: 2,
+            dfResetDen: 400,
+            FresetReject: 1, // F big, reject at 5%
+            Jextra: 2.0,
+            dfJextra: 1,
+            JextraReject: 0, // think of this as core J-test (overid with 2 instruments, 1 endog)
+            explanation:
+                "The IV-RESET F-statistic of about 6.5 with df=2 is large enough to reject linear functional form at 5%. However, the overid test on existing instruments does not reject exogeneity. This points to misspecification in functional form rather than bad instruments."
+        },
+        {
+            id: "extraInstrSuspect",
+            title: "Education & Wages – Extra Instruments Suspect",
+            description: "You estimate returns to education with a core set of two instruments. You then add two more policy-related instruments that are controversial. An IV-RESET test does not reject functional form, but the overid test with all instruments does.",
+            context: "Functional form OK; extra instruments appear invalid.",
+            structuralEq: "log(wage) = β₀ + β₁·educ + β₂·exper + u",
+            endogenous: ["educ"],
+            instrumentsCore: ["DistCollege", "Tuition"],
+            instrumentsExtra: ["Policy1", "Policy2"],
+            exogenous: ["exper"],
+            nEndog: 1,
+            Lcore: 2,
+            Lextra: 2,
+            nNonlinear: 2,
+            Freset: 1.2,
+            dfResetNum: 2,
+            dfResetDen: 600,
+            FresetReject: 0,
+            Jextra: 7.2,
+            dfJextra: 2,
+            JextraReject: 1, // χ²2(0.95)=5.99, so reject
+            explanation:
+                "The IV-RESET F-statistic is small, so functional form does not look problematic. But the overid test when including Policy1 and Policy2 as instruments has J ≈ 7.2 with df=2, exceeding 5.99. This suggests the extra instruments are not exogenous."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 IV Specification Testing Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural Equation, Instruments, and Tests</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equation:</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.structuralEq + '</span></p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Endogenous regressor(s):</strong> ' + s.endogenous.join(", ") + '<br>';
+        html += '<strong>Exogenous regressor(s):</strong> ' + s.exogenous.join(", ") + '<br>';
+        html += '<strong>Core instrument(s):</strong> ' + s.instrumentsCore.join(", ");
+        if (s.instrumentsExtra.length > 0) {
+            html += '<br><strong>Extra instrument(s) for testing:</strong> ' + s.instrumentsExtra.join(", ");
+        }
+        html += '</p>';
+
+        var Ltotal = s.Lcore + s.Lextra;
+        var overidCore = s.Lcore - s.nEndog;
+        var overidTotal = Ltotal - s.nEndog;
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Quantity</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+        html += '<tr><td># endogenous regressors (K<sub>endo</sub>)</td><td>' + s.nEndog + '</td><td>Regressors treated as endogenous</td></tr>';
+        html += '<tr><td># core instruments (L<sub>core</sub>)</td><td>' + s.Lcore + '</td><td>Trusted instruments in baseline IV</td></tr>';
+        html += '<tr><td># extra instruments</td><td>' + s.Lextra + '</td><td>Additional instruments used for testing</td></tr>';
+        html += '<tr><td>Total instruments (L)</td><td>' + Ltotal + '</td><td>Instruments in the expanded model</td></tr>';
+        html += '<tr><td>Overid (core only)</td><td>' + overidCore + '</td><td>L<sub>core</sub> − K<sub>endo</sub></td></tr>';
+        html += '<tr><td>Overid (with extra instruments)</td><td>' + overidTotal + '</td><td>L − K<sub>endo</sub></td></tr>';
+
+        html += '<tr><td>IV-RESET F-statistic</td><td>' + s.Freset.toFixed(2) + '</td><td>Test of added nonlinear terms</td></tr>';
+        html += '<tr><td>Num. added nonlinear terms</td><td>' + s.nNonlinear + '</td><td>df in numerator for F-test</td></tr>';
+        html += '<tr><td>df for F (numerator)</td><td>' + s.dfResetNum + '</td><td>Number of restrictions tested</td></tr>';
+        html += '<tr><td>df for F (denominator)</td><td>' + s.dfResetDen + '</td><td>Residual df from the unrestricted model</td></tr>';
+
+        if (Ltotal > s.nEndog) {
+            html += '<tr><td>J-stat (extra instruments test)</td><td>' + s.Jextra.toFixed(2) + '</td><td>Overid/Hausman-type test for extra instruments</td></tr>';
+            html += '<tr><td>df for J</td><td>' + s.dfJextra + '</td><td>Typically = number of extra instruments</td></tr>';
+        } else {
+            html += '<tr><td>J-stat (extra instruments)</td><td>Not available</td><td>Need overidentification</td></tr>';
+        }
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Rules of thumb:</strong> For IV-RESET, compare F to F-critical or use that values much above 3–4 (with small df in numerator) are often significant at 5%. ';
+        html += 'For J-tests with df = 1 or 2, compare to χ²(df) (≈ 3.84 for df=1, 5.99 for df=2).';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var Ltotal = s.Lcore + s.Lextra;
+        var overidTotal = Ltotal - s.nEndog;
+        var canJ = overidTotal > 0 ? 1 : 0;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "nEndog",
+                type: "numeric",
+                title: "🏁 Number of endogenous regressors (K_endo)",
+                prompt: "How many endogenous regressors are there in this structural equation?",
+                correctValue: s.nEndog,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "Lcore",
+                type: "numeric",
+                title: "🏁 Number of core instruments (L_core)",
+                prompt: "How many core (trusted) instruments are used in the baseline IV?",
+                correctValue: s.Lcore,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "Lextra",
+                type: "numeric",
+                title: "🏁 Number of extra instruments",
+                prompt: "How many extra instruments are added for testing?",
+                correctValue: s.Lextra,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nNonlinear",
+                type: "numeric",
+                title: "🏁 Number of added nonlinear terms in IV-RESET",
+                prompt: "How many nonlinear terms (e.g., squared or cubic fitted values) are added in the IV-RESET test?",
+                correctValue: s.nNonlinear,
+                unitHint: "(count)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "Freset",
+                type: "numeric",
+                title: "📊 IV-RESET F-statistic",
+                prompt: "What is the IV-RESET F-statistic for the added nonlinear terms?",
+                correctValue: s.Freset,
+                unitHint: ""
+            });
+            currentQuestions.push({
+                conceptId: "FresetReject",
+                type: "numeric",
+                title: "📊 Does IV-RESET reject functional form at 5%?",
+                prompt: "Using the information in the scenario, should we reject the null that the added nonlinear terms are jointly zero at the 5% level? Answer 1 for yes, 0 for no.",
+                correctValue: s.FresetReject,
+                unitHint: "(1 = reject, 0 = do not reject)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "canJ",
+                type: "numeric",
+                title: "📉 Is the J-test for extra instruments defined?",
+                prompt: "Is the model with all instruments overidentified (so that a J-test for extra instruments is defined)? Answer 1 for yes, 0 for no.",
+                correctValue: canJ,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+
+            if (overidTotal > 0) {
+                currentQuestions.push({
+                    conceptId: "dfJextra",
+                    type: "numeric",
+                    title: "📉 Degrees of freedom for J-test with extra instruments",
+                    prompt: "What are the degrees of freedom for the J-test that includes extra instruments? (Typically equals the number of extra instruments.)",
+                    correctValue: s.dfJextra,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "Jextra",
+                    type: "numeric",
+                    title: "📉 J-statistic with extra instruments",
+                    prompt: "What is the J-statistic (or Hausman-type overid statistic) when the extra instruments are included?",
+                    correctValue: s.Jextra,
+                    unitHint: ""
+                });
+                currentQuestions.push({
+                    conceptId: "JextraReject",
+                    type: "numeric",
+                    title: "📉 Does the J-test reject instrument validity at 5%?",
+                    prompt: "Using χ² critical values (≈ 3.84 for df=1, 5.99 for df=2), does the J-test with extra instruments reject at 5%? Answer 1 for yes, 0 for no.",
+                    correctValue: s.JextraReject,
+                    unitHint: "(1 = reject, 0 = do not reject)"
+                });
+            }
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Functional Form & Instrument Exogeneity",
+                prompt: "Explain how you would describe the IV-RESET result and the extra-instrument J-test in this scenario in an empirical paper. Would you change the functional form, the instrument set, both, or neither?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: IV specification testing combines functional form checks (IV-RESET) with extra-instrument tests (J/Hausman). You want both a plausible functional form and a credible, stable set of instruments.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var Ltotal = s.Lcore + s.Lextra;
+        var overidTotal = Ltotal - s.nEndog;
+        var canJ = overidTotal > 0 ? 1 : 0;
+
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "nEndog") {
+            html += "Count how many regressors in the structural equation are treated as endogenous. ";
+            html += "Each endogenous regressor requires instruments for identification.";
+        } else if (q.conceptId === "Lcore") {
+            html += "The core instruments are those you are fairly confident about. ";
+            html += "They form the baseline instrument set in your IV estimation.";
+        } else if (q.conceptId === "Lextra") {
+            html += "Extra instruments are additional variables you are less sure about. ";
+            html += "You include them to test whether they appear exogenous and consistent with the core model.";
+        } else if (q.conceptId === "nNonlinear") {
+            html += "IV-RESET–type tests add nonlinear functions of fitted values or regressors. ";
+            html += "The number of added terms equals the number of restrictions tested in the F-test.";
+        } else if (q.conceptId === "Freset") {
+            html += "The IV-RESET F-statistic tests whether the added nonlinear terms jointly have zero coefficients. ";
+            html += "Large values (relative to F-critical) suggest functional form misspecification.";
+        } else if (q.conceptId === "FresetReject") {
+            html += "If F is large enough (for example, clearly bigger than 3–4 with small numerator df), you typically reject at 5%. ";
+            html += "Rejection indicates that the linear functional form is too simple and misses curvature or interactions.";
+        } else if (q.conceptId === "canJ") {
+            html += "The J-test for extra instruments is only defined if the expanded model is overidentified: total instruments L must exceed K_endo. ";
+            html += "If L = K_endo, there are no overidentifying restrictions to test.";
+        } else if (q.conceptId === "dfJextra") {
+            html += "In many IV applications, df for the extra-instrument J-test equals the number of extra instruments. ";
+            html += "Intuitively, each extra instrument adds one restriction you can test.";
+        } else if (q.conceptId === "Jextra") {
+            html += "The J-statistic (or a Hausman-type overid statistic) measures how well the expanded set of instruments fits the exogeneity restrictions. ";
+            html += "A big increase in J when adding extra instruments suggests they are problematic.";
+        } else if (q.conceptId === "JextraReject") {
+            html += "Compare J to χ²(df): if J exceeds the critical value (≈ 3.84 for df=1, 5.99 for df=2), you reject H₀ that all instruments (including the extra ones) are jointly exogenous. ";
+            html += "In that case, you would usually drop the extra instruments and stick with the core set.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In a paper, you would report the IV-RESET F-statistic and its p-value, and state whether it suggests functional form problems. ";
+            html += "You would also report the J-test (or Hausman-type test) for the expanded instrument set, explaining whether the extra instruments seem valid or whether they cause overidentification problems.";
+        } else {
+            html += "Specification testing in IV combines functional form checks (IV-RESET) with extra-instrument tests (J or Hausman). ";
+            html += "Good practice is to show that your results are robust to reasonable changes in functional form and instrument set.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("IV functional form & exogeneity tests practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
