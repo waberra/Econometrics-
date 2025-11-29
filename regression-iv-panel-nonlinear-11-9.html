@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IV & Nonlinear Panel Models – Wooldridge 11.9</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .nonlin-card  { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .fe-card      { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .cf-panel-card{ background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .gmm-card     { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 IV & Nonlinear Panel Models (Wooldridge 11.9)</h1>
+        <p>Practice using panel data to address endogeneity in nonlinear models with IV, control functions, and GMM</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Nonlinear Panel IV, FE Problems, and Control Functions</h3>
+        <div class="measures-grid">
+            <div class="measure-card nonlin-card">
+                <h4>Nonlinear Panel Model with Endogeneity</h4>
+                <div class="formula">
+                    E[y<sub>it</sub> | x<sub>it</sub>, c<sub>i</sub>] = G(x<sub>it</sub>β + c<sub>i</sub>)
+                </div>
+                <div class="description">
+                    In nonlinear panel models (Probit/Logit/Tobit), unobserved effects c<sub>i</sub> interact nonlinearly with regressors. If x<sub>it</sub> is endogenous, you need instruments or control functions adapted to the nonlinear structure.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Binary outcomes, limited dependent variables, nonlinear profit/production models with panel data.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Panel Probit for union status with endogenous wages.
+                </div>
+            </div>
+
+            <div class="measure-card fe-card">
+                <h4>Why FE Is Tricky in Nonlinear Panels</h4>
+                <div class="formula">
+                    "Incidental parameters" problem for fixed effects<br>
+                    ⇒ FE-Probit/Logit inconsistent as T is fixed
+                </div>
+                <div class="description">
+                    In nonlinear models, putting a separate intercept for each i leads to many nuisance parameters. With fixed T, their estimation distorts β̂. Standard FE tricks (like within transformation) do not work the same way as in linear models.
+                </div>
+                <div class="use-cases">
+                    <strong>Use carefully:</strong> Conditional likelihood or large-T asymptotics, but not generic FE + IV.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> FE-Logit has a conditional MLE that avoids c<sub>i</sub>, but is not easily combined with IV.
+                </div>
+            </div>
+
+            <div class="measure-card cf-panel-card">
+                <h4>Control Functions in Nonlinear Panels</h4>
+                <div class="formula">
+                    y<sub>it</sub> | x<sub>it</sub>, c<sub>i</sub>, r̂<sub>it</sub> ~ G(x<sub>it</sub>β + δ r̂<sub>it</sub> + c<sub>i</sub>)
+                </div>
+                <div class="description">
+                    You can combine panel structure with a control function r̂<sub>it</sub> (e.g. residual from a first-stage model). Conditional on r̂<sub>it</sub> and c<sub>i</sub>, x<sub>it</sub> is treated as exogenous. Estimation is typically via nonlinear ML or GMM.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Panel Probit/Logit with endogenous regressors, where you can model the first stage and construct r̂<sub>it</sub>.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Probit model for participation with endogenous income and a control function from a first-stage income equation.
+                </div>
+            </div>
+
+            <div class="measure-card gmm-card">
+                <h4>GMM & Moment Conditions</h4>
+                <div class="formula">
+                    E[z<sub>it</sub>(y<sub>it</sub> − G(x<sub>it</sub>β, θ))] = 0
+                </div>
+                <div class="description">
+                    For nonlinear panel IV, you often write moment conditions involving instruments z<sub>it</sub> and structural function G(·). GMM chooses parameters so that sample moments are close to zero, allowing flexible use of lags and differences as instruments.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Dynamic binary choice, nonlinear production, count data with endogenous regressors.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> Think of 2SLS as a special linear GMM case; nonlinear IV usually requires full GMM.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Nonlinear Panel IV & Control Functions</h3>
+            <p>
+                Each scenario describes a nonlinear panel model with potential endogeneity. Decide whether FE is valid,
+                whether a control function is used, and whether instruments/lagged variables provide exogenous variation.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on: (i) panel dimensions (N, T), (ii) whether FE is appropriate, (iii) the role of control functions and lags,
+                    and (iv) whether the proposed instruments/moments look valid.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Panel structure</strong><br>Compute N, T, total observations and identify model type (Probit/Logit/etc.).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 FE vs RE vs CF</strong><br>Decide whether plain FE is valid, and whether a control function is used.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Instruments & lags</strong><br>Classify if lags or external instruments are valid in the nonlinear panel setting.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain how you’d describe the nonlinear panel IV strategy in a paper.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Nonlinear panel IV (11.9) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: nonlinear panel IV / CF / GMM
+    var scenarios = [
+        {
+            id: "panelProbitCF",
+            title: "Random-Effects Panel Probit with Endogenous Regessor & Control Function",
+            description: "You model the probability that a worker is unionized (union_it = 1) using a random-effects panel Probit with an endogenous regressor wage_it. You estimate a first-stage linear panel model for wage_it using instruments and construct a residual r̂_it, which you include in the Probit.",
+            context: "Nonlinear (Probit) panel model with RE and a control function to handle endogeneity.",
+            modelType: "Probit",
+            N: 800,
+            T: 3,
+            hasIncidentalProblem: 0,   // RE Probit, not FE Probit
+            usesFE: 0,
+            usesRE: 1,
+            usesCF: 1,
+            hasExternalInstruments: 1,
+            usesLagsAsIV: 0,
+            usesGMM: 0,
+            explanation:
+                "Random-effects Probit avoids the incidental parameters problem of FE Probit. You model wage_it in a first-stage panel regression with instruments (like regional wage policies) and form residuals r̂_it. In the Probit, union_it depends on wage_it and r̂_it; conditional on r̂_it and the random effect, wage_it behaves as exogenous."
+        },
+        {
+            id: "feLogitBadIV",
+            title: "Attempted FE-Logit IV with Time-Invariant Instrument",
+            description: "You try to estimate a panel Logit model for adoption_it (technology adoption) with an endogenous regressor price_it. You propose firm-level distance to supplier (dist_i, time-invariant) as an instrument. You include firm fixed effects and try to use dist_i as IV in a FE-Logit framework.",
+            context: "Illustrates problems with FE-Logit and time-invariant instruments in nonlinear panels.",
+            modelType: "Logit",
+            N: 500,
+            T: 4,
+            hasIncidentalProblem: 1,   // FE Logit incidental parameters
+            usesFE: 1,
+            usesRE: 0,
+            usesCF: 0,
+            hasExternalInstruments: 1,
+            usesLagsAsIV: 0,
+            usesGMM: 0,
+            explanation:
+                "FE-Logit suffers from the incidental parameters problem with fixed T, and time-invariant instruments like dist_i are wiped out by the fixed effects transformation. This setup cannot use dist_i as an IV in a standard FE-Logit; you need a different strategy (e.g., RE-Logit with CF, or a different source of time-varying instruments)."
+        },
+        {
+            id: "dynamicPanelGMM",
+            title: "Dynamic Nonlinear Panel with Lagged Dependent Variable & Lags as Instruments",
+            description: "You model the probability a firm exports (export_it = 1) with a dynamic panel Probit, including export_{i,t−1} as a regressor. Export status is endogenous over time. You use lagged export_{i,t−2} and lagged cost variables as instruments, estimating by GMM with moment conditions.",
+            context: "Dynamic nonlinear panel IV using lagged variables as instruments and GMM.",
+            modelType: "Dynamic Probit",
+            N: 600,
+            T: 5,
+            hasIncidentalProblem: 1,   // dynamic non-linear with FE has serious problems
+            usesFE: 0,
+            usesRE: 1,
+            usesCF: 1,                 // CF or GMM-style correction
+            hasExternalInstruments: 1,
+            usesLagsAsIV: 1,
+            usesGMM: 1,
+            explanation:
+                "In a dynamic nonlinear panel, including lagged export status creates endogeneity via state dependence and serial correlation. You form moment conditions using lagged export and cost shifters as instruments for current regressors, and estimate via GMM. The panel structure plus lags provide internal instruments."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Nonlinear Panel IV Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Panel Dimensions, Model Type, and IV Strategy</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Nonlinear panel model type:</strong> ' + s.modelType + '</p>';
+
+        html += '<p style="margin-top:8px;font-size:0.9em;">';
+        html += '<strong>Panel dimensions:</strong><br>';
+        html += 'Number of units (N): ' + s.N + '<br>';
+        html += 'Number of time periods (T): ' + s.T + '<br>';
+        html += 'Total observations (balanced panel): N × T = ' + (s.N * s.T) + '</p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Feature</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+
+        html += '<tr><td>Uses fixed effects (FE)?</td><td>' + (s.usesFE ? "Yes" : "No") + '</td>';
+        html += '<td>FE in nonlinear models can cause incidental parameter issues.</td></tr>';
+
+        html += '<tr><td>Uses random effects (RE)?</td><td>' + (s.usesRE ? "Yes" : "No") + '</td>';
+        html += '<td>RE treats c_i as random; easier to combine with IV/CF in nonlinear models.</td></tr>';
+
+        html += '<tr><td>Incidental parameters problem present?</td><td>' + (s.hasIncidentalProblem ? "Yes" : "No") + '</td>';
+        html += '<td>Finite-T bias from many unit-specific parameters in nonlinear models.</td></tr>';
+
+        html += '<tr><td>Uses a control function (residual or index)?</td><td>' + (s.usesCF ? "Yes" : "No") + '</td>';
+        html += '<td>Residual r̂_it or similar included to handle endogeneity.</td></tr>';
+
+        html += '<tr><td>Has external instruments?</td><td>' + (s.hasExternalInstruments ? "Yes" : "No") + '</td>';
+        html += '<td>Variables excluded from the outcome equation but entering the first stage or moments.</td></tr>';
+
+        html += '<tr><td>Uses lagged variables as instruments?</td><td>' + (s.usesLagsAsIV ? "Yes" : "No") + '</td>';
+        html += '<td>Internal instruments from panel structure (lags/differences).</td></tr>';
+
+        html += '<tr><td>Estimated via GMM (moment conditions)?</td><td>' + (s.usesGMM ? "Yes" : "No") + '</td>';
+        html += '<td>GMM is common for dynamic/nonlinear panel IV.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> In nonlinear panel models, FE may not be valid and 2SLS does not apply directly. ';
+        html += 'You often combine RE, control functions, lagged instruments, and GMM to address endogeneity.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var totalObs = s.N * s.T;
+
+        var isProbit = (s.modelType.indexOf("Probit") !== -1) ? 1 : 0;
+        var isLogit = (s.modelType.indexOf("Logit") !== -1) ? 1 : 0;
+        var usesFE = s.usesFE ? 1 : 0;
+        var usesRE = s.usesRE ? 1 : 0;
+        var hasIncidental = s.hasIncidentalProblem ? 1 : 0;
+        var usesCF = s.usesCF ? 1 : 0;
+        var hasInstr = s.hasExternalInstruments ? 1 : 0;
+        var usesLags = s.usesLagsAsIV ? 1 : 0;
+        var usesGMM = s.usesGMM ? 1 : 0;
+
+        // Baseline structure
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "N",
+                type: "numeric",
+                title: "🏁 Number of units (N)",
+                prompt: "How many cross-sectional units (i) are in the panel?",
+                correctValue: s.N,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "T",
+                type: "numeric",
+                title: "🏁 Number of time periods (T)",
+                prompt: "How many time periods (t) are observed for each unit?",
+                correctValue: s.T,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "totalObs",
+                type: "numeric",
+                title: "🏁 Total number of observations",
+                prompt: "Assuming a balanced panel, what is the total number of observations N × T?",
+                correctValue: totalObs,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "isProbit",
+                type: "numeric",
+                title: "🏁 Is this a Probit-type model?",
+                prompt: "Is the nonlinear model Probit-type (including dynamic Probit)? Answer 1 for yes, 0 for no.",
+                correctValue: isProbit,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "isLogit",
+                type: "numeric",
+                title: "🏁 Is this a Logit-type model?",
+                prompt: "Is the nonlinear model Logit-type? Answer 1 for yes, 0 for no.",
+                correctValue: isLogit,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        // FE vs RE vs CF
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "usesFE",
+                type: "numeric",
+                title: "📊 Does the estimation use fixed effects (FE)?",
+                prompt: "Does the approach use unit fixed effects (FE)? Answer 1 for yes, 0 for no.",
+                correctValue: usesFE,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "usesRE",
+                type: "numeric",
+                title: "📊 Does the estimation use random effects (RE)?",
+                prompt: "Does the approach rely on random effects (RE) instead of FE? Answer 1 for yes, 0 for no.",
+                correctValue: usesRE,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "hasIncidental",
+                type: "numeric",
+                title: "📊 Is there an incidental parameters problem?",
+                prompt: "In this setup, is the incidental parameters problem a concern (many unit-specific parameters with fixed T in a nonlinear model)? Answer 1 for yes, 0 for no.",
+                correctValue: hasIncidental,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "usesCF",
+                type: "numeric",
+                title: "📊 Is a control function used?",
+                prompt: "Does the model include a control function term (e.g., residual r̂_it or IMR) to handle endogeneity? Answer 1 for yes, 0 for no.",
+                correctValue: usesCF,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        // Instruments & lags
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "hasInstr",
+                type: "numeric",
+                title: "📉 Are external instruments used?",
+                prompt: "Does this scenario rely on external instruments (excluded variables) to help with identification? Answer 1 for yes, 0 for no.",
+                correctValue: hasInstr,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "usesLags",
+                type: "numeric",
+                title: "📉 Are lagged variables used as instruments?",
+                prompt: "Does this scenario use lagged variables (e.g., y_{i,t−2}, x_{i,t−2}) as instruments for current endogenous regressors? Answer 1 for yes, 0 for no.",
+                correctValue: usesLags,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "usesGMM",
+                type: "numeric",
+                title: "📉 Is the model estimated using GMM?",
+                prompt: "Is GMM (moment conditions with instruments) used for estimation? Answer 1 for yes, 0 for no.",
+                correctValue: usesGMM,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "feValid",
+                type: "numeric",
+                title: "📉 Is plain FE-Logit/Probit a valid IV approach here?",
+                prompt: "In this nonlinear panel IV context, is plain FE-Logit/Probit with time-invariant instruments typically valid without further adjustments? Answer 1 for yes, 0 for no.",
+                correctValue: 0,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        // Interpretation
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Nonlinear Panel IV Strategy",
+                prompt: "Explain how you would describe the nonlinear panel IV strategy in this scenario in an empirical paper. What role does the panel structure play, and how are instruments/control functions used?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer (0/1 or a count).";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: nonlinear panel IV usually needs a combination of RE, control functions, lagged instruments, and GMM — plain FE + IV methods from the linear world do not carry over directly.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var totalObs = s.N * s.T;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "N") {
+            html += "N is the number of cross-sectional units. In panel IV, exogenous variation often comes from within-unit changes over time.";
+        } else if (q.conceptId === "T") {
+            html += "T is the number of time periods. With small T, the incidental parameters problem is severe in nonlinear FE models.";
+        } else if (q.conceptId === "totalObs") {
+            html += "In a balanced panel, total observations = N × T. This is the sample size for pooled estimation or GMM.";
+        } else if (q.conceptId === "isProbit") {
+            html += "Probit-type models use a normal CDF link. Nonlinear IV in Probit often uses control functions or GMM moment conditions rather than simple 2SLS.";
+        } else if (q.conceptId === "isLogit") {
+            html += "Logit-type models use a logistic CDF link. FE-Logit has a conditional MLE, but it does not integrate easily with generic IV.";
+        } else if (q.conceptId === "usesFE") {
+            html += "Using FE in nonlinear models leads to many unit-specific parameters. With fixed T, estimating these can bias the structural parameters (incidental parameters problem).";
+        } else if (q.conceptId === "usesRE") {
+            html += "RE avoids estimating a separate parameter for each unit; instead, it integrates over a distribution for c_i. This is easier to combine with IV and control functions.";
+        } else if (q.conceptId === "hasIncidental") {
+            html += "If there is an incidental parameters problem, naive FE estimates of nonlinear models are not consistent as N grows with fixed T.";
+        } else if (q.conceptId === "usesCF") {
+            html += "A control function term (residual, IMR, etc.) is included to capture correlation between regressors and the error. Conditional on this term, the regressors behave as exogenous.";
+        } else if (q.conceptId === "hasInstr") {
+            html += "External instruments are variables that affect the endogenous regressor (or selection) but not the outcome directly. They are the backbone of identification.";
+        } else if (q.conceptId === "usesLags") {
+            html += "Lagged variables can serve as internal instruments if they are correlated with current endogenous regressors but uncorrelated with current errors.";
+        } else if (q.conceptId === "usesGMM") {
+            html += "GMM uses sample moment conditions E[z_it * (y_it − G(·))] ≈ 0 to estimate parameters, generalizing IV to nonlinear models with many instruments.";
+        } else if (q.conceptId === "feValid") {
+            html += "Plain FE-Logit/Probit with time-invariant instruments is generally not a valid IV approach: FE wipes out time-invariant variables, and incidental parameters bias remains.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In a paper, you would explain: (i) the nonlinear panel model and why endogeneity arises, ";
+            html += "(ii) how the panel structure (repeated observations, lags) provides instruments or helps define moments, ";
+            html += "and (iii) whether you use control functions, RE, and/or GMM to enforce the orthogonality conditions needed for identification.";
+        } else {
+            html += "Nonlinear panel IV combines panel structure with IV logic: instruments and control functions must be chosen carefully, and FE from linear models does not automatically work.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Nonlinear panel IV practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
