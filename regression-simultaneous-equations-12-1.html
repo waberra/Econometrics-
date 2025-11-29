@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simultaneous Equations – Wooldridge 12.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .sim-card  { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .endoex-card{ background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .rf-card   { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .ols-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Simultaneous Equations Models (Wooldridge 12.1)</h1>
+        <p>Practice recognising simultaneous equations, endogenous variables, reduced forms, and simultaneity bias</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Structural vs Reduced Form, Endogenous vs Exogenous, Simultaneity Bias</h3>
+        <div class="measures-grid">
+            <div class="measure-card sim-card">
+                <h4>Structural Equations System</h4>
+                <div class="formula">
+                    y₁ = α₁₀ + α₁₂ y₂ + β₁'x + u₁<br>
+                    y₂ = α₂₀ + α₂₁ y₁ + β₂'z + u₂
+                </div>
+                <div class="description">
+                    A simultaneous equations model has multiple equations where some dependent variables in one equation appear as regressors in others. These are the structural equations that reflect economic theory.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Supply–demand, price–quantity, labor supply–wage, investment–interest rates.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Quantity and price jointly determined in a market.
+                </div>
+            </div>
+
+            <div class="measure-card endoex-card">
+                <h4>Endogenous vs Exogenous Variables</h4>
+                <div class="formula">
+                    Endogenous: determined within the system<br>
+                    Exogenous: determined outside the system
+                </div>
+                <div class="description">
+                    Endogenous variables are jointly determined with the disturbances; exogenous (or predetermined) variables are taken as given. Structural equations mix both.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Identification, valid instruments, model design.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> In demand, Q and P endogenous, income and tastes exogenous.
+                </div>
+            </div>
+
+            <div class="measure-card rf-card">
+                <h4>Reduced Form</h4>
+                <div class="formula">
+                    y₁ = π₁₀ + π₁'x<sup>*</sup> + v₁<br>
+                    y₂ = π₂₀ + π₂'x<sup>*</sup> + v₂
+                </div>
+                <div class="description">
+                    The reduced form expresses each endogenous variable purely in terms of exogenous variables and errors. These equations can be consistently estimated by OLS.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Identification checks, constructing instruments, forecasting.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Express price and quantity as functions of income, costs, and shocks.
+                </div>
+            </div>
+
+            <div class="measure-card ols-card">
+                <h4>Simultaneity Bias in OLS</h4>
+                <div class="formula">
+                    OLS on structural equation<br>
+                    ⇒ bias if Cov(y₂, u₁) ≠ 0
+                </div>
+                <div class="description">
+                    If a regressor is simultaneously determined with the dependent variable, it is correlated with the structural error. OLS on the structural equation is then inconsistent.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Motivates IV, 2SLS, and identification conditions.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Regressing quantity on price to estimate demand using market data.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Nature of Simultaneous Equations</h3>
+            <p>
+                Each scenario describes a system of equations. Identify endogenous and exogenous variables, decide if OLS is biased,
+                and connect structural and reduced forms.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on: (i) recognising simultaneous determination, (ii) classifying variables, and (iii) whether OLS is valid on a given equation.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Classify variables</strong><br>Count endogenous and exogenous variables in the system.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Is OLS consistent?</strong><br>Decide if OLS on the structural equation is biased by simultaneity.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Structural vs reduced form</strong><br>Identify whether an equation is structural or reduced form.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain the economic meaning of simultaneity in the scenario.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Simultaneous equations (12.1) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: basic SEM examples
+    var scenarios = [
+        {
+            id: "supplyDemand",
+            title: "Market for a Good: Supply and Demand",
+            description: "You model a competitive market for a good with price P and quantity Q. Demand depends on price and income; supply depends on price and an input cost.",
+            context: "Classic supply–demand system with price and quantity jointly determined.",
+            structuralEquations: [
+                "Q^d = β₁₀ + β₁₁ P + β₁₂ Inc + u₁   (demand)",
+                "Q^s = β₂₀ + β₂₁ P + β₂₂ Cost + u₂   (supply)",
+                "Market clearing: Q = Q^d = Q^s"
+            ],
+            endogenousVars: ["Q","P"],
+            exogenousVars: ["Inc","Cost"],
+            canOLSOnDemand: 0, // P endogenous
+            canOLSOnReducedFormQ: 1, // if Q expressed only in exogenous vars
+            explanation:
+                "Price and quantity are determined simultaneously by the intersection of supply and demand. Income (Inc) and Cost are exogenous shifters. Regressing Q on P directly to estimate demand generally leads to simultaneity bias because P is endogenous."
+        },
+        {
+            id: "laborSupply",
+            title: "Labor Supply and Wage Determination",
+            description: "You model hours worked (H) and the wage (W). Hours supplied depend on the offered wage and nonlabor income. Wages depend on labor market conditions and worker characteristics.",
+            context: "Hours and wages jointly determined in the labor market.",
+            structuralEquations: [
+                "H = α₁₀ + α₁₁ W + α₁₂ NonlabInc + u₁   (labor supply)",
+                "W = α₂₀ + α₂₁ Educ + α₂₂ Experience + u₂   (wage determination)"
+            ],
+            endogenousVars: ["H","W"],
+            exogenousVars: ["NonlabInc","Educ","Experience"],
+            canOLSOnHours: 0,   // W endogenous
+            canOLSOnWageEq: 1,  // RHS has only exogenous vars
+            explanation:
+                "Hours and wages are decided together: wages depend on worker traits; hours depend on wages and nonlabor income. W is endogenous in the hours equation, so OLS on H as a function of W is generally inconsistent. However, in the wage determination equation, all regressors are exogenous, so OLS there is fine."
+        },
+        {
+            id: "investmentInterest",
+            title: "Investment and Interest Rates",
+            description: "You model firm investment (I) and the interest rate (R). Investment depends on R and firm cash flow; R depends on monetary policy and aggregate investment conditions.",
+            context: "Simultaneous determination of investment and interest rates.",
+            structuralEquations: [
+                "I = δ₁₀ + δ₁₁ R + δ₁₂ CashFlow + u₁   (investment)",
+                "R = δ₂₀ + δ₂₁ Policy + δ₂₂ I + u₂     (interest rate)"
+            ],
+            endogenousVars: ["I","R"],
+            exogenousVars: ["CashFlow","Policy"],
+            canOLSOnInvestment: 0,
+            canOLSOnInterest: 0,
+            explanation:
+                "Investment and interest rates affect each other: higher R reduces I, but aggregate I can in turn affect R through monetary conditions. Both I and R are endogenous in each other's equations, so OLS on either structural equation is biased."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 System Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural System Description</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equations:</strong></p>';
+        html += '<ul style="margin-left:18px; margin-top:6px;">';
+        for (var i=0; i<s.structuralEquations.length; i++) {
+            html += '<li style="font-family:Courier New, monospace; font-size:0.9em;">'
+                 + s.structuralEquations[i] + '</li>';
+        }
+        html += '</ul>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Type</th><th>Variables</th><th>Notes</th></tr></thead><tbody>';
+
+        html += '<tr><td>Endogenous variables</td><td>' +
+                s.endogenousVars.join(", ") + '</td>';
+        html += '<td>Jointly determined within the system.</td></tr>';
+
+        html += '<tr><td>Exogenous variables</td><td>' +
+                s.exogenousVars.join(", ") + '</td>';
+        html += '<td>Taken as given by the system.</td></tr>';
+
+        html += '<tr><td>OLS on main structural equation?</td><td>' +
+                (s.canOLSOnDemand ? "Yes (for that equation)" : "No (biased)") +
+                '</td><td>Look at whether regressors include endogenous variables.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> If a regressor in a structural equation is endogenous (jointly determined with the dependent variable), ';
+        html += 'then it is correlated with the structural error, and OLS is generally inconsistent. Reduced-form equations, in contrast, express endogenous variables only in terms of exogenous variables and disturbances.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var nEndo = s.endogenousVars.length;
+        var nExo = s.exogenousVars.length;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "nEndo",
+                type: "numeric",
+                title: "🏁 Number of endogenous variables",
+                prompt: "How many endogenous variables are in this system?",
+                correctValue: nEndo,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nExo",
+                type: "numeric",
+                title: "🏁 Number of exogenous variables",
+                prompt: "How many exogenous variables are in this system?",
+                correctValue: nExo,
+                unitHint: "(count)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            // OLS on a “main” structural equation (we interpret as the first one)
+            var canOLSStruct = 0;
+            if (s.id === "laborSupply") {
+                // wage equation has only exogenous RHS
+                canOLSStruct = 1;
+            }
+            currentQuestions.push({
+                conceptId: "OLS_struct",
+                type: "numeric",
+                title: "📊 Is OLS on at least one structural equation consistent?",
+                prompt: "Is there at least one structural equation in this system that can be consistently estimated by OLS (i.e., all regressors in that equation are exogenous)? Answer 1 for yes, 0 for no.",
+                correctValue: canOLSStruct,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+
+            currentQuestions.push({
+                conceptId: "OLS_main",
+                type: "numeric",
+                title: "📊 Is OLS on the main equation of interest consistent?",
+                prompt: "For the main equation of interest (e.g., demand, hours, investment), is OLS generally consistent? Answer 1 for yes, 0 for no.",
+                correctValue: s.canOLSOnDemand ? 1 : 0,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "struct_vs_rf",
+                type: "numeric",
+                title: "📉 Structural vs reduced form",
+                prompt: "Does a structural equation contain endogenous variables on the right-hand side? Answer 1 for yes, 0 for no.",
+                correctValue: 1,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "rf_valid",
+                type: "numeric",
+                title: "📉 Reduced form OLS validity",
+                prompt: "If you write a reduced form for each endogenous variable with only exogenous variables as regressors, is OLS valid for those reduced forms? Answer 1 for yes, 0 for no.",
+                correctValue: 1,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Economic simultaneity",
+                prompt: "Explain in words how simultaneity arises in this system and why it causes bias for OLS in the structural equations. How do exogenous variables help?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: in simultaneous systems, endogenous variables appear on both sides of the system. OLS on structural equations is typically biased; reduced forms and IV/2SLS are needed for consistent estimation.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "nEndo") {
+            html += "Endogenous variables are those determined inside the system. They appear as left-hand side variables in at least one equation and are influenced by the system’s disturbances.";
+        } else if (q.conceptId === "nExo") {
+            html += "Exogenous variables are determined outside the system. They shift curves (demand, supply, etc.) but are not affected by the system’s errors.";
+        } else if (q.conceptId === "OLS_struct") {
+            html += "A structural equation can be estimated by OLS only if all regressors are exogenous or at least uncorrelated with the structural error. In many SEMs, only some equations have that property.";
+        } else if (q.conceptId === "OLS_main") {
+            html += "The main equation of interest (demand, labor supply, investment) typically contains an endogenous RHS variable, so OLS is biased due to simultaneity.";
+        } else if (q.conceptId === "struct_vs_rf") {
+            html += "Structural equations usually contain endogenous variables on the RHS. Reduced forms express each endogenous variable only in terms of exogenous variables and disturbances.";
+        } else if (q.conceptId === "rf_valid") {
+            html += "Because reduced forms regress endogenous variables only on exogenous variables, OLS is valid for them (assuming standard conditions). These reduced forms are crucial for building instruments and understanding the system.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In words, simultaneity means that key variables (like price and quantity) are determined together. ";
+            html += "This mutual determination makes those variables correlated with structural errors, so naive OLS on structural equations fails. Exogenous shifters (income, costs, policy) provide variation that helps identify causal relationships via reduced forms and IV methods.";
+        } else {
+            html += "Always ask: which variables are jointly determined, which are truly exogenous, and which equations are structural versus reduced form.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Simultaneous equations practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
