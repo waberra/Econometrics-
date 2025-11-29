@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IV Control Functions & Internal Instruments – Wooldridge 11.8</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .cf-card      { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .steps-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .endog-card   { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .limits-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Control Functions & Internal Instruments (Wooldridge 11.8)</h1>
+        <p>Practice using control functions (residual inclusion) to handle endogeneity and selection in regression models</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Control Functions, Internal Instruments, and Endogeneity</h3>
+        <div class="measures-grid">
+            <div class="measure-card cf-card">
+                <h4>Control Function Idea</h4>
+                <div class="formula">
+                    y = βx + γ&nbsp;ĉ + u, &nbsp; ĉ = estimated control function (e.g., residual)
+                </div>
+                <div class="description">
+                    A control function is a constructed regressor (often a residual or index) that captures the part of the endogenous variable correlated with u. Conditional on this control, x becomes exogenous.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Endogenous regressors, sample selection, endogenous treatment, non-linear first stages.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Wage equation with schooling endogenous; include residual from schooling equation as an extra regressor.
+                </div>
+            </div>
+
+            <div class="measure-card steps-card">
+                <h4>Two-Step Control Function Procedure</h4>
+                <div class="formula">
+                    1️⃣ First stage: &nbsp; x = πz + v  (or Probit/Logit for treatment)<br>
+                    2️⃣ Second stage: y = βx + γ&nbsp;v̂ + controls + error
+                </div>
+                <div class="description">
+                    Step 1: model the endogenous variable (or selection/treatment). Step 2: include the fitted residual (or an index like IMR) as an extra regressor in the outcome equation.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Continuous x (linear first stage) or binary treatment (Probit/Logit first stage).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Heckman selection: include inverse Mills ratio λ̂ as the control function.
+                </div>
+            </div>
+
+            <div class="measure-card endog-card">
+                <h4>Interpreting γ (Coefficient on Control Function)</h4>
+                <div class="formula">
+                    H₀: γ = 0 &nbsp; ⇒ no endogeneity/selection<br>
+                    H₁: γ ≠ 0 &nbsp; ⇒ endogeneity present
+                </div>
+                <div class="description">
+                    If γ is statistically zero, the control function adds nothing—no evidence of endogeneity. A significant γ indicates correlation between x and u; the control function adjustment matters.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Test for endogeneity or selection bias.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Test whether selection correction (IMR) is needed in a wage offer equation.
+                </div>
+            </div>
+
+            <div class="measure-card limits-card">
+                <h4>Assumptions & Limitations</h4>
+                <div class="formula">
+                    Correct first-stage model + exclusion restriction<br>
+                    ⇒ valid control function
+                </div>
+                <div class="description">
+                    The control function approach relies on a correctly specified first-stage model and valid excluded variables. It is not magic: bad instruments or mis-specified Probit/Logit stages give bad control functions.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When IV is natural but nonlinear models (e.g. Probit/Logit) are convenient.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> Always report and discuss the excluded variables and first-stage fit.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Control Functions & Internal Instruments</h3>
+            <p>
+                Each scenario describes a control function application. Identify the first and second stages, the role of the residual or index,
+                and how to interpret the coefficient on the control function.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on (i) recognising the first-stage model, (ii) identifying the control function term, and
+                    (iii) interpreting γ, the coefficient on the control function, as a test of endogeneity or selection.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Structure & steps</strong><br>Identify first-stage vs second-stage and the control function term.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Endogeneity test via γ</strong><br>Use γ=0 vs γ≠0 to judge whether endogeneity/selection is present.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Comparison to standard IV</strong><br>Classify whether the setup is equivalent to standard IV or a more general CF correction.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Describe how you’d explain the control function in an empirical paper.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Control functions (11.8) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: different control function applications
+    var scenarios = [
+        {
+            id: "linearCF",
+            title: "Linear IV with Residual Inclusion",
+            description: "You estimate returns to education where schooling (educ) is endogenous. You have an instrument (dist to college). You decide to use a linear control function approach.",
+            context: "Linear first stage for educ, residual used as control in the wage equation.",
+            structuralEq: "log(wage) = β₀ + β₁ educ + β₂ exper + γ v̂ + u",
+            firstStageEq: "educ = π₀ + π₁ dist + π₂ exper + v",
+            firstStageType: "linear", // 1 = linear, 0 = probit
+            hasExternalInstrument: 1,
+            instrumentName: "dist (distance to college)",
+            controlFunctionName: "v̂ (residual from educ equation)",
+            gammaNonZeroImplies: "endogeneity in educ",
+            gammaZeroImpliesNoEndog: 1,
+            isHeckmanType: 0,
+            isBinaryTreatment: 0,
+            explanation:
+                "Step 1: regress educ on dist and other exogenous variables, obtain residual v̂. Step 2: include educ and v̂ in the wage equation. A significant γ indicates that educ is endogenous; if γ = 0, OLS without v̂ would be consistent. This is the linear control function implementation of IV."
+        },
+        {
+            id: "probitTreatmentCF",
+            title: "Binary Treatment with Probit Control Function",
+            description: "You study the effect of a job training program (train = 1/0) on earnings. Participation is endogenous. You estimate a Probit model for train in the first stage and then include the generalized residual from the Probit in the earnings equation.",
+            context: "Binary treatment, nonlinear first stage (Probit), control function uses generalized residual.",
+            structuralEq: "earn = β₀ + β₁ train + β₂ exper + γ ĝ + u",
+            firstStageEq: "P(train = 1 | z, exper) = Φ(α₀ + α₁ z + α₂ exper)",
+            firstStageType: "probit",
+            hasExternalInstrument: 1,
+            instrumentName: "z (exclusion variable affecting train but not earn directly)",
+            controlFunctionName: "ĝ (generalized residual from Probit)",
+            gammaNonZeroImplies: "endogenous selection into training",
+            gammaZeroImpliesNoEndog: 1,
+            isHeckmanType: 0,
+            isBinaryTreatment: 1,
+            explanation:
+                "Step 1: estimate a Probit for train using z and other covariates. Step 2: compute a generalized residual ĝ and include it in the earnings equation. If γ is significantly different from zero, training choice is endogenous; the Probit-based control function corrects for this selection."
+        },
+        {
+            id: "heckmanSelection",
+            title: "Heckman-Type Sample Selection with IMR",
+            description: "You only observe wages for workers who are employed. You estimate a selection equation (participation in the labor force) with a Probit and include the inverse Mills ratio (IMR) in the wage equation.",
+            context: "Classic Heckman selection model: IMR is the control function.",
+            structuralEq: "log(wage) = β₀ + β₁ educ + β₂ exper + γ λ̂ + u",
+            firstStageEq: "P(work = 1 | z, kids, age) = Φ(α₀ + α₁ z + α₂ kids + α₃ age)",
+            firstStageType: "probit",
+            hasExternalInstrument: 1,
+            instrumentName: "z (e.g., non-labor income), plus kids, age",
+            controlFunctionName: "λ̂ (inverse Mills ratio)",
+            gammaNonZeroImplies: "sample selection bias",
+            gammaZeroImpliesNoEndog: 1,
+            isHeckmanType: 1,
+            isBinaryTreatment: 0,
+            explanation:
+                "Step 1: estimate a Probit for participation (work = 1). Step 2: compute the inverse Mills ratio λ̂ and include it in the wage equation estimated on workers. If γ is significant, there is selection bias; λ̂ acts as a control function for the unobserved factors affecting both participation and wages."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Control Function Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Model Structure, First Stage, and Control Function</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Outcome (second-stage) equation:</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.structuralEq + '</span></p>';
+
+        html += '<p style="margin-top:8px;"><strong>First-stage / selection equation:</strong><br>';
+        html += '<span style="font-family:Courier New, monospace;">' + s.firstStageEq + '</span></p>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Feature</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>';
+
+        html += '<tr><td>First-stage type</td><td>' +
+                (s.firstStageType === "linear" ? "Linear regression" : "Probit (nonlinear)") +
+                '</td><td>Determines how the control function is constructed.</td></tr>';
+
+        html += '<tr><td>Has external instrument(s)?</td><td>' + (s.hasExternalInstrument ? "Yes" : "No") + '</td>';
+        html += '<td>Excluded variable(s) that affect the first stage but not y directly.</td></tr>';
+
+        html += '<tr><td>Instrument(s) mentioned</td><td>' + s.instrumentName + '</td>';
+        html += '<td>Used to identify the first-stage model.</td></tr>';
+
+        html += '<tr><td>Control function term</td><td>' + s.controlFunctionName + '</td>';
+        html += '<td>Added as an extra regressor in the outcome equation.</td></tr>';
+
+        html += '<tr><td>γ ≠ 0 implies</td><td>' + s.gammaNonZeroImplies + '</td>';
+        html += '<td>Evidence of endogeneity/selection that requires correction.</td></tr>';
+
+        html += '<tr><td>Is this Heckman-type selection?</td><td>' + (s.isHeckmanType ? "Yes" : "No") + '</td>';
+        html += '<td>IMR (λ̂) is a special case of a control function.</td></tr>';
+
+        html += '<tr><td>Is the main regressor/treatment binary?</td><td>' + (s.isBinaryTreatment ? "Yes" : "No") + '</td>';
+        html += '<td>Binary treatments often use Probit/Logit first stages.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> The control function term captures the part of the endogenous variable that is correlated with the error. ';
+        html += 'Conditional on this term, the original regressor behaves as if exogenous.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var isLinearFS = s.firstStageType === "linear" ? 1 : 0;
+        var isProbitFS = s.firstStageType === "probit" ? 1 : 0;
+        var hasInstrument = s.hasExternalInstrument ? 1 : 0;
+        var isHeckman = s.isHeckmanType ? 1 : 0;
+        var isBinary = s.isBinaryTreatment ? 1 : 0;
+        var gammaZeroMeansNoEndog = s.gammaZeroImpliesNoEndog ? 1 : 0;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "isLinearFS",
+                type: "numeric",
+                title: "🏁 Is the first-stage model linear?",
+                prompt: "Is the first-stage/selection equation a linear regression (rather than Probit)? Answer 1 for yes, 0 for no.",
+                correctValue: isLinearFS,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "isProbitFS",
+                type: "numeric",
+                title: "🏁 Is the first-stage model a Probit?",
+                prompt: "Is the first-stage/selection equation a Probit model? Answer 1 for yes, 0 for no.",
+                correctValue: isProbitFS,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "hasInstrument",
+                type: "numeric",
+                title: "🏁 Are there excluded instruments?",
+                prompt: "Does this scenario rely on at least one excluded instrument (variable that affects the first stage but not y directly)? Answer 1 for yes, 0 for no.",
+                correctValue: hasInstrument,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "gammaZeroNoEndog",
+                type: "numeric",
+                title: "📊 Does γ = 0 mean 'no endogeneity/selection'?",
+                prompt: "In this control function setup, does γ = 0 correspond to 'no endogeneity/selection' in the main regressor or sample? Answer 1 for yes, 0 for no.",
+                correctValue: gammaZeroMeansNoEndog,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "gammaTest",
+                type: "numeric",
+                title: "📊 Is a test on γ a test for endogeneity/selection?",
+                prompt: "Is a standard t- or Wald test on γ equivalent to a test for endogeneity/selection (given a valid first stage)? Answer 1 for yes, 0 for no.",
+                correctValue: 1,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "isHeckman",
+                type: "numeric",
+                title: "📉 Is this a Heckman-type selection model?",
+                prompt: "Is this scenario an example of a Heckman-type selection model with an inverse Mills ratio (IMR) as the control function? Answer 1 for yes, 0 for no.",
+                correctValue: isHeckman,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "isBinary",
+                type: "numeric",
+                title: "📉 Is the main endogenous variable a binary treatment?",
+                prompt: "Is the main endogenous variable/treatment binary (0/1)? Answer 1 for yes, 0 for no.",
+                correctValue: isBinary,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "equivTo2SLS",
+                type: "numeric",
+                title: "📉 Is the linear control function setup equivalent to 2SLS?",
+                prompt: "For the purely linear case with a linear first stage and a linear outcome, is the control function estimator numerically equivalent to 2SLS (under homoskedasticity)? Answer 1 for yes, 0 for no.",
+                correctValue: (s.id === "linearCF" ? 1 : 0),
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Control Function & γ",
+                prompt: "Explain how you would describe the control function term and the coefficient γ in this scenario in an empirical paper. What does γ ≠ 0 tell you, and why are excluded instruments important?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(3) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(3) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: the control function approach uses a first-stage model and a residual (or IMR) to control for endogeneity/selection. Testing γ is a convenient way to test whether this correction is needed.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "isLinearFS") {
+            html += "A linear first stage means you regress the endogenous regressor on instruments and exogenous controls using OLS. ";
+            html += "The control function is then the OLS residual v̂, which you add to the outcome equation.";
+        } else if (q.conceptId === "isProbitFS") {
+            html += "A Probit first stage is used when the endogenous variable is binary (e.g., treatment = 0/1 or selection). ";
+            html += "The control function is a generalized residual or the inverse Mills ratio, depending on the setup.";
+        } else if (q.conceptId === "hasInstrument") {
+            html += "Excluded instruments are crucial: they create variation in the endogenous variable (or selection) that is not directly in the outcome equation. ";
+            html += "Without excluded variables, identification of the control function correction is much weaker.";
+        } else if (q.conceptId === "gammaZeroNoEndog") {
+            html += "If the control function is correctly specified and γ = 0, then the endogenous regressor is effectively exogenous conditional on the other controls. ";
+            html += "In that case, OLS without the control function would be consistent.";
+        } else if (q.conceptId === "gammaTest") {
+            html += "A t-test on γ in the outcome equation is a convenient test for endogeneity or selection bias. ";
+            html += "If γ is significantly different from zero, you reject the null of no endogeneity/selection.";
+        } else if (q.conceptId === "isHeckman") {
+            html += "The Heckman selection model is a classic control function case: the inverse Mills ratio λ̂ is the control function. ";
+            html += "A significant coefficient on λ̂ implies that sample selection is driving bias in the outcome equation.";
+        } else if (q.conceptId === "isBinary") {
+            html += "When the main regressor is binary (e.g., treatment), the control function often comes from a Probit or Logit first stage. ";
+            html += "The generalized residual from that model is then included in the outcome equation.";
+        } else if (q.conceptId === "equivTo2SLS") {
+            html += "In the linear case with homoskedastic errors, the control function approach and 2SLS are numerically equivalent. ";
+            html += "They are just two ways of representing the same IV estimator.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "In a paper, you would: (i) describe the first-stage/selection equation, (ii) define the control function term (residual or IMR), ";
+            html += "and (iii) explain that γ measures the correlation between the unobserved factors in the outcome and the first-stage disturbance. ";
+            html += "Nonzero γ signals endogeneity/selection that must be corrected.";
+        } else {
+            html += "Control functions offer a flexible way to handle endogeneity and selection in linear and nonlinear models, as long as the first stage and exclusion restrictions are credible.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Control function practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
