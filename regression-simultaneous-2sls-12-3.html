@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2SLS in Simultaneous Equations – Wooldridge 12.3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .twosls-card { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .firststage-card { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .overid-card  { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .issues-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 2SLS in Simultaneous Equations (Wooldridge 12.3)</h1>
+        <p>Practice setting up first-stage regressions, counting instruments, and interpreting 2SLS estimates</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: 2SLS, First-Stage Regressions, Overidentification & Finite-Sample Issues</h3>
+        <div class="measures-grid">
+            <div class="measure-card twosls-card">
+                <h4>Two-Stage Least Squares (2SLS)</h4>
+                <div class="formula">
+                    1️⃣ First: x̂ = P<sub>Z</sub>x<br>
+                    2️⃣ Second: y on x̂ and exogenous vars
+                </div>
+                <div class="description">
+                    2SLS replaces endogenous regressors with their fitted values from a regression on instruments and exogenous variables. The second stage uses these fitted values as if they were exogenous.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Estimating structural equations in simultaneous systems (demand, supply, investment).
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Estimate demand by instrumenting price with cost shifters.
+                </div>
+            </div>
+
+            <div class="measure-card firststage-card">
+                <h4>First-Stage Regression</h4>
+                <div class="formula">
+                    Endog RHS = δ₀ + δ₁Z₁ + … + δₖZₖ + controls + v
+                </div>
+                <div class="description">
+                    Each endogenous regressor is regressed on all exogenous variables in the system (included + excluded). Instrument strength is checked using F-statistics or partial R².
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Diagnose weak instruments; report first-stage results.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Price on cost shifters and income; check F on excluded instruments.
+                </div>
+            </div>
+
+            <div class="measure-card overid-card">
+                <h4>Just- vs Over-Identified Equations</h4>
+                <div class="formula">
+                    Just: # instruments = # endog RHS<br>
+                    Over: # instruments &gt; # endog RHS
+                </div>
+                <div class="description">
+                    Just-identified equations have a unique 2SLS solution. Over-identified equations admit overidentification tests (e.g., J-test) for instrument validity.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Decide whether to run over-ID tests and how much flexibility you have in choosing instruments.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Demand with multiple cost shifters is over-identified.
+                </div>
+            </div>
+
+            <div class="measure-card issues-card">
+                <h4>Finite-Sample & Practical Issues</h4>
+                <div class="formula">
+                    Weak instruments ⇒ biased & imprecise 2SLS
+                </div>
+                <div class="description">
+                    With weak instruments or small samples, 2SLS can be biased and have large standard errors. Good practice includes reporting first-stage F, using robust SEs, and discussing instrument relevance.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Empirical work with limited variation in instruments.
+                </div>
+                <div class="examples">
+                    <strong>Tip:</strong> Always show the first-stage regression table in applied work.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: 2SLS in Structural Equations</h3>
+            <p>
+                Each scenario describes a simultaneous system and a structural equation of interest. Work out instrument counts,
+                first-stage structure, and whether 2SLS is just- or over-identified.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on: (i) how many instruments you have, (ii) what the first stage looks like,
+                    and (iii) whether 2SLS is feasible and how to interpret its coefficient.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 System & equation counts</strong><br>Count endogenous regressors and instruments for the equation.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 First-stage setup</strong><br>Recognise which variables appear in the first-stage regression(s).</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Identification & 2SLS feasibility</strong><br>Classify as under-, just-, or over-identified; decide if 2SLS is feasible.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain how you would describe the 2SLS strategy in an empirical paper.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("2SLS (12.3) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios for 2SLS practice
+    var scenarios = [
+        {
+            id: "justID_demand",
+            title: "Just-Identified Demand with One Cost Shifter",
+            description: "You revisit the supply–demand system. Demand excludes the cost shifter (Cost), supply excludes income (Inc). You want to estimate the demand equation by 2SLS using Cost as an instrument for price P.",
+            context: "Single endogenous regressor, one excluded exogenous variable ⇒ just-identified 2SLS.",
+            structuralSystem: [
+                "Demand (focus):  Q = α₁₀ + α₁₁ P + α₁₂ Inc + u₁",
+                "Supply:          Q = α₂₀ + α₂₁ P + α₂₂ Cost + u₂"
+            ],
+            focusEquationName: "Demand for Q",
+            endogRHS: ["P"],
+            includedExog: ["Inc"],
+            excludedExog: ["Cost"],   // instruments for P
+            firstStageDesc: "First stage: regress P on Inc and Cost; use fitted P̂ in demand equation.",
+            idStatus: "just", // under/just/over
+            twoslsFeasible: 1,
+            explanation:
+                "There is one endogenous regressor (P) and one excluded exogenous variable (Cost) that shifts supply but not demand. " +
+                "The first stage regresses P on all exogenous variables (Inc and Cost). In the second stage, demand is estimated using " +
+                "Q on P̂ and Inc. The equation is just-identified, so 2SLS coincides with IV using Cost as the single instrument."
+        },
+        {
+            id: "overID_demand",
+            title: "Over-Identified Demand with Two Cost Shifters",
+            description: "You extend the supply equation to include two exogenous cost shifters (Cost₁, Cost₂), both excluded from the demand equation. Demand still includes income Inc.",
+            context: "One endogenous regressor, two excluded exogenous variables ⇒ over-identified demand equation.",
+            structuralSystem: [
+                "Demand (focus):  Q = β₁₀ + β₁₁ P + β₁₂ Inc + u₁",
+                "Supply:          Q = β₂₀ + β₂₁ P + β₂₂ Cost₁ + β₂₃ Cost₂ + u₂"
+            ],
+            focusEquationName: "Demand for Q",
+            endogRHS: ["P"],
+            includedExog: ["Inc"],
+            excludedExog: ["Cost₁","Cost₂"],
+            firstStageDesc: "First stage: regress P on Inc, Cost₁, and Cost₂. Both cost shifters serve as instruments for P.",
+            idStatus: "over",
+            twoslsFeasible: 1,
+            explanation:
+                "Here P is endogenous and there are two excluded exogenous variables (Cost₁, Cost₂). Both shift supply but not demand. " +
+                "The first stage regresses P on Inc, Cost₁, and Cost₂; fitted P̂ is then used in the second stage demand equation. " +
+                "Because there are more instruments than endogenous regressors, the demand equation is over-identified and you could test overidentifying restrictions."
+        },
+        {
+            id: "underID_demand",
+            title: "Under-Identified Demand with No Exclusions",
+            description: "You specify demand and supply such that income Inc and cost Cost enter both equations. No exogenous variable is excluded from either equation.",
+            context: "No valid excluded exogenous variable ⇒ demand equation is under-identified; 2SLS not feasible.",
+            structuralSystem: [
+                "Demand (focus):  Q = γ₁₀ + γ₁₁ P + γ₁₂ Inc + γ₁₃ Cost + u₁",
+                "Supply:          Q = γ₂₀ + γ₂₁ P + γ₂₂ Inc + γ₂₃ Cost + u₂"
+            ],
+            focusEquationName: "Demand for Q",
+            endogRHS: ["P"],
+            includedExog: ["Inc","Cost"],
+            excludedExog: [],
+            firstStageDesc: "There is no exogenous variable that affects P but is excluded from demand; no proper first-stage instrument set for P.",
+            idStatus: "under",
+            twoslsFeasible: 0,
+            explanation:
+                "With Q and P endogenous and Inc and Cost appearing in both equations, there is no variable that shifts supply but not demand. " +
+                "Price P has no valid excluded exogenous instruments. The demand equation is under-identified, and 2SLS cannot be implemented in the usual way."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 System Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural System and 2SLS Setup</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equations:</strong></p>';
+        html += '<ul style="margin-left:18px; margin-top:6px;">';
+        for (var i=0; i<s.structuralSystem.length; i++) {
+            html += '<li style="font-family:Courier New, monospace; font-size:0.9em;">'
+                 + s.structuralSystem[i] + '</li>';
+        }
+        html += '</ul>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Category</th><th>Variables</th><th>Notes</th></tr></thead><tbody>';
+
+        html += '<tr><td>Focus structural equation</td><td>' +
+                s.focusEquationName + '</td>';
+        html += '<td>We will estimate this equation by 2SLS if identified.</td></tr>';
+
+        html += '<tr><td>Endogenous RHS variables</td><td>' +
+                (s.endogRHS.length ? s.endogRHS.join(", ") : "(none)") + '</td>';
+        html += '<td>Need instruments for these regressors.</td></tr>';
+
+        html += '<tr><td>Included exogenous regressors</td><td>' +
+                (s.includedExog.length ? s.includedExog.join(", ") : "(none)") + '</td>';
+        html += '<td>Appear directly in the focus equation.</td></tr>';
+
+        html += '<tr><td>Excluded exogenous variables</td><td>' +
+                (s.excludedExog.length ? s.excludedExog.join(", ") : "(none)") + '</td>';
+        html += '<td>Used as instruments for the endogenous RHS variables.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;"><strong>First-stage description:</strong> ' +
+                s.firstStageDesc + '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> 2SLS uses all exogenous variables (included and excluded) to predict endogenous regressors in the first stage, ';
+        html += 'then uses those fitted values in the structural equation. Identification depends on having enough excluded exogenous variables.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
