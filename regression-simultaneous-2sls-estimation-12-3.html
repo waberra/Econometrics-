@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simultaneous Equations – 2SLS Estimation (Wooldridge 12.3)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .ols-bias-card { background: linear-gradient(135deg, #e83e8c, #fd7e14); border-color:#c2185b; color:white; }
+        .rf-card       { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .stage1-card   { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .stage2-card   { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 2SLS Estimation in Simultaneous Equations (Wooldridge 12.3)</h1>
+        <p>Practice understanding why OLS is biased in structural equations and how 2SLS uses instruments and reduced forms for consistent estimation</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: OLS Bias, Reduced Form, and Two-Stage Least Squares</h3>
+        <div class="measures-grid">
+            <div class="measure-card ols-bias-card">
+                <h4>OLS Bias in Structural Equations</h4>
+                <div class="formula">
+                    y = β₀ + β₁x + u, &nbsp; but x is endogenous → Cov(x, u) ≠ 0
+                </div>
+                <div class="description">
+                    In a simultaneous equations system, endogenous regressors (like price in a demand equation) are correlated with the structural error term. OLS on the structural equation is then biased and inconsistent.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Demand and supply, investment–interest rate systems, labor supply–wage systems.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Regressing quantity on price using market data does not recover the true demand slope.
+                </div>
+            </div>
+
+            <div class="measure-card rf-card">
+                <h4>Reduced Form & Instruments</h4>
+                <div class="formula">
+                    x = π₀ + π₁z₁ + π₂z₂ + v
+                </div>
+                <div class="description">
+                    The reduced form expresses each endogenous variable in terms of all exogenous variables in the system. Exogenous variables excluded from the structural equation serve as instruments for the endogenous regressor(s).
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Constructing first-stage regressions and identifying valid instruments.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Supply shifters (costs) become instruments for price in the demand equation.
+                </div>
+            </div>
+
+            <div class="measure-card stage1-card">
+                <h4>First Stage of 2SLS</h4>
+                <div class="formula">
+                    x̂ = P<sub>Z</sub>x = Z(Z'Z)⁻¹Z'x
+                </div>
+                <div class="description">
+                    In the first stage, regress each endogenous regressor on all instruments (included and excluded exogenous variables). The fitted values x̂ are the part of x explained only by exogenous variation.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Diagnose instrument relevance (F-statistics), construct predicted endogenous variables.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Regress price on income and cost shifters to obtain fitted prices for demand estimation.
+                </div>
+            </div>
+
+            <div class="measure-card stage2-card">
+                <h4>Second Stage of 2SLS</h4>
+                <div class="formula">
+                    y = β₀ + β₁ x̂ + e
+                </div>
+                <div class="description">
+                    In the second stage, replace endogenous regressors x with their fitted values x̂ and run OLS. Under standard assumptions, this 2SLS estimator is consistent, even though x itself is endogenous.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Estimate structural parameters in identified equations, perform hypothesis tests with robust SEs.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Use fitted price (from first stage) instead of actual price in the demand equation.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: 2SLS Logic in Simultaneous Systems</h3>
+            <p>
+                Each scenario describes a simultaneous equations system and a structural equation of interest. 
+                Practice counting instruments, checking identification, and deciding when 2SLS is appropriate and why it improves on OLS.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on: (i) the set of endogenous and exogenous variables, (ii) excluded exogenous variables (instruments),
+                    (iii) whether the equation is under/just/over-identified, and (iv) whether OLS and 2SLS are appropriate.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 System structure</strong><br>Count endogenous, exogenous, and instruments in the system.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Identification</strong><br>Apply the order condition and classify identification status.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 OLS vs 2SLS</strong><br>Decide whether OLS is biased and whether 2SLS is valid.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain the 2SLS strategy in words for the scenario.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("2SLS estimation (12.3) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios for 2SLS logic in SEMs
+    var scenarios = [
+        {
+            id: "demandSupply_justID",
+            title: "Demand with One Supply Shifter (Just-Identified 2SLS)",
+            description: "You have a classic supply–demand system. Demand depends on price and income; supply depends on price and a cost shifter. You want to estimate the demand equation using market data.",
+            context: "Demand is just-identified and can be estimated by 2SLS using the cost shifter as an instrument for price.",
+            structuralEquations: [
+                "Demand:  Q = β₁₀ + β₁₁ P + β₁₂ Inc + u₁",
+                "Supply:  Q = β₂₀ + β₂₁ P + β₂₂ Cost + u₂"
+            ],
+            systemEndogenous: ["Q","P"],
+            systemExogenous: ["Inc","Cost"],
+            focusEquationName: "Demand for Q",
+            focusEndogenousLHS: "Q",
+            focusEndogenousRHS: ["P"],
+            focusIncludedExogenous: ["Inc"],
+            focusExcludedExogenous: ["Cost"], // instrument set
+            idStatus: "just",
+            olsBiased: 1,
+            tslsValid: 1,
+            moreInstrumentsThanEndog: 0,
+            explanation:
+                "Price P is endogenous because it is jointly determined with Q in the supply–demand system. " +
+                "Cost shifts supply but not demand, so it can serve as an excluded exogenous variable (instrument) for P in the demand equation. " +
+                "With one endogenous RHS variable (P) and one excluded exogenous (Cost), the demand equation is just-identified. " +
+                "2SLS uses Cost (and Inc) in the first stage to predict P, then uses the fitted price in the second-stage demand regression."
+        },
+        {
+            id: "demandSupply_overID",
+            title: "Demand with Two Supply Shifters (Over-Identified 2SLS)",
+            description: "You extend the supply equation to include two cost shifters. Demand still depends on price and income. You want to estimate the demand equation structurally.",
+            context: "Demand is over-identified and can be estimated by 2SLS with multiple instruments for price.",
+            structuralEquations: [
+                "Demand:  Q = γ₁₀ + γ₁₁ P + γ₁₂ Inc + u₁",
+                "Supply:  Q = γ₂₀ + γ₂₁ P + γ₂₂ Cost₁ + γ₂₃ Cost₂ + u₂"
+            ],
+            systemEndogenous: ["Q","P"],
+            systemExogenous: ["Inc","Cost₁","Cost₂"],
+            focusEquationName: "Demand for Q",
+            focusEndogenousLHS: "Q",
+            focusEndogenousRHS: ["P"],
+            focusIncludedExogenous: ["Inc"],
+            focusExcludedExogenous: ["Cost₁","Cost₂"], // two instruments for P
+            idStatus: "over",
+            olsBiased: 1,
+            tslsValid: 1,
+            moreInstrumentsThanEndog: 1,
+            explanation:
+                "As in the previous system, P is endogenous. Here, both Cost₁ and Cost₂ shift supply but not demand, so they are excluded exogenous variables in the demand equation. " +
+                "Together with Inc, they form the instrument set. The demand equation is over-identified: there are more instruments than endogenous RHS variables. " +
+                "2SLS uses all exogenous variables (Inc, Cost₁, Cost₂) to predict P in the first stage, then uses the fitted P in the second stage. " +
+                "Over-identification allows tests of the joint validity of the instruments."
+        },
+        {
+            id: "laborSupply_underID",
+            title: "Labor Supply Without Exclusions (Under-Identified for 2SLS)",
+            description: "You model labor supply and wage determination. Both equations include the same set of exogenous variables. There are no variables that appear in one equation but not the other.",
+            context: "The labor supply equation is structurally interesting but under-identified; 2SLS cannot be applied without additional instruments.",
+            structuralEquations: [
+                "Labor supply:   H = α₁₀ + α₁₁ W + α₁₂ NonlabInc + α₁₃ Educ + u₁",
+                "Wage equation:  W = α₂₀ + α₂₁ NonlabInc + α₂₂ Educ + u₂"
+            ],
+            systemEndogenous: ["H","W"],
+            systemExogenous: ["NonlabInc","Educ"],
+            focusEquationName: "Labor supply (H on W)",
+            focusEndogenousLHS: "H",
+            focusEndogenousRHS: ["W"],
+            focusIncludedExogenous: ["NonlabInc","Educ"],
+            focusExcludedExogenous: [], // no excluded exogenous variables
+            idStatus: "under",
+            olsBiased: 1,
+            tslsValid: 0,
+            moreInstrumentsThanEndog: 0,
+            explanation:
+                "Hours H and wages W are jointly determined. W is endogenous in the labor supply equation. " +
+                "However, there is no exogenous variable that appears only in the wage equation and not in labor supply. " +
+                "All exogenous variables (NonlabInc, Educ) appear in both equations, so there is no excluded exogenous variable to serve as an instrument. " +
+                "The labor supply equation is under-identified, and standard 2SLS cannot be used without bringing in additional instruments or restrictions."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 System Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural System and Instruments for 2SLS</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural equations:</strong></p>';
+        html += '<ul style="margin-left:18px; margin-top:6px;">';
+        for (var i=0; i<s.structuralEquations.length; i++) {
+            html += '<li style="font-family:Courier New, monospace; font-size:0.9em;">'
+                 + s.structuralEquations[i] + '</li>';
+        }
+        html += '</ul>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Category</th><th>Variables</th><th>Notes</th></tr></thead><tbody>';
+
+        html += '<tr><td>Endogenous variables in system</td><td>' +
+                s.systemEndogenous.join(", ") + '</td>';
+        html += '<td>Jointly determined in the simultaneous system.</td></tr>';
+
+        html += '<tr><td>Exogenous variables in system (Z)</td><td>' +
+                s.systemExogenous.join(", ") + '</td>';
+        html += '<td>Potential instruments and included exogenous regressors.</td></tr>';
+
+        html += '<tr><td>Focus structural equation</td><td>' +
+                s.focusEquationName + '</td>';
+        html += '<td>We want to estimate this equation structurally.</td></tr>';
+
+        html += '<tr><td>Endogenous RHS in focus equation</td><td>' +
+                (s.focusEndogenousRHS.length ? s.focusEndogenousRHS.join(", ") : "(none)") + '</td>';
+        html += '<td>Require instruments for consistent estimation.</td></tr>';
+
+        html += '<tr><td>Included exogenous in focus equation</td><td>' +
+                (s.focusIncludedExogenous.length ? s.focusIncludedExogenous.join(", ") : "(none)") + '</td>';
+        html += '<td>Enter directly in both stages.</td></tr>';
+
+        html += '<tr><td>Excluded exogenous (instruments)</td><td>' +
+                (s.focusExcludedExogenous.length ? s.focusExcludedExogenous.join(", ") : "(none)") + '</td>';
+        html += '<td>Do not appear in focus equation; used as instruments for endogenous regressors.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> 2SLS replaces endogenous regressors with fitted values from a first-stage regression on all exogenous variables. ';
+        html += 'Identification requires enough excluded exogenous variables (valid instruments) to pin down the effect of the endogenous RHS variables.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+        var nEndoSys = s.systemEndogenous.length;
+        var nExoSys  = s.systemExogenous.length;
+        var nEndoRHS = s.focusEndogenousRHS.length;
+        var nExclExo = s.focusExcludedExogenous.length;
+        var nInstrTotal = s.focusExcludedExogenous.length + s.focusIncludedExogenous.length;
+
+        var idCode = 0; // 0 = under, 1 = just, 2 = over
+        if (s.idStatus === "just") idCode = 1;
+        else if (s.idStatus === "over") idCode = 2;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "nEndoSys",
+                type: "numeric",
+                title: "🏁 Number of endogenous variables in the system",
+                prompt: "How many endogenous variables are in this simultaneous equations system?",
+                correctValue: nEndoSys,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nExoSys",
+                type: "numeric",
+                title: "🏁 Number of exogenous variables in the system (Z)",
+                prompt: "How many exogenous variables (potential instruments) are in the system?",
+                correctValue: nExoSys,
+                unitHint: "(count)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "nEndoRHS",
+                type: "numeric",
+                title: "📊 Endogenous RHS variables in the focus equation",
+                prompt: "In the focus structural equation, how many endogenous variables appear on the right-hand side?",
+                correctValue: nEndoRHS,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nExclExo",
+                type: "numeric",
+                title: "📊 Excluded exogenous variables (instruments) for the equation",
+                prompt: "How many exogenous variables are excluded from the focus equation but present in the system (i.e., potential instruments)?",
+                correctValue: nExclExo,
+                unitHint: "(count)"
+            });
+            currentQuestions.push({
+                conceptId: "nInstrTotal",
+                type: "numeric",
+                title: "📊 Total instruments used in first stage",
+                prompt: "If you use all exogenous variables (included + excluded) as instruments, how many instruments does 2SLS use in the first stage?",
+                correctValue: nInstrTotal,
+                unitHint: "(count)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "idStatus",
+                type: "numeric",
+                title: "📉 Identification status of the focus equation",
+                prompt: "Classify identification of the focus equation: 0 = under-identified, 1 = just-identified, 2 = over-identified.",
+                correctValue: idCode,
+                unitHint: "(0, 1, or 2)"
+            });
+            currentQuestions.push({
+                conceptId: "olsBiased",
+                type: "numeric",
+                title: "📉 Is OLS on the focus structural equation biased?",
+                prompt: "Given the simultaneous determination, is OLS on the focus structural equation generally biased/inconsistent? Answer 1 for yes, 0 for no.",
+                correctValue: s.olsBiased,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "tslsValid",
+                type: "numeric",
+                title: "📉 Is 2SLS an appropriate estimator for the focus equation?",
+                prompt: "Based on the available excluded exogenous variables, is 2SLS a valid estimation method for the focus equation? Answer 1 for yes, 0 for no.",
+                correctValue: s.tslsValid,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "overID",
+                type: "numeric",
+                title: "📉 Are there more instruments than endogenous RHS variables?",
+                prompt: "Is the equation over-identified in the sense that there are more instruments than endogenous RHS variables? Answer 1 for yes, 0 for no.",
+                correctValue: s.moreInstrumentsThanEndog,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: 2SLS Strategy in This Scenario",
+                prompt: "Explain in words how you would estimate the focus structural equation using 2SLS. What is the first-stage regression, what is the second-stage regression, and why is 2SLS preferred to OLS here?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: 2SLS uses exogenous variation from instruments (excluded exogenous variables) to purge simultaneity bias and recover structural parameters.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.05, Math.abs(correctVal) * 0.03); // ±3% or at least 0.05
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+        var nEndoRHS = s.focusEndogenousRHS.length;
+        var nExclExo = s.focusExcludedExogenous.length;
+        var nInstrTotal = s.focusExcludedExogenous.length + s.focusIncludedExogenous.length;
+
+        if (q.conceptId === "nEndoSys") {
+            html += "Endogenous variables are determined jointly within the simultaneous system (e.g., price and quantity). ";
+            html += "Knowing how many endogenous variables there are helps you understand how complex the system is.";
+        } else if (q.conceptId === "nExoSys") {
+            html += "Exogenous variables form the instrument pool Z. They shift the system from outside and are candidates for instruments in 2SLS.";
+        } else if (q.conceptId === "nEndoRHS") {
+            html += "Endogenous RHS variables in the focus equation are those regressors that are correlated with the structural error. ";
+            html += "Each of them requires at least one valid instrument for identification.";
+        } else if (q.conceptId === "nExclExo") {
+            html += "Excluded exogenous variables are in the system but not in the focus equation. ";
+            html += "They are crucial: they provide variation that affects the endogenous regressor but not the structural error, which is exactly what an instrument does.";
+        } else if (q.conceptId === "nInstrTotal") {
+            html += "2SLS uses all exogenous variables (included and excluded) as instruments in the first stage. ";
+            html += "The first-stage regression projects endogenous variables on the full instrument set Z.";
+        } else if (q.conceptId === "idStatus") {
+            html += "Under-identified: there are not enough excluded exogenous variables to identify the endogenous RHS variables. ";
+            html += "Just-identified: exactly enough instruments to identify the parameters. ";
+            html += "Over-identified: more instruments than endogenous variables, which allows testing overidentifying restrictions.";
+        } else if (q.conceptId === "olsBiased") {
+            html += "In simultaneous systems, OLS on the structural equation is usually biased because the endogenous regressor is correlated with the structural error term. ";
+            html += "This is the core motivation for IV and 2SLS.";
+        } else if (q.conceptId === "tslsValid") {
+            html += "2SLS is valid when (i) you have at least as many valid instruments as endogenous regressors (order condition) and ";
+            html += "(ii) those instruments are relevant (they explain the endogenous regressor) and exogenous (uncorrelated with the structural error).";
+        } else if (q.conceptId === "overID") {
+            html += "When there are more instruments than endogenous regressors, the equation is over-identified. ";
+            html += "You can then test the joint validity of instruments using overidentification tests (like the J-test in GMM frameworks).";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "A good 2SLS explanation for a paper would: ";
+            html += "(1) specify the structural equation and its endogenous regressor(s); ";
+            html += "(2) list the excluded exogenous variables used as instruments; ";
+            html += "(3) describe the first-stage regression(s); ";
+            html += "(4) explain that the second stage replaces the endogenous variables with their fitted values; ";
+            html += "and (5) argue why the instruments are both relevant and exogenous.";
+        } else {
+            html += "Always connect the mechanics of 2SLS (first stage, second stage) to the economic story and the identification strategy.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("2SLS estimation practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
