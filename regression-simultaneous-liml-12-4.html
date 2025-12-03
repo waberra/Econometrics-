@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LIML vs 2SLS in Simultaneous Equations (Wooldridge 12.4)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .tsls-card  { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .liml-card  { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .kclass-card{ background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .weak-card  { background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 LIML and k-Class Estimators (Wooldridge 12.4)</h1>
+        <p>Compare 2SLS, LIML, and k-class estimators, with a focus on weak instruments and identification</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: 2SLS, LIML, k-Class, and Weak Instruments</h3>
+        <div class="measures-grid">
+            <div class="measure-card tsls-card">
+                <h4>2SLS as a k-Class Estimator</h4>
+                <div class="formula">
+                    β̂<sub>2SLS</sub> is the k-class estimator with k = 1
+                </div>
+                <div class="description">
+                    In the k-class family, different choices of k produce different IV-type estimators. Two-stage least squares (2SLS) is the special case where k = 1, using the full projection of endogenous regressors on the instrument space.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Baseline estimator for identified structural equations in SEMs.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Estimating a demand equation using supply shifters as instruments.
+                </div>
+            </div>
+
+            <div class="measure-card liml-card">
+                <h4>LIML (Limited Information ML)</h4>
+                <div class="formula">
+                    β̂<sub>LIML</sub> = k̂-class estimator with k̂ &ne; 1 (estimated from data)
+                </div>
+                <div class="description">
+                    LIML can be written as a k-class estimator where k is chosen in a way related to an eigenvalue problem. It uses limited information (one structural equation) and often has better finite-sample properties than 2SLS when instruments are weak.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Situations with weak instruments, small samples, or concerns about 2SLS bias.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Empirical work with modest sample size and suspected weak first-stage F-statistics.
+                </div>
+            </div>
+
+            <div class="measure-card kclass-card">
+                <h4>k-Class Estimators</h4>
+                <div class="formula">
+                    β̂(k) = (X'(I − kM<sub>Z</sub>)X)⁻¹ X'(I − kM<sub>Z</sub>)y
+                </div>
+                <div class="description">
+                    The k-class family nests OLS, 2SLS, and LIML. Different k trade off bias and variance. OLS corresponds to k = 0; 2SLS to k = 1; LIML uses an estimated k̂ that depends on the data and system structure.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Theoretical link between IV-type estimators; understanding LIML as part of a broader family.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Showing 2SLS and LIML are closely related, differing mainly in the choice of k.
+                </div>
+            </div>
+
+            <div class="measure-card weak-card">
+                <h4>Weak Instruments and Comparison</h4>
+                <div class="formula">
+                    Weak instruments → 2SLS biased toward OLS; LIML less biased
+                </div>
+                <div class="description">
+                    When instruments are weak (low first-stage F-statistics), 2SLS can be seriously biased and its sampling distribution is poorly approximated by asymptotic theory. LIML often has smaller finite-sample bias, though at the cost of more variance and complexity.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Empirical practice with weak instruments; robustness checks.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Running both 2SLS and LIML and comparing results as part of sensitivity analysis.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: LIML vs 2SLS in Simultaneous Equations</h3>
+            <p>
+                Each scenario describes a simultaneous equations system and an IV setup. 
+                Decide whether 2SLS and LIML differ much, when LIML is preferred, and how weak instruments matter.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on: (i) the strength of instruments, (ii) whether 2SLS is reliable, 
+                    (iii) when LIML is preferred, and (iv) how k-class unifies these estimators.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 System summary</strong><br>Summarise endogenous, exogenous variables, and instrument strength.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Instrument strength & bias</strong><br>Decide if instruments are weak and what that implies for 2SLS.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 LIML vs 2SLS</strong><br>Assess whether LIML is likely to differ materially from 2SLS.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain why a researcher might prefer LIML or stick with 2SLS.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("LIML vs 2SLS (12.4) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios focusing on instrument strength and LIML vs 2SLS
+    var scenarios = [
+        {
+            id: "strongInstruments",
+            title: "Strong Instruments in a Demand–Supply System",
+            description: "You estimate a demand equation for Q on P and Inc, using cost shifters as instruments for P. The first-stage regression of P on instruments has an F-statistic of about 40 on the excluded instruments.",
+            context: "Instruments are strong. 2SLS and LIML should be very similar in large samples.",
+            structuralEquations: [
+                "Demand:  Q = β₁₀ + β₁₁ P + β₁₂ Inc + u₁",
+                "Supply:  Q = β₂₀ + β₂₁ P + β₂₂ Cost + u₂"
+            ],
+            systemEndogenous: ["Q","P"],
+            systemExogenous: ["Inc","Cost"],
+            focusEquationName: "Demand for Q",
+            firstStageF: 40,
+            instrumentsWeak: 0,
+            limlPreferred: 0,
+            limlDiffersMuch: 0,
+            explanation:
+                "With a first-stage F-statistic around 40, instruments are considered strong. In such settings, 2SLS and LIML are both consistent and tend to have very similar finite-sample distributions. " +
+                "LIML may offer little advantage here, and 2SLS is standard."
+        },
+        {
+            id: "borderlineWeak",
+            title: "Borderline Instruments in an Education–Wage Model",
+            description: "You instrument years of education (Educ) using quarter of birth and distance to college. The first-stage F-statistic on excluded instruments is about 10–12.",
+            context: "Instruments are borderline weak; 2SLS may have some finite-sample bias, LIML can be used as a robustness check.",
+            structuralEquations: [
+                "Wage:  log(W) = γ₀ + γ₁ Educ + γ₂ Exper + e",
+                "First stage:  Educ = π₀ + π₁ QOB + π₂ DistCollege + π₃ Exper + v"
+            ],
+            systemEndogenous: ["Educ"],
+            systemExogenous: ["Exper","QOB","DistCollege"],
+            focusEquationName: "Return to education",
+            firstStageF: 11,
+            instrumentsWeak: 1,
+            limlPreferred: 1,
+            limlDiffersMuch: 1,
+            explanation:
+                "With a first-stage F-statistic around 10–12, the instruments are borderline. 2SLS is still widely used, but its finite-sample bias can be non-trivial, especially in smaller samples. " +
+                "LIML often has less bias in such cases, though with somewhat larger variance. Researchers often report both 2SLS and LIML to assess robustness."
+        },
+        {
+            id: "veryWeak",
+            title: "Very Weak Instruments in an Investment Model",
+            description: "You attempt to instrument the interest rate (R) in an investment equation using policy variables, but the first-stage F-statistic is only about 3.5.",
+            context: "Instruments are clearly weak. Both 2SLS and LIML face serious problems; LIML is still less biased but inference is unreliable.",
+            structuralEquations: [
+                "Investment:  I = δ₀ + δ₁ R + δ₂ CashFlow + u",
+                "First stage:  R = θ₀ + θ₁ Policy + θ₂ CashFlow + v"
+            ],
+            systemEndogenous: ["I","R"],
+            systemExogenous: ["CashFlow","Policy"],
+            focusEquationName: "Effect of interest rate on investment",
+            firstStageF: 3.5,
+            instrumentsWeak: 1,
+            limlPreferred: 1,
+            limlDiffersMuch: 1,
+            explanation:
+                "With a first-stage F-statistic well below conventional thresholds (like 10), instruments are weak. 2SLS estimates are biased toward OLS, and standard errors are misleading. " +
+                "LIML generally has less finite-sample bias, but both estimators are problematic when instruments are this weak. Alternative strategies or stronger instruments are needed."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 System Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Structural System and Instrument Strength</h4>';
+        html += '<div class="data-block">';
+
+        html += '<p><strong>Structural / first-stage equations:</strong></p>';
+        html += '<ul style="margin-left:18px; margin-top:6px;">';
+        for (var i=0; i<s.structuralEquations.length; i++) {
+            html += '<li style="font-family:Courier New, monospace; font-size:0.9em;">'
+                 + s.structuralEquations[i] + '</li>';
+        }
+        html += '</ul>';
+
+        html += '<table class="data-table" style="margin-top:12px;">';
+        html += '<thead><tr><th>Category</th><th>Information</th><th>Notes</th></tr></thead><tbody>';
+
+        html += '<tr><td>Endogenous variables</td><td>' +
+                s.systemEndogenous.join(", ") + '</td>';
+        html += '<td>Require instruments or full system methods.</td></tr>';
+
+        html += '<tr><td>Exogenous variables / instruments</td><td>' +
+                s.systemExogenous.join(", ") + '</td>';
+        html += '<td>These form the instrument set Z.</td></tr>';
+
+        html += '<tr><td>Focus structural equation</td><td>' +
+                s.focusEquationName + '</td>';
+        html += '<td>We compare 2SLS and LIML for this equation.</td></tr>';
+
+        html += '<tr><td>First-stage F-statistic (excluded instruments)</td><td>' +
+                s.firstStageF.toFixed(1) + '</td>';
+        html += '<td>Rule of thumb: F &lt; 10 suggests weak instruments.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> When instruments are strong, 2SLS and LIML give very similar results. ';
+        html += 'When instruments are weak, 2SLS can be badly biased and have misleading standard errors, while LIML tends to have smaller finite-sample bias but may still be unreliable in very weak-instrument settings.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "firstStageF",
+                type: "numeric",
+                title: "🏁 First-stage F-statistic (approximate)",
+                prompt: "What is the approximate first-stage F-statistic on the excluded instruments in this scenario?",
+                correctValue: s.firstStageF,
+                unitHint: "(enter the F-statistic)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "weakInstruments",
+                type: "numeric",
+                title: "📊 Are the instruments weak?",
+                prompt: "Using the rule of thumb (F < 10), are the instruments weak? Answer 1 for yes, 0 for no.",
+                correctValue: s.instrumentsWeak,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "limlPreferred",
+                type: "numeric",
+                title: "📉 Is LIML generally preferred to 2SLS here?",
+                prompt: "In this scenario, would a careful applied researcher typically consider LIML as preferable (or at least an important robustness check) relative to 2SLS? Answer 1 for yes, 0 for no.",
+                correctValue: s.limlPreferred,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "limlDiffersMuch",
+                type: "numeric",
+                title: "📉 Would LIML likely differ materially from 2SLS?",
+                prompt: "Is LIML likely to produce estimates that differ materially from 2SLS (beyond random noise)? Answer 1 for yes, 0 for no.",
+                correctValue: s.limlDiffersMuch,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: LIML vs 2SLS in this scenario",
+                prompt: "Explain in words how you would interpret the relationship between 2SLS and LIML in this scenario. When would you trust 2SLS, when would you look at LIML, and what would big differences between them tell you?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: LIML, 2SLS, and k-class estimators are closely related. The main practical distinction is how they behave when instruments are weak.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.05); // ±5% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "firstStageF") {
+            html += "The first-stage F-statistic on excluded instruments is a common diagnostic for instrument strength. ";
+            html += "A rule of thumb is that F < 10 suggests weak instruments, which can cause serious problems for 2SLS.";
+        } else if (q.conceptId === "weakInstruments") {
+            html += "If the first-stage F-statistic is below conventional thresholds (like 10), instruments are considered weak. ";
+            html += "Weak instruments lead to 2SLS estimates that are biased toward OLS and have non-standard sampling distributions.";
+        } else if (q.conceptId === "limlPreferred") {
+            html += "LIML is in the same k-class family as 2SLS but often has smaller finite-sample bias when instruments are weak or the sample is small. ";
+            html += "In borderline or clearly weak-instrument situations, many applied researchers report LIML alongside 2SLS as a robustness check.";
+        } else if (q.conceptId === "limlDiffersMuch") {
+            html += "When instruments are strong, LIML and 2SLS are usually very similar. ";
+            html += "Large differences between LIML and 2SLS estimates can be a signal of weak instruments or other specification problems.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "A good empirical practice is to: ";
+            html += "(1) report first-stage F-statistics; ";
+            html += "(2) estimate the structural equation by 2SLS; ";
+            html += "(3) re-estimate by LIML; ";
+            html += "(4) compare the results. If LIML and 2SLS are close and instruments are strong, confidence is higher. ";
+            html += "If they differ a lot and instruments are weak, you should be cautious about causal claims.";
+        } else {
+            html += "Always tie your choice of estimator (2SLS vs LIML) to instrument strength, sample size, and robustness checks.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("LIML vs 2SLS practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
