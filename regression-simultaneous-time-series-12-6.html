@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simultaneous Equations with Time Series (12.6)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .station-card { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .trend-card    { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .ivts-card     { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .practical-card{ background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Simultaneous Equations with Time Series (12.6)</h1>
+        <p>Applying 2SLS, LIML, and SEM ideas when the data are time series</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas for Time Series Simultaneous Equations</h3>
+        <div class="measures-grid">
+            <div class="measure-card station-card">
+                <h4>Stationarity & Dynamics</h4>
+                <div class="formula">
+                    {y<sub>t</sub>} stationary + weakly dependent ⇒ standard asymptotics
+                </div>
+                <div class="description">
+                    In time series SEMs, we still need errors that behave “well” over time. Stationarity and weak dependence ensure that 2SLS/LIML have their usual properties.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Quarterly or annual demand–supply, investment, money demand systems.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Demand and supply for a commodity using 40 years of annual data.
+                </div>
+            </div>
+
+            <div class="measure-card trend-card">
+                <h4>Trends & Spurious Relationships</h4>
+                <div class="formula">
+                    Trending y<sub>t</sub>, x<sub>t</sub> ⇒ need trends or differencing
+                </div>
+                <div class="description">
+                    If variables trend over time, regressions can show strong “relationships” that are actually spurious. This applies just as much in SEMs as in single-equation models.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Include time trends, lags, or work with growth rates/log differences.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Log GDP, consumption, and investment all trending over time.
+                </div>
+            </div>
+
+            <div class="measure-card ivts-card">
+                <h4>Instruments in Time Series</h4>
+                <div class="formula">
+                    Use current & lagged exogenous variables as instruments
+                </div>
+                <div class="description">
+                    2SLS in time series SEMs still relies on valid instruments Z. Lags of exogenous variables and predetermined variables are common instruments.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Estimating consumption or money demand using lagged income, interest rates, policy variables.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Instrumenting current interest rate with its lags and policy indicators.
+                </div>
+            </div>
+
+            <div class="measure-card practical-card">
+                <h4>Serial Correlation & Robust SEs</h4>
+                <div class="formula">
+                    2SLS + HAC (Newey–West) SEs for time series
+                </div>
+                <div class="description">
+                    Even after using valid instruments, errors can still be serially correlated. Inference should use robust (HAC) standard errors rather than assuming iid errors.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Policy equations, macro systems, financial time series.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> 2SLS estimation of an investment equation with Newey–West standard errors.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Time Series Simultaneous Equations</h3>
+            <p>
+                Each scenario gives you a time series SEM context. Decide whether standard 2SLS ideas carry over,
+                when you must worry about trends and spurious regression, and how to handle inference.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on: (i) stationarity and trends, (ii) instrument choice, (iii) serial correlation and HAC SEs,
+                    and (iv) how similar time series SEMs are to cross-sectional SEMs.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Stationarity / trends</strong><br>Decide if the variables are stationary or trending.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Spurious regression risk</strong><br>Assess whether you must include trends/differences.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 2SLS validity & robust SEs</strong><br>Judge whether standard 2SLS is appropriate and if HAC SEs are needed.</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain the main time series issues in this SEM.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Time series SEM (12.6) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: time series simultaneous equations contexts
+    var scenarios = [
+        {
+            id: "stationaryDemandSupply",
+            title: "Stationary Demand–Supply System with Annual Data",
+            description: "You have 40 yearly observations on quantity, price, income, and cost shifters for a commodity. Visual inspection and unit root tests suggest that all variables, in levels, are stationary (no strong trends). You specify a simultaneous demand–supply system and estimate the demand equation by 2SLS using standard cost and income shifters as instruments.",
+            context: "Time series SEM with stationary variables; classical 2SLS logic largely carries over.",
+            isTrending: 0,
+            spuriousRisk: 0,
+            hacRecommended: 1,
+            ts2SLSValid: 1,
+            explanation:
+                "In a stationary annual commodity market system with standard demand and supply shifters, the basic identification and 2SLS logic from cross-sectional SEMs carries over to time series. " +
+                "You still need valid instruments, and you should worry about serial correlation in the errors, so HAC (Newey–West) standard errors are a good idea. " +
+                "Spurious regression due to common trends is not a major concern here."
+        },
+        {
+            id: "trendingMacroSystem",
+            title: "Trending Macro System: Output, Consumption, Investment",
+            description: "You model a small macro system with log real GDP (y), log consumption (c), and log investment (i), all measured annually over 50 years. Plots show clear upward trends in all three series. You write down a structural consumption equation and treat c as endogenous, using y and i as part of a broader simultaneous system. You are considering 2SLS estimation on levels without time trends or differences.",
+            context: "Time series SEM with trending variables; serious risk of spurious relationships if trends are ignored.",
+            isTrending: 1,
+            spuriousRisk: 1,
+            hacRecommended: 1,
+            ts2SLSValid: 0,
+            explanation:
+                "With strongly trending macro variables like log GDP, log consumption, and log investment, estimating a structural equation in levels without trend controls can produce spurious results. " +
+                "In SEM form, you still need valid instruments, but you also need to handle trends properly—by including time trends, using growth rates, or working in a cointegration framework. " +
+                "Standard 2SLS on levels with no trend controls is not appropriate; HAC SEs alone do not fix spuriousness."
+        },
+        {
+            id: "laggedInstrumentsPolicy",
+            title: "Policy Equation with Lagged Instruments",
+            description: "You study a monetary policy reaction function where the interest rate (R) responds to inflation (π) and output gap (ỹ). The interest rate is endogenous in a broader system. You use lagged values of π and ỹ and a policy dummy as instruments for current R when estimating a structural investment equation by 2SLS on quarterly data. The variables look roughly stationary around a mean.",
+            context: "Time series SEM with lagged instruments and roughly stationary variables; focus on instrument choice and serial correlation.",
+            isTrending: 0,
+            spuriousRisk: 0,
+            hacRecommended: 1,
+            ts2SLSValid: 1,
+            explanation:
+                "In a quarterly policy system with variables fluctuating around means, time series SEM issues centre on valid timing restrictions and serial correlation. " +
+                "Lagged macro variables and policy dummies often serve as instruments for current policy variables. " +
+                "Under weak dependence, 2SLS is valid, but robust (HAC) standard errors are recommended for inference."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 System Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Time Series Features of This SEM</h4>';
+        html += '<div class="data-block">';
+
+        html += '<table class="data-table">';
+        html += '<thead><tr><th>Aspect</th><th>Information</th><th>Notes</th></tr></thead><tbody>';
+
+        html += '<tr><td>Variable behaviour</td><td>' +
+                (s.isTrending ? "Trending over time" : "Roughly stationary") + '</td>';
+        html += '<td>Trending series ⇒ risk of spurious relationships if trends are ignored.</td></tr>';
+
+        html += '<tr><td>Risk of spurious regression</td><td>' +
+                (s.spuriousRisk ? "High" : "Low") + '</td>';
+        html += '<td>High risk suggests adding trends/differences or using cointegration tools.</td></tr>';
+
+        html += '<tr><td>Use of 2SLS in levels as specified</td><td>' +
+                (s.ts2SLSValid ? "Reasonable under assumptions" : "Problematic as specified") + '</td>';
+        html += '<td>Valid instruments + appropriate handling of trends are both needed.</td></tr>';
+
+        html += '<tr><td>Need HAC (Newey–West) standard errors?</td><td>' +
+                (s.hacRecommended ? "Yes, recommended" : "Less critical") + '</td>';
+        html += '<td>Serial correlation is common in time series; HAC SEs improve inference.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> Time series SEMs use the same identification and IV logic as cross-sectional SEMs, ';
+        html += 'but you must also handle time series issues: trends, serial correlation, and dynamic relationships.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "trending",
+                type: "numeric",
+                title: "🏁 Are the variables trending?",
+                prompt: "In this scenario, are the main variables described as clearly trending over time? Answer 1 for yes, 0 for no.",
+                correctValue: s.isTrending,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "spurious",
+                type: "numeric",
+                title: "📊 Is there a serious risk of spurious regression?",
+                prompt: "Given the behaviour of the variables, is there a serious risk of spurious regression if you estimate in levels without time trends/differences? Answer 1 for yes, 0 for no.",
+                correctValue: s.spuriousRisk,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "ts2SLSValid",
+                type: "numeric",
+                title: "📉 Is 2SLS in levels (as described) conceptually appropriate?",
+                prompt: "Based on the description, is straight 2SLS in levels with the given specification conceptually appropriate? Answer 1 for yes, 0 for no.",
+                correctValue: s.ts2SLSValid,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "hacNeeded",
+                type: "numeric",
+                title: "📉 Are HAC (Newey–West) standard errors recommended?",
+                prompt: "In this time series SEM, should you generally use HAC (Newey–West) standard errors for inference? Answer 1 for yes, 0 for no.",
+                correctValue: s.hacRecommended,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Time Series Issues in This SEM",
+                prompt: "Briefly explain the main time series issues for this simultaneous equations setup (e.g., trends, spuriousness, serial correlation, choice of instruments).",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: time series SEMs use the same IV logic as cross-sectional SEMs, but you must handle trends and serial correlation carefully.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.05); // ±5% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "trending") {
+            html += "Trending variables (like log GDP, consumption, investment) can create strong correlations even when there is no meaningful economic relationship. ";
+            html += "Recognising whether variables are trending is the first step in diagnosing spurious regression risk.";
+        } else if (q.conceptId === "spurious") {
+            html += "When many variables share a common trend, regressions in levels without trends/differences can look highly significant but be spurious. ";
+            html += "This applies to simultaneous equations just as in single-equation time series.";
+        } else if (q.conceptId === "ts2SLSValid") {
+            html += "For stationary variables with reasonable dynamics, 2SLS carries over from cross section to time series. ";
+            html += "For strongly trending variables, you usually need trends, differences, or a cointegration framework before 2SLS is appropriate.";
+        } else if (q.conceptId === "hacNeeded") {
+            html += "Time series errors are often serially correlated. Using HAC (Newey–West) standard errors with 2SLS helps obtain valid inference even when errors are not iid.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "A good answer mentions: (1) whether variables are trending; (2) the risk of spurious regression; ";
+            html += "(3) instrument choice (current vs lagged exogenous variables); and (4) the need for HAC standard errors in time series SEMs.";
+        } else {
+            html += "Time series adds trends, serial correlation, and dynamics on top of the usual SEM identification issues.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Time series SEM practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
