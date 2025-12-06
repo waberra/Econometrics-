@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simultaneous Equations with Panel Data (12.7)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .red-title {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #a71e2a;
+        }
+
+        .red-title h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .red-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blue-concepts {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+        }
+
+        .blue-concepts h3 {
+            font-size: 1.7em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .measure-card {
+            padding: 18px;
+            border-radius: 15px;
+            border: 3px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .panel-card { background: linear-gradient(135deg, #28a745, #20c997); border-color:#1e7e34; color:white; }
+        .fe-card    { background: linear-gradient(135deg, #6f42c1, #8e44ad); border-color:#563d7c; color:white; }
+        .iv-card    { background: linear-gradient(135deg, #17a2b8, #138496); border-color:#117a8b; color:white; }
+        .robust-card{ background: linear-gradient(135deg, #ffc107, #ff8800); border-color:#d39e00; color:#212529; }
+
+        .measure-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .measure-card .formula {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .measure-card .description { margin-bottom: 10px; font-size:0.9em; }
+        .measure-card .use-cases   { margin-bottom: 10px; font-style: italic; font-size:0.85em; }
+        .measure-card .examples    { font-size:0.8em; border-top: 2px solid rgba(255,255,255,0.3); padding-top: 8px; }
+
+        .interactive-section {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .scenario-display,
+        .calculation-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario-display { border-left: 5px solid #28a745; }
+        .calculation-area { border-left: 5px solid #ffc107; }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin: 6px 4px;
+            box-shadow: 0 4px 10px rgba(40,167,69,0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 4px 10px rgba(108,117,125,0.3);
+        }
+
+        .data-block {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #007bff;
+            margin: 10px 0 0 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size:0.9em;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .option-checkbox {
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 2px solid #ced4da;
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:0.85em;
+        }
+
+        .question-card {
+            background:#f8f9fa;
+            border-radius:10px;
+            border:2px solid #dee2e6;
+            padding:12px;
+            margin:10px 0;
+            font-size:0.9em;
+        }
+
+        .question-card h5 {
+            margin-bottom:6px;
+            color:#007bff;
+            font-size:0.95em;
+        }
+
+        .question-input {
+            margin-top:6px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:6px;
+        }
+
+        .question-input input {
+            padding:6px 8px;
+            border-radius:6px;
+            border:1px solid #ced4da;
+            min-width:100px;
+        }
+
+        .feedback {
+            margin-top:4px;
+            font-size:0.85em;
+        }
+
+        .feedback.correct {
+            color:#155724;
+        }
+
+        .feedback.incorrect {
+            color:#721c24;
+        }
+
+        .step-explanation {
+            margin-top:6px;
+            font-size:0.85em;
+            background:white;
+            border-radius:6px;
+            padding:8px;
+            border-left:3px solid #17a2b8;
+        }
+
+        .interpretation-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:15px;
+            border-radius:10px;
+            margin:15px 0;
+            border:2px solid #2196f3;
+            font-size:0.9em;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e83e8c, #d91a72);
+            color:white;
+            padding:15px;
+            text-align:center;
+            border-radius:12px;
+            margin:10px 0 20px 0;
+            border:3px solid #c7185d;
+            box-shadow:0 4px 15px rgba(232,62,140,0.3);
+            font-size:0.9em;
+        }
+
+        @media (max-width:768px) {
+            .measures-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="red-title">
+        <h1>📊 Simultaneous Equations with Panel Data (12.7)</h1>
+        <p>Combine panel methods (FE/FD) with IV/2SLS in simultaneous equation systems</p>
+    </div>
+
+    <div class="blue-concepts">
+        <h3>📘 Key Ideas: Panel SEM, Fixed Effects, IV, and Robust Inference</h3>
+        <div class="measures-grid">
+            <div class="measure-card panel-card">
+                <h4>Panel SEM Structure</h4>
+                <div class="formula">
+                    y<sub>it</sub> = βx<sub>it</sub> + α<sub>i</sub> + u<sub>it</sub>, &nbsp; system for i = 1,…,N; t = 1,…,T
+                </div>
+                <div class="description">
+                    In panel simultaneous equations, several endogenous variables are determined jointly for each individual i over time t, with individual-specific effects α<sub>i</sub> in each equation.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Firm production and investment, household labor supply and wages, regional systems.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Firm output and investment both endogenous, observed yearly for many firms.
+                </div>
+            </div>
+
+            <div class="measure-card fe-card">
+                <h4>Fixed Effects / First Differences</h4>
+                <div class="formula">
+                    Within or Δ removes α<sub>i</sub>, but x<sub>it</sub> can still be endogenous
+                </div>
+                <div class="description">
+                    Applying FE or first differences eliminates time-invariant unobserved heterogeneity (α<sub>i</sub>). But simultaneity/endogeneity of regressors remains and must still be handled with instruments.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> When unobserved time-invariant factors are correlated with regressors.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Firm fixed productivity affects both output and input choice; use FE + IV.
+                </div>
+            </div>
+
+            <div class="measure-card iv-card">
+                <h4>IV and 2SLS with Panel Data</h4>
+                <div class="formula">
+                    Use exogenous or lagged variables as instruments in FE/FD-transformed equations
+                </div>
+                <div class="description">
+                    After FE/FD transformation, you can run 2SLS using appropriately transformed instruments (often time-varying exogenous variables or lags) to address remaining simultaneity.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> FE-2SLS, FD-2SLS, panel GMM-style estimation.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> Using lagged policy or cost variables as instruments in a FE demand equation.
+                </div>
+            </div>
+
+            <div class="measure-card robust-card">
+                <h4>Cluster-Robust SEs</h4>
+                <div class="formula">
+                    Cluster at i: arbitrary correlation over t within each i
+                </div>
+                <div class="description">
+                    Errors are usually correlated over time within an individual or firm. Inference should cluster standard errors at the panel unit level after FE/FD + IV estimation.
+                </div>
+                <div class="use-cases">
+                    <strong>Use:</strong> Any panel IV/2SLS estimation with multiple time periods per unit.
+                </div>
+                <div class="examples">
+                    <strong>Example:</strong> FE-2SLS with firm-level panels and clustered SEs at the firm level.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="interactive-section">
+        <div class="control-panel">
+            <h3>🎮 Interactive Practice: Panel Data in Simultaneous Equations</h3>
+            <p>
+                Each scenario gives a panel data SEM setup. Decide what FE/FD does, which endogeneity remains, which instruments are valid,
+                and whether FE-2SLS (or FD-2SLS) with clustered SEs is appropriate.
+            </p>
+            <button class="btn" onclick="generateScenario()">📊 Generate New Scenario</button>
+            <button class="btn btn-secondary" onclick="resetPractice()">🔄 Reset</button>
+        </div>
+
+        <div id="scenarioDisplay" class="scenario-display" style="display:none;">
+            <h3 id="scenarioTitle">📋 Scenario</h3>
+            <div id="scenarioDescription"></div>
+            <div id="dataDisplay"></div>
+
+            <div style="margin-top: 12px; padding: 12px; background:#f8f9fa; border-radius:10px; border-left:4px solid #6c757d;">
+                <h4>⚙️ Choose Tasks to Practice</h4>
+                <p style="font-size:0.85em;color:#555;">
+                    Focus on: (i) what FE/FD removes, (ii) remaining simultaneity, (iii) instrument choices in panel,
+                    and (iv) cluster-robust inference.
+                </p>
+                <div class="options-grid">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkBaseline" checked>
+                        <div><strong>🏁 Fixed effects and unobserved heterogeneity</strong><br>What does FE/FD remove?</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkOtherMeans" checked>
+                        <div><strong>📊 Remaining endogeneity</strong><br>Is simultaneity still present after FE/FD?</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkDifference" checked>
+                        <div><strong>📉 Instruments & FE-2SLS validity</strong><br>Are proposed instruments plausible and enough?</div>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="chkInterpret" checked>
+                        <div><strong>🧠 Interpretation (open answer)</strong><br>Explain the FE/FD + IV strategy in words.</div>
+                    </label>
+                </div>
+
+                <button class="btn" onclick="generateQuestions()" style="margin-top:10px;">🧮 Generate Questions</button>
+            </div>
+        </div>
+
+        <div id="calculationArea" class="calculation-area" style="display:none;">
+            <h3>📝 Questions & Feedback</h3>
+            <div id="questionsContainer"></div>
+            <button class="btn" onclick="checkAnswers()">✅ Check Answers</button>
+            <div id="interpretationDisplay"></div>
+        </div>
+
+        <div class="score-display">
+            <h3>🎯 Practice Progress</h3>
+            <div>Scenarios Practiced: <span id="scenariosCompleted">0</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log("Panel SEM (12.7) practice loaded.");
+
+    var currentScenario = null;
+    var scenariosCompleted = 0;
+    var currentQuestions = [];
+
+    // Scenarios: panel data simultaneous systems
+    var scenarios = [
+        {
+            id: "firmOutputInvestment_FE",
+            title: "Firm Output and Investment with Firm Fixed Effects",
+            description: "You have an annual panel of firms (i = 1,…,N; t = 1,…,T). Output (y) and investment (I) are determined jointly in a two-equation system. You believe there are firm-specific productivity effects α_i that affect both output and investment decisions. You estimate the output equation using firm fixed effects and treat investment I_it as endogenous.",
+            context: "Use FE to remove α_i, but still need instruments for I_it in the output equation.",
+            feRemovesAlpha: 1,
+            simultaneityRemains: 1,
+            instrumentsAvailable: 1,
+            fe2slsAppropriate: 1,
+            explanation:
+                "Firm fixed effects remove time-invariant productivity differences α_i that are correlated with both output and investment. " +
+                "However, simultaneity between y_it and I_it remains: current investment may respond to contemporaneous output shocks. " +
+                "You therefore need instruments for I_it in the FE-transformed output equation (e.g., lagged policy or cost shifters). FE-2SLS with clustered SEs at the firm level is appropriate."
+        },
+        {
+            id: "householdLaborSupply_noFE",
+            title: "Household Labor Supply without Exploiting Panel Structure",
+            description: "You have a 5-year panel of households with hours worked (H_it) and wages (W_it) determined simultaneously. There are likely household-specific preferences that are constant over time and correlated with both H_it and W_it. You estimate the labor supply equation by 2SLS in levels, ignoring the panel structure and not using FE or FD, with weak cross-sectional instruments for W_it.",
+            context: "Ignoring household fixed effects and weak instruments makes the specification dubious.",
+            feRemovesAlpha: 0,
+            simultaneityRemains: 1,
+            instrumentsAvailable: 0,
+            fe2slsAppropriate: 0,
+            explanation:
+                "With household panels, unobserved preferences (fixed over time) affect both labor supply and wages. Estimating in levels without FE/FD leaves this source of bias in place. " +
+                "If instruments for wages are also weak, 2SLS will not reliably identify the labor supply equation. Better is to exploit the panel structure (FE or FD) and find stronger, plausibly exogenous instruments."
+        },
+        {
+            id: "regionalPolicy_FD",
+            title: "Regional Policy and Outcomes with First Differences",
+            description: "You study the effect of a regional policy variable P_it on an outcome Y_it in a system where P_it is also influenced by lagged outcomes. You have a panel of regions over 10 years. You difference the system (ΔY_it and ΔP_it) to remove region fixed effects and propose using lagged levels of P_i,t-1 and exogenous covariates Z_it as instruments for ΔP_it in the differenced outcome equation.",
+            context: "FD removes region fixed effects; IV still needed for ΔP_it; FD-2SLS with clustered SEs is plausible.",
+            feRemovesAlpha: 1,
+            simultaneityRemains: 1,
+            instrumentsAvailable: 1,
+            fe2slsAppropriate: 1,
+            explanation:
+                "First differencing removes time-invariant region heterogeneity. But policy changes ΔP_it can still be endogenous because they respond to shocks in Y_it. " +
+                "Using lagged levels of P and other exogenous Z as instruments for ΔP_it in the differenced equation is analogous to panel GMM/IV strategies. " +
+                "FD-2SLS (or FE-2SLS in levels) with clustering at the region level is appropriate if the instruments are strong and exogenous."
+        }
+    ];
+
+    function generateScenario() {
+        var idx = Math.floor(Math.random() * scenarios.length);
+        currentScenario = scenarios[idx];
+        console.log("Scenario:", currentScenario.id);
+
+        currentQuestions = [];
+
+        document.getElementById("scenarioDisplay").style.display = "block";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+
+        document.getElementById("scenarioTitle").textContent = "📊 " + currentScenario.title;
+
+        var descHtml = "";
+        descHtml += '<div class="data-block">';
+        descHtml += '<h4>📋 Panel SEM Context:</h4>';
+        descHtml += '<p style="margin-top:8px;">' + currentScenario.description + '</p>';
+        descHtml += '<p style="margin-top:8px;font-style:italic;color:#6c757d;"><strong>Goal:</strong> ' +
+                    currentScenario.context + '</p>';
+        descHtml += '</div>';
+        document.getElementById("scenarioDescription").innerHTML = descHtml;
+
+        displayData(currentScenario);
+
+        document.getElementById("chkBaseline").checked = true;
+        document.getElementById("chkOtherMeans").checked = true;
+        document.getElementById("chkDifference").checked = true;
+        document.getElementById("chkInterpret").checked = true;
+    }
+
+    function displayData(s) {
+        var html = "";
+        html += '<h4>📋 Key Features of This Panel System</h4>';
+        html += '<div class="data-block">';
+
+        html += '<table class="data-table">';
+        html += '<thead><tr><th>Aspect</th><th>Information</th><th>Notes</th></tr></thead><tbody>';
+
+        html += '<tr><td>Unobserved individual effects α_i</td><td>' +
+                (s.feRemovesAlpha ? "Addressed via FE/FD" : "Not explicitly removed") + '</td>';
+        html += '<td>FE/FD is used to control for time-invariant heterogeneity (if applied).</td></tr>';
+
+        html += '<tr><td>Simultaneity after FE/FD</td><td>' +
+                (s.simultaneityRemains ? "Yes, still present" : "No, effectively removed") + '</td>';
+        html += '<td>Endogenous regressors generally remain endogenous even after FE/FD.</td></tr>';
+
+        html += '<tr><td>Instruments for endogenous variables</td><td>' +
+                (s.instrumentsAvailable ? "Plausible instruments discussed" : "Instruments weak or absent") + '</td>';
+        html += '<td>IV is needed for consistent estimation of structural equations.</td></tr>';
+
+        html += '<tr><td>FE/FD-2SLS with clustered SEs appropriate?</td><td>' +
+                (s.fe2slsAppropriate ? "Yes, in principle" : "No, specification is dubious") + '</td>';
+        html += '<td>Depends on whether α_i are handled and strong, exogenous instruments exist.</td></tr>';
+
+        html += '</tbody></table>';
+
+        html += '<p style="margin-top:10px;font-size:0.9em;">';
+        html += '<strong>Key principle:</strong> Panel SEMs combine two challenges: unobserved heterogeneity (handled by FE/FD) and simultaneity (handled by IV/2SLS). ';
+        html += 'Fixed effects do not solve simultaneity; you still need valid instruments, and inference should use cluster-robust SEs.';
+        html += '</p>';
+
+        html += '<p style="margin-top:6px;font-size:0.9em;">';
+        html += '<strong>Scenario intuition:</strong> ' + s.explanation;
+        html += '</p>';
+
+        html += '</div>';
+
+        document.getElementById("dataDisplay").innerHTML = html;
+    }
+
+    function generateQuestions() {
+        if (!currentScenario) {
+            alert("Please generate a scenario first.");
+            return;
+        }
+
+        currentQuestions = [];
+        var container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        var chkBaseline   = document.getElementById("chkBaseline").checked;
+        var chkOtherMeans = document.getElementById("chkOtherMeans").checked;
+        var chkDifference = document.getElementById("chkDifference").checked;
+        var chkInterpret  = document.getElementById("chkInterpret").checked;
+
+        var s = currentScenario;
+
+        if (chkBaseline) {
+            currentQuestions.push({
+                conceptId: "feRemovesAlpha",
+                type: "numeric",
+                title: "🏁 Does the specification remove α_i via FE/FD?",
+                prompt: "In this scenario, are individual (firm/household/region) fixed effects α_i removed by FE or FD? Answer 1 for yes, 0 for no.",
+                correctValue: s.feRemovesAlpha,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkOtherMeans) {
+            currentQuestions.push({
+                conceptId: "simultaneityRemains",
+                type: "numeric",
+                title: "📊 Does simultaneity remain after FE/FD?",
+                prompt: "After controlling for α_i (if done), is simultaneity between the main variables still a problem? Answer 1 for yes, 0 for no.",
+                correctValue: s.simultaneityRemains,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkDifference) {
+            currentQuestions.push({
+                conceptId: "instrumentsAvailable",
+                type: "numeric",
+                title: "📉 Are plausible instruments available?",
+                prompt: "Does the scenario describe plausible instruments (e.g., lags, exogenous shifters) for the endogenous regressor(s)? Answer 1 for yes, 0 for no.",
+                correctValue: s.instrumentsAvailable,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+            currentQuestions.push({
+                conceptId: "fe2slsAppropriate",
+                type: "numeric",
+                title: "📉 Is FE/FD-2SLS with clustered SEs appropriate?",
+                prompt: "Overall, is FE/FD-2SLS with clustered standard errors at the panel level a conceptually appropriate approach? Answer 1 for yes, 0 for no.",
+                correctValue: s.fe2slsAppropriate,
+                unitHint: "(1 = yes, 0 = no)"
+            });
+        }
+
+        if (chkInterpret) {
+            currentQuestions.push({
+                conceptId: "interpret",
+                type: "open",
+                title: "🧠 Interpretation: Panel SEM Strategy",
+                prompt: "Explain in words how you would estimate the structural equation of interest in this panel SEM: What does FE/FD do, why do you still need IV, and how would you handle inference?",
+                correctText: ""
+            });
+        }
+
+        if (currentQuestions.length === 0) {
+            container.innerHTML = "<p>No tasks selected. Tick at least one box.</p>";
+            document.getElementById("calculationArea").style.display = "block";
+            return;
+        }
+
+        var html = "";
+        for (var j = 0; j < currentQuestions.length; j++) {
+            html += renderQuestionCard(currentQuestions[j], j);
+        }
+        container.innerHTML = html;
+
+        document.getElementById("calculationArea").style.display = "block";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+    }
+
+    function renderQuestionCard(q, index) {
+        var html = "";
+        html += '<div class="question-card">';
+        html += '<h5>' + q.title + '</h5>';
+        html += '<p>' + q.prompt + '</p>';
+        html += '<div class="question-input">';
+        html += '<label for="answer_' + index + '"><strong>Your answer:</strong></label>';
+        html += '<input type="text" id="answer_' + index + '">';
+        if (q.unitHint) {
+            html += '<span>' + q.unitHint + '</span>';
+        }
+        html += '</div>';
+        html += '<div id="feedback_' + index + '" class="feedback"></div>';
+        html += '<div id="explain_' + index + '" class="step-explanation" style="display:none;"></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function checkAnswers() {
+        if (currentQuestions.length === 0) {
+            alert("No questions to check. Generate questions first.");
+            return;
+        }
+
+        var numCorrect = 0;
+
+        for (var i = 0; i < currentQuestions.length; i++) {
+            var q = currentQuestions[i];
+            var ansInput = document.getElementById("answer_" + i);
+            var feedbackEl = document.getElementById("feedback_" + i);
+            var explainEl = document.getElementById("explain_" + i);
+
+            if (!ansInput) continue;
+
+            var userRaw = ansInput.value.trim();
+            if (userRaw === "") {
+                feedbackEl.textContent = "Please enter an answer.";
+                feedbackEl.className = "feedback";
+                explainEl.style.display = "none";
+                continue;
+            }
+
+            if (q.type === "numeric") {
+                var userVal = parseFloat(userRaw);
+                if (isNaN(userVal)) {
+                    feedbackEl.textContent = "Please enter a numeric answer.";
+                    feedbackEl.className = "feedback";
+                    explainEl.style.display = "none";
+                    continue;
+                }
+                var correct = q.correctValue;
+                var ok = isCloseNumeric(userVal, correct);
+                if (ok) {
+                    numCorrect++;
+                    feedbackEl.textContent = "✅ Correct (expected about " + correct.toFixed(2) + ").";
+                    feedbackEl.className = "feedback correct";
+                } else {
+                    feedbackEl.textContent = "❌ Not quite. A good answer is about " + correct.toFixed(2) + ".";
+                    feedbackEl.className = "feedback incorrect";
+                }
+            } else if (q.type === "open") {
+                feedbackEl.textContent = "📝 Thanks for your explanation. Compare it with the expert interpretation below.";
+                feedbackEl.className = "feedback";
+            }
+
+            explainEl.innerHTML = getExplanationHtml(q);
+            explainEl.style.display = "block";
+        }
+
+        var interpLines = [];
+        interpLines.push("• You answered " + numCorrect + " out of " + currentQuestions.length + " auto-graded questions correctly (within tolerance).");
+        interpLines.push("• Big picture: In panel SEMs, FE/FD handles α_i, but you still need IV/2SLS for simultaneity and cluster-robust SEs for inference.");
+        document.getElementById("interpretationDisplay").innerHTML =
+            '<div class="interpretation-box"><h4>🧠 Summary of This Practice Round</h4>' +
+            interpLines.join("<br>") + '</div>';
+
+        scenariosCompleted++;
+        document.getElementById("scenariosCompleted").textContent = String(scenariosCompleted);
+    }
+
+    function isCloseNumeric(userVal, correctVal) {
+        var diff = Math.abs(userVal - correctVal);
+        var tol = Math.max(0.1, Math.abs(correctVal) * 0.05); // ±5% or at least 0.1
+        return diff <= tol;
+    }
+
+    function getExplanationHtml(q) {
+        if (!currentScenario) return "";
+
+        var s = currentScenario;
+        var html = "<strong>How to think about this:</strong><br>";
+
+        if (q.conceptId === "feRemovesAlpha") {
+            html += "FE or FD transformations remove time-invariant individual effects α_i. ";
+            html += "This is crucial when α_i are correlated with regressors, but it does not solve simultaneity of time-varying variables.";
+        } else if (q.conceptId === "simultaneityRemains") {
+            html += "Even after removing α_i, current endogenous regressors can still respond to current shocks in the error term. ";
+            html += "That is why IV/2SLS (or GMM) is still needed after FE/FD.";
+        } else if (q.conceptId === "instrumentsAvailable") {
+            html += "Plausible instruments in panels often come from lagged variables, policy or cost shifters, or other exogenous time-varying variables. ";
+            html += "They must be correlated with the endogenous regressor changes but uncorrelated with the structural error.";
+        } else if (q.conceptId === "fe2slsAppropriate") {
+            html += "FE/FD-2SLS with cluster-robust SEs is appropriate when: (1) α_i are an important source of bias; ";
+            html += "(2) you have valid and strong instruments; and (3) you cluster SEs at the panel unit level to handle within-unit serial correlation.";
+        } else if (q.conceptId === "interpret") {
+            html += "<em>Applied interpretation:</em><br>";
+            html += s.explanation + "<br><br>";
+            html += "A good explanation mentions: (1) FE/FD to remove α_i; (2) remaining simultaneity; ";
+            html += "(3) instrument choice and transformation; and (4) cluster-robust inference.";
+        } else {
+            html += "Panel SEMs = FE/FD for heterogeneity + IV for simultaneity + clustering for time-series dependence within units.";
+        }
+
+        return html;
+    }
+
+    function resetPractice() {
+        currentScenario = null;
+        currentQuestions = [];
+        scenariosCompleted = 0;
+        document.getElementById("scenariosCompleted").textContent = "0";
+        document.getElementById("scenarioDisplay").style.display = "none";
+        document.getElementById("calculationArea").style.display = "none";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("interpretationDisplay").innerHTML = "";
+        document.getElementById("dataDisplay").innerHTML = "";
+        document.getElementById("scenarioDescription").innerHTML = "";
+        console.log("Panel SEM practice reset.");
+    }
+
+    document.getElementById("scenariosCompleted").textContent = "0";
+</script>
+</body>
+</html>
